@@ -1,0 +1,74 @@
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const isRedisConfigured = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const redis = isRedisConfigured ? new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+}) : null;
+
+export const ratelimit = redis ? {
+  api: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, '10 s'),
+    analytics: true,
+  }),
+  auth: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '15 m'),
+    analytics: true,
+  }),
+  rfq: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '1 h'),
+    analytics: true,
+  }),
+} : null;
+
+export async function checkRateLimit(identifier: string, type: 'api' | 'auth' | 'rfq' = 'api') {
+  if (!ratelimit) {
+    // Fallback when Redis is not configured - allow all requests
+    return {
+      success: true,
+      limit: 0,
+      reset: 0,
+      remaining: 0,
+      headers: {
+        'X-RateLimit-Limit': '0',
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': '0',
+      },
+    };
+  }
+  
+  try {
+    const { success, limit, reset, remaining } = await ratelimit[type].limit(identifier);
+    
+    return {
+      success,
+      limit,
+      reset,
+      remaining,
+      headers: {
+        'X-RateLimit-Limit': limit.toString(),
+        'X-RateLimit-Remaining': remaining.toString(),
+        'X-RateLimit-Reset': reset.toString(),
+      },
+    };
+  } catch (error) {
+    console.error('Rate limit error:', error);
+    // Fallback on error - allow request
+    return {
+      success: true,
+      limit: 0,
+      reset: 0,
+      remaining: 0,
+      headers: {
+        'X-RateLimit-Limit': '0',
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': '0',
+      },
+    };
+  }
+}

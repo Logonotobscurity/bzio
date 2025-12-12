@@ -1,0 +1,679 @@
+[
+    {
+      "id": "activa-2ltr",
+      "name": "Activa Oil 2L",
+      "images": [
+        "https://i.ibb.co/67nsgy8z/activa-2ltr.png",
+        "https://i.ibb.co/2rgnG84/activa-2ltrs.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "activa-3ltr",
+      "name": "Activa Oil 3L",
+      "images": [
+        "https://i.ibb.co/YByHxngk/activa-3ltrs-2.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "activa-5ltr",
+      "name": "Activa Oil 5L",
+      "images": [
+        "https://i.ibb.co/2TmQrfM/activa-5ltrs.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "activa-25ltr",
+      "name": "Activa Oil 25L",
+      "images": [
+        "https://i.ibb.co/Kj4V9LMs/activa-25l.png",
+        "https://i.ibb.co/JwMBcGNm/activa-25ltrs.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "activa-sachet-45ml",
+      "name": "Activa Oil Sachet 45ml",
+      "images": [
+        "https://i.ibb.co/LD8ySSm3/activa-sachet-45ml-2.png",
+        "https://i.ibb.co/whC60vkZ/activa-sachet-45ml.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "activa-1ltr",
+      "name": "Activa Oil 1L",
+      "images": [
+        "https://i.ibb.co/jPrrdnmy/activa-1lt-2.png",
+        "https://i.ibb.co/wrNbxF6B/activa-1lt.png"
+      ],
+      "companyId": 27,
+      "brand": "Activa"
+    },
+    {
+      "id": "crown-premiumpasta",
+      "name": "Crown Premium Pasta",
+      "images": [
+        "https://i.ibb.co/B2NX7dMm/Crown-premiumpasta.jpg"
+      ],
+      "companyId": 24,
+      "brand": "Crown Flour Mills"
+    },
+    {
+      "id": "dangote-sugar-1kg",
+      "name": "Dangote Sugar 1kg",
+      "images": [
+        "https://i.ibb.co/VY07nMWV/Dangote-1kg-sugar-x10.png"
+      ],
+      "brand": "Dangote Sugar"
+    },
+    {
+      "id": "dangote-sugar-250g",
+      "name": "Dangote Sugar 250g",
+      "images": [
+        "https://i.ibb.co/0jh98sP7/Dangote-250g-sugar-x40.png"
+      ],
+      "brand": "Dangote Sugar"
+    },
+    {
+      "id": "dangote-sugar-500g",
+      "name": "Dangote Sugar 500g",
+      "images": [
+        "https://i.ibb.co/ccPgpV1L/Dangote-500g-sugar-x20.png"
+      ],
+      "brand": "Dangote Sugar"
+    },
+    {
+      "id": "dano-cool-cow-sachet",
+      "name": "Dano Cool Cow Sachet",
+      "images": [
+        "https://i.ibb.co/ksr6PWs4/Dano-cool-cow-sachet.png"
+      ],
+      "brand": "Dano"
+    },
+    {
+      "id": "dano-cool-cow-refill-320g",
+      "name": "Dano Cool Cow Refill 320g",
+      "images": [
+        "https://i.ibb.co/wFfhXJdn/Dano-Cool-Cow-Refill-Milk-Powder-320g.png"
+      ],
+      "brand": "Dano"
+    },
+    {
+      "id": "golden-penny-prime-flour-50kg",
+      "name": "Golden Penny Prime Flour 50kg",
+      "images": [
+        "https://i.ibb.co/4wtcjvk6/Golden-penny-prime-flour-50kg.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "auntie-b-spaghetti-slim",
+      "name": "Auntie B Spaghetti Slim",
+      "images": [
+        "https://i.ibb.co/DDrkVs4b/Auntie-B-Spaghetti-Slim.jpg"
+      ],
+      "brand": "Auntie B"
+    },
+    {
+      "id": "golden-penny-amaizing-day-600g",
+      "name": "Golden Penny Amaizing Day 600g",
+      "images": [
+        "https://i.ibb.co/s97wRMNX/Goldenpenny-AMAIZING-DAY-600-G.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "auntie-b-semovita",
+      "name": "Auntie B Semovita",
+      "images": [
+        "https://i.ibb.co/cc1QXFLv/Auntie-B-Semovita.jpg"
+      ],
+      "brand": "Auntie B"
+    },
+    {
+      "id": "auntie-b-spaghetti",
+      "name": "Auntie B Spaghetti",
+      "images": [
+        "https://i.ibb.co/wNby9CK3/Auntie-B-Spaghetti.jpg"
+      ],
+      "brand": "Auntie B"
+    },
+    {
+      "id": "auntie-b-twist",
+      "name": "Auntie B Twist",
+      "images": [
+        "https://i.ibb.co/p6VpV1Q3/Auntie-B-Twist.jpg"
+      ],
+      "brand": "Auntie B"
+    },
+    {
+      "id": "golden-penny-chicken-noodles-70g",
+      "name": "Golden Penny Chicken Noodles 70g",
+      "images": [
+        "https://i.ibb.co/QjvYg14P/goldenpenny-chicken-noodles-70g.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-golden-bites",
+      "name": "Golden Penny Golden Bites",
+      "images": [
+        "https://i.ibb.co/5grpGxpK/Goldenpenny-golden-bites.jpg",
+        "https://i.ibb.co/Q7L7YXTZ/Goldenpenny-golden-bites.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-mayonnaise",
+      "name": "Golden Penny Mayonnaise",
+      "images": [
+        "https://i.ibb.co/wrcXypzy/goldenpenny-mayonnaise.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-noodle-goatmeat",
+      "name": "Golden Penny Noodle Goatmeat",
+      "images": [
+        "https://i.ibb.co/ccKGD249/Goldenpenny-noodle-goatmeat.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-noodles-jollof-chicken",
+      "name": "Golden Penny Noodles Jollof Chicken",
+      "images": [
+        "https://i.ibb.co/ZzfVzB1j/Goldenpenny-noodles-jollof-chicken.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-wheatmeal-goldenvita",
+      "name": "Golden Penny Wheatmeal Goldenvita",
+      "images": [
+        "https://i.ibb.co/mnhsCwf/Goldenpenny-wheatmeal-goldenvita.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-confectionary-flour-50kg",
+      "name": "Golden Penny Confectionary Flour 50kg",
+      "images": [
+        "https://i.ibb.co/qYW7KnkJ/Golden-Penny-Confectionary-Flour-50kg.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-cube-sugar",
+      "name": "Golden Penny Cube Sugar",
+      "images": [
+        "https://i.ibb.co/6RSXZNwQ/Golden-Penny-Cube-Sugar.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-garri",
+      "name": "Golden Penny Garri",
+      "images": [
+        "https://i.ibb.co/23K3dK5c/Golden-Penny-Garri.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-semovita-2kg",
+      "name": "Golden Penny Semovita 2kg",
+      "images": [
+        "https://i.ibb.co/1txXstSf/Golden-Penny-Semovita-2kg.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-spaghetti-500g",
+      "name": "Golden Penny Spaghetti 500g",
+      "images": [
+        "https://i.ibb.co/Wv1C38Cf/Golden-Penny-Spaghetti-500g.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-spaghettini-500g",
+      "name": "Golden Penny Spaghettini 500g",
+      "images": [
+        "https://i.ibb.co/Nn3wN6Hw/Golden-Penny-Spaghettini-500g.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-spread",
+      "name": "Golden Penny Spread",
+      "images": [
+        "https://i.ibb.co/rKRn7jpJ/Golden-Penny-Spread.jpg"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "golden-penny-twist-200g",
+      "name": "Golden Penny Twist 200g",
+      "images": [
+        "https://i.ibb.co/93NdXbdn/Golden-Penny-Twist-200g.png"
+      ],
+      "brand": "Golden Penny"
+    },
+    {
+      "id": "honeywell-noodles-chicken",
+      "name": "Honeywell Noodles Chicken",
+      "images": [
+        "https://i.ibb.co/Qvz6mNSc/Honeywell-Noodles-Chicken.png",
+        "https://i.ibb.co/v68MNnmB/Honeywell-noodles-chicken.webp"
+      ],
+      "brand": "Honeywell"
+    },
+    {
+      "id": "honeywell-semo",
+      "name": "Honeywell Semo",
+      "images": [
+        "https://i.ibb.co/SwcJFm7d/Honeywell-semo.webp"
+      ],
+      "brand": "Honeywell"
+    },
+    {
+      "id": "honeywell-slim-spaghetti",
+      "name": "Honeywell Slim Spaghetti",
+      "images": [
+        "https://i.ibb.co/Mk1dRSnw/Honeywell-Slim-Spaghetti.webp"
+      ],
+      "brand": "Honeywell"
+    },
+    {
+      "id": "honeywell-spaghetti",
+      "name": "Honeywell Spaghetti",
+      "images": [
+        "https://i.ibb.co/JRH99jTv/Honeywell-Spaghetti.webp"
+      ],
+      "brand": "Honeywell"
+    },
+    {
+      "id": "honeywell-cavatto",
+      "name": "Honeywell Cavatto",
+      "images": [
+        "https://i.ibb.co/d02CzXLp/Honeywell-cavatto.webp"
+      ],
+      "brand": "Honeywell"
+    },
+    {
+      "id": "indomie-belleful-noodles",
+      "name": "Indomie Belleful Noodles",
+      "images": [
+        "https://i.ibb.co/35pBDwmp/Indomie-Belleful-Noodles.png"
+      ],
+      "brand": "Indomie"
+    },
+    {
+      "id": "indomie-chicken-hungryman-noodles",
+      "name": "Indomie Chicken Hungryman Noodles",
+      "images": [
+        "https://i.ibb.co/chtwWQzx/Indomie-Chicken-Hungryman-Noodles.png"
+      ],
+      "brand": "Indomie"
+    },
+    {
+      "id": "indomie-chicken-noodles-70g",
+      "name": "Indomie Chicken Noodles 70g",
+      "images": [
+        "https://i.ibb.co/DHrY3r6D/Indomie-Chicken-Noodles-70g.png"
+      ],
+      "brand": "Indomie"
+    },
+    {
+      "id": "indomie-onion-chicken-noodles-70g",
+      "name": "Indomie Onion Chicken Noodles 70g",
+      "images": [
+        "https://i.ibb.co/qq0dGGT/Indomie-Onion-Chicken-noodles-70g.png"
+      ],
+      "brand": "Indomie"
+    },
+    {
+      "id": "indomie-super-pack-noodles",
+      "name": "Indomie Super Pack Noodles",
+      "images": [
+        "https://i.ibb.co/9HhJLqcy/Indomie-Super-pack-noodles.png"
+      ],
+      "brand": "Indomie"
+    },
+    {
+      "id": "irs-flour-50kg",
+      "name": "IRS Flour 50kg",
+      "images": [
+        "https://i.ibb.co/3mkWJjHg/IRS-Flour-50kg.png"
+      ],
+      "brand": "IRS"
+    },
+    {
+      "id": "irs-pasta-slim",
+      "name": "IRS Pasta Slim",
+      "images": [
+        "https://i.ibb.co/Q3DnxFHc/IRS-Pasta-Slim.png"
+      ],
+      "brand": "IRS"
+    },
+    {
+      "id": "irs-slim-spaghetti",
+      "name": "IRS Slim Spaghetti",
+      "images": [
+        "https://i.ibb.co/qL23c1xZ/IRS-Slim-Spaghetti.png"
+      ],
+      "brand": "IRS"
+    },
+    {
+      "id": "kings-oil",
+      "name": "Kings Oil",
+      "images": [
+        "https://i.ibb.co/8D3pxNrd/kings-oil.webp",
+        "https://i.ibb.co/hR8r3hsm/kings-oil.webp",
+        "https://i.ibb.co/d4vW2KL3/kings-oil1-2.webp",
+        "https://i.ibb.co/yFyVnQ3R/kings1-3-jpg.webp"
+      ],
+      "companyId": 27,
+      "brand": "Kings"
+    },
+    {
+      "id": "laziz-chocolate-drink",
+      "name": "Laziz Chocolate Drink",
+      "images": [
+        "https://i.ibb.co/nqS8nkXc/Laziz-Chocolate-Drink.jpg"
+      ],
+      "companyId": 24,
+      "brand": "Laziz"
+    },
+    {
+      "id": "mamador-oil",
+      "name": "Mamador Oil",
+      "images": [
+        "https://i.ibb.co/VY7f7rk9/mamador-oil.png"
+      ],
+      "companyId": 27,
+      "brand": "Mamador"
+    },
+    {
+      "id": "mamador-seasoning-chickencube",
+      "name": "Mamador Seasoning Chickencube",
+      "images": [
+        "https://i.ibb.co/yFvPgrxZ/mamador-seasoning-chickencube-2.png",
+        "https://i.ibb.co/1tgXWP3r/mamador-seasoning-chickencube.png"
+      ],
+      "companyId": 27,
+      "brand": "Mamador"
+    },
+    {
+      "id": "mamador-spread",
+      "name": "Mamador Spread",
+      "images": [
+        "https://i.ibb.co/1GbP1Bg4/mamador-spread.png"
+      ],
+      "companyId": 27,
+      "brand": "Mamador"
+    },
+    {
+      "id": "mama-gold-flour-50kg",
+      "name": "Mama Gold Flour 50kg",
+      "images": [
+        "https://i.ibb.co/PZ9gxtMB/Mama-Gold-Flour-50kg.webp"
+      ],
+      "brand": "Mamagold"
+    },
+    {
+      "id": "mimee-noodles",
+      "name": "Mimee Noodles",
+      "images": [
+        "https://i.ibb.co/60jkmq0r/MIMEE-NOODLES.png"
+      ],
+      "brand": "Mimee"
+    },
+    {
+      "id": "minimie-chinchin-sachet",
+      "name": "Minimie Chinchin Sachet",
+      "images": [
+        "https://i.ibb.co/zWzSGztZ/Minimie-Chinchin-Sachet.png"
+      ],
+      "brand": "Minimie"
+    },
+    {
+      "id": "mrchef-salt-500g",
+      "name": "MrChef Salt 500g",
+      "images": [
+        "https://i.ibb.co/Gf8Vd2mf/mrchef-salt-500g.png"
+      ],
+      "brand": "Mr Chef"
+    },
+    {
+      "id": "power-oil-1.5l",
+      "name": "Power Oil 1.5L",
+      "images": [
+        "https://i.ibb.co/B2BcXLkv/power-oil-1-5-L.png"
+      ],
+      "companyId": 27,
+      "brand": "Power Oil"
+    },
+    {
+      "id": "power-oil-2.6l",
+      "name": "Power Oil 2.6L",
+      "images": [
+        "https://i.ibb.co/X1xCnQY/power-oil-2-6-L.png"
+      ],
+      "companyId": 27,
+      "brand": "Power Oil"
+    },
+    {
+      "id": "power-oil-75cl",
+      "name": "Power Oil 75cl",
+      "images": [
+        "https://i.ibb.co/KkYY49Q/power-oil-75cl.png"
+      ],
+      "companyId": 27,
+      "brand": "Power Oil"
+    },
+    {
+      "id": "power-oil-150ml",
+      "name": "Power Oil 150ml",
+      "images": [
+        "https.i.ibb.co/Dsw1VLb/power-oil-150ml.png",
+        "https://i.ibb.co/LXykxK5t/poweroil-150ml-1.png"
+      ],
+      "companyId": 27,
+      "brand": "Power Oil"
+    },
+    {
+      "id": "sonia-210g-tomato",
+      "name": "Sonia 210g Tomato",
+      "images": [
+        "https://i.ibb.co/jZ4cWQ6V/Sonia-210g-tomato.jpg"
+      ],
+      "brand": "Sonia"
+    },
+    {
+      "id": "sonia-tomato-2.2",
+      "name": "Sonia Tomato 2.2",
+      "images": [
+        "https://i.ibb.co/21YmbQSc/Sonia-tomato-2-2.jpg"
+      ],
+      "brand": "Sonia"
+    },
+    {
+      "id": "sonia-tomato-400g",
+      "name": "Sonia Tomato 400g",
+      "images": [
+        "https://i.ibb.co/wNZRzWsK/Sonia-tomato-400g.jpg"
+      ],
+      "brand": "Sonia"
+    },
+    {
+      "id": "sonia-70g-tomato-sachet",
+      "name": "Sonia 70g Tomato Sachet",
+      "images": [
+        "https://i.ibb.co/j9kyLGch/Sonia-70g-tomato-Sachet.jpg"
+      ],
+      "brand": "Sonia"
+    },
+    {
+      "id": "terra-beef-1cube",
+      "name": "Terra Beef 1 Cube",
+      "images": [
+        "https://i.ibb.co/fYSwD5Fq/Terra-beef-1cube.webp"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-chicken-seasoning-1cube",
+      "name": "Terra Chicken Seasoning 1 Cube",
+      "images": [
+        "https://i.ibb.co/Ps6zN7jp/Terra-chicken-seasoning-1cube.webp"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-gold-seasoning-1cube",
+      "name": "Terra Gold Seasoning 1 Cube",
+      "images": [
+        "https://i.ibb.co/KjzBgT4g/Terra-Gold-Seasoning-1cube.webp"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-oil-1.4l",
+      "name": "Terra Oil 1.4L",
+      "images": [
+        "https://i.ibb.co/8LMKBtJ4/Terra-oil-1-4-L.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-oil-2.5l",
+      "name": "Terra Oil 2.5L",
+      "images": [
+        "https://i.ibb.co/nMzz084d/terra-oil-2-5-L.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-oil-25l",
+      "name": "Terra Oil 25L",
+      "images": [
+        "https://i.ibb.co/7dcZWvkr/terra-oil-25-L.png",
+        "https://i.ibb.co/VYC7kQ7j/terra-oil-25-Ltr.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-oil-45ml",
+      "name": "Terra Oil 45ml",
+      "images": [
+        "https://i.ibb.co/21QyKb9h/Terra-oil-45ml.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-oil-700ml",
+      "name": "Terra Oil 700ml",
+      "images": [
+        "https://i.ibb.co/C559NLC7/Terra-oil-700ml.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-shrimp-seasoning-1cube",
+      "name": "Terra Shrimp Seasoning 1 Cube",
+      "images": [
+        "https://i.ibb.co/B2hQFVSp/Terra-shrimp-seasoning-1cube.webp"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-beef-saver-pack",
+      "name": "Terra Beef Saver Pack",
+      "images": [
+        "https://i.ibb.co/RGSKzN89/Terra-Beef-Saver-Pack.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-chicken-super-saver-pack",
+      "name": "Terra Chicken Super Saver Pack",
+      "images": [
+        "https://i.ibb.co/wts1vYN/Terra-Chicken-Super-Saver-Pack.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-gold-20-cubes",
+      "name": "Terra Gold 20 Cubes",
+      "images": [
+        "https://i.ibb.co/Cs1sC5Q4/Terra-Gold-20-cubes.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-gold-100cubes-seasoning",
+      "name": "Terra Gold 100 Cubes Seasoning",
+      "images": [
+        "https://i.ibb.co/FbYB9pVg/Terra-Gold-100cubes-Seasoning.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-saver-pack",
+      "name": "Terra Saver Pack",
+      "images": [
+        "https://i.ibb.co/PZvWJWzV/Terra-Saver-Pack.png"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "terra-shrimp-seasoning-24-cubes",
+      "name": "Terra Shrimp Seasoning 24 Cubes",
+      "images": [
+        "https://i.ibb.co/TxZFVn9n/Terra-Shrimp-Seasoning-24-cubes.webp"
+      ],
+      "companyId": 26,
+      "brand": "Terra"
+    },
+    {
+      "id": "vitali-margerine",
+      "name": "Vitali Margerine",
+      "images": [
+        "https://i.ibb.co/67VdJ4dF/vitali-margerine.png"
+      ],
+      "companyId": 24,
+      "brand": "Vitali"
+    },
+    {
+      "id": "whippy-mayonnaise",
+      "name": "Whippy Mayonnaise",
+      "images": [
+        "https://i.ibb.co/DgVcVN31/whippy-mayonnaise.png"
+      ],
+      "companyId": 27,
+      "brand": "Whippy"
+    }
+  ]

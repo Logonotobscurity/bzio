@@ -1,0 +1,59 @@
+
+groups:
+  - name: Application Alerts
+    rules:
+      
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) by (service) / 
+           sum(rate(http_requests_total[5m])) by (service)) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected in {{ $labels.service }}"
+          
+      # Product Card Load Time Alert
+      - alert: SlowProductCard
+        expr: |
+          histogram_quantile(0.95, rate(product_card_load_duration_ms_bucket[5m])) > 2000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Product card load time exceeding 2 seconds"
+          
+      # Quote Request Failed Alert
+      - alert: QuoteRequestFailure
+        expr: |
+          (sum(rate(quote_request_errors_total[5m])) > 5) or
+          (sum(rate(quote_request_duration_seconds_bucket{le="+Inf"}[5m])) - 
+           sum(rate(quote_request_duration_seconds_bucket{le="30"}[5m])) > 0.1)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Quote request failure rate or latency exceeded"
+          action: "Check quote_requests table, admin API, email service"
+          
+      # Database Connection Pool Exhausted
+      - alert: DBConnectionPoolExhausted
+        expr: |
+          mysql_global_status_threads_connected / mysql_global_variables_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool at {{ $value }}% capacity"
+
+  - name: Analytics Pipeline Alerts
+    rules:
+      - alert: AnalyticsEventProcessingLag
+        expr: |
+          (time() - kafka_topic_partition_current_offset{topic="analytics_events"}) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Analytics events processing delayed by {{ $value }}s"

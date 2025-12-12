@@ -1,0 +1,136 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "A modern warehouse with goods on shelves.",
+      "imageUrl": "https://i.ibb.co/zh8DKv5F/b.png",
+      "imageHint": "warehouse logistics"
+    },
+    {
+      "id": "hero-2",
+      "description": "A cargo ship with containers.",
+      "imageUrl": "https://i.ibb.co/d02nnZV0/c.png",
+      "imageHint": "cargo ship"
+    },
+    {
+      "id": "hero-3",
+      "description": "Supermarket aisle with shelves of products.",
+      "imageUrl": "https://i.ibb.co/k64syFCN/f.png",
+      "imageHint": "supermarket aisle"
+    },
+    {
+      "id": "product-1",
+      "description": "Packaged rice on a store shelf.",
+      "imageUrl": "https://images.unsplash.com/photo-1757845301558-e8e7dd41bc64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYWNrYWdlZCUyMHJpY2V8ZW58MHx8fHwxNzY0MTE1ODMyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "packaged rice"
+    },
+    {
+      "id": "product-2",
+      "description": "Bottles of cooking oil.",
+      "imageUrl": "https://images.unsplash.com/photo-1720468750623-39e9a09f5067?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb29raW5nJTIwb2lsfGVufDB8fHx8MTc2NDExNTgzMnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "cooking oil"
+    },
+    {
+      "id": "product-3",
+      "description": "Cans of soft drinks.",
+      "imageUrl": "https://images.unsplash.com/photo-1700156148937-06565844f6ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYW5uZWQlMjBkcmlua3N8ZW58MHx8fHwxNzY0MTE1ODMyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "canned drinks"
+    },
+    {
+      "id": "product-4",
+      "description": "Boxes of breakfast cereal.",
+      "imageUrl": "https://images.unsplash.com/photo-1741521641204-e93a2f028316?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjZXJlYWwlMjBib3h8ZW58MHx8fHwxNzY0MDg3Mzk4fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "cereal box"
+    },
+    {
+      "id": "product-5",
+      "description": "Jars of jam and preserves.",
+      "imageUrl": "https://images.unsplash.com/photo-1707092009843-2b5a919d17b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxqYW0lMjBqYXJzfGVufDB8fHx8MTc2NDExNTgzMnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "jam jars"
+    },
+    {
+      "id": "product-6",
+      "description": "Packets of instant noodles.",
+      "imageUrl": "https://images.unsplash.com/photo-1641736495436-921e490112e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxpbnN0YW50JTIwbm9vZGxlc3xlbnwwfHx8fDE3NjQxMTU4MzJ8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "instant noodles"
+    },
+    {
+      "id": "about-us",
+      "description": "A team of professionals in a meeting.",
+      "imageUrl": "https://images.unsplash.com/photo-1616587656977-ac36a5a430bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzY0MDQwNDI2fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "business meeting"
+    },
+    {
+      "id": "login-bg",
+      "description": "Abstract geometric pattern with blue and gold colors.",
+      "imageUrl": "https://images.unsplash.com/photo-1605106702842-01a887a31122?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMHBhdHRlcm58ZW58MHx8fHwxNzYzOTk1MjIwfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract pattern"
+    },
+    {
+      "id": "leadership-bg",
+      "description": "Portrait of a business professional.",
+      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHByb2Zlc3Npb25hbCUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NDExNTgzMnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "business portrait"
+    },
+    {
+      "id": "customer-retail",
+      "description": "A bustling supermarket with customers.",
+      "imageUrl": "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdXBlcm1hcmtldHxlbnwwfHx8fDE3NjQxMTU4MzJ8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "supermarket customers"
+    },
+    {
+      "id": "customer-wholesalers",
+      "description": "A large warehouse with stacks of boxes.",
+      "imageUrl": "https://images.unsplash.com/photo-1586528116311-06924151d159?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aG9sZXNhbGUlMjB3YXJlaG91c2V8ZW58MHx8fHwxNzY0MTE1ODMyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "wholesale warehouse"
+    },
+    {
+      "id": "customer-institutions",
+      "description": "A school cafeteria with students eating.",
+      "imageUrl": "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxpbnN0aXR1dGlvbmFsJTIwY2FmZXRlcmlhfGVufDB8fHx8MTc2NDExNTgzMnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "institutional cafeteria"
+    },
+    {
+      "id": "customer-events",
+      "description": "A catered event with food platters.",
+      "imageUrl": "https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXRlcmVkJTIwZXZlbnR8ZW58MHx8fHwxNzY0MjAzNDM0fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "catered event"
+    },
+    {
+      "id": "customer-export",
+      "description": "A cargo ship being loaded with containers for export.",
+      "imageUrl": "https://images.unsplash.com/photo-1578574577315-3fbeb0cecdc2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXJnbyUyMHNoaXAlMjBsb2FkaW5nfGVufDB8fHx8MTc2NDIwMzQzNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "cargo ship loading"
+    },
+    {
+      "id": "customer-hospitality",
+      "description": "A chef preparing a gourmet meal in a hotel kitchen.",
+      "imageUrl": "https://images.unsplash.com/photo-1551218808-94e220e084d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxob3RlbCUyMGtpdGNoZW58ZW58MHx8fHwxNzY0MjAzNDM0fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "hotel kitchen"
+    },
+    {
+      "id": "bzion-story",
+      "description": "ceomadam full headshot",
+      "imageUrl": "https://i.ibb.co/KxCZG4qJ/ceomadam.png",
+      "imageHint": "ceo message"
+    },
+    {
+      "id": "bukola-atinsola",
+      "description": "A professional headshot of Bukola Atinsola, the founder and CEO.",
+      "imageUrl": "https://i.ibb.co/tMBGJwR5/CEO.png",
+      "imageHint": "business portrait"
+    },
+    {
+      "id": "bua-foods-logo",
+      "description": "BUA Foods company logo.",
+      "imageUrl": "https://images.unsplash.com/photo-1622465911368-72162f8da3e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb21wYW55JTIwbG9nb3xlbnwwfHx8fDE3NjQxNjAwMzB8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "company logo"
+    },
+    {
+      "id": "contact-hq",
+      "description": "BZION's modern headquarters building in Ogun State.",
+      "imageUrl": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBvZmZpY2UlMjBwYXJrfGVufDB8fHx8MTc2NDIzODk3N3ww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern office"
+    }
+  ]
+}

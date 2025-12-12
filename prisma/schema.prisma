@@ -1,0 +1,328 @@
+// Prisma schema with User Management, Quote System, Analytics, and Notifications
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =====================================================
+// CORE MODELS
+// =====================================================
+
+model Brand {
+  id                 Int       @id @default(autoincrement())
+  name               String    @unique
+  slug               String    @unique
+  brandDescription   String?   @map("brand_description")
+  companyId          Int?
+  imageUrl           String?
+  isFeatured         Boolean   @default(false)
+
+  company            Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  products           Product[]
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+
+  products    ProductCategory[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+}
+
+model Company {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  logo        String?
+
+  products    Product[]
+  brands      Brand[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+}
+
+model Product {
+  id                  Int               @id @default(autoincrement())
+  sku                 String            @unique
+  slug                String            @unique
+  name                String
+  description         String?
+  detailedDescription String?           @map("detailedDescription")
+  price               Float?
+  isActive            Boolean           @default(true)
+  inStock             Boolean           @default(true)
+  isFeatured          Boolean           @default(false)
+  moq                 Int?
+  quantity            Int?
+  rating              Float?
+  reviewCount         Int?
+  specifications      Json?
+  tags                String[]
+  unit                String?
+
+  brandId             Int?
+  brand               Brand?            @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  companyId           Int?
+  company             Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  categoryId          Int?
+  categories          ProductCategory[]
+
+  images              ProductImage[]
+  views               ProductView[]     // Relation to ProductView
+  favoritedBy         UserFavorite[]    // Relation to UserFavorite
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now()) @updatedAt
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  alt       String?
+  order     Int?
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([productId, order], name: "ProductImage_product_order_key")
+}
+
+model ProductCategory {
+  productId  Int
+  categoryId Int
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+
+// =====================================================
+// USER MANAGEMENT MODELS
+// =====================================================
+
+model User {
+  id               Int       @id @default(autoincrement())
+  email            String    @unique
+  passwordHash     String?   @map("password_hash")
+  firstName        String?   @map("first_name")
+  lastName         String?   @map("last_name")
+  phone            String?   @unique
+  role             String    @default("customer") // e.g., customer, admin
+  emailVerified    DateTime? @map("email_verified")
+  isActive         Boolean   @default(true)
+  
+  companyName      String?   @map("company_name")
+
+  addresses        Address[]
+  quotes           Quote[]
+  notifications    Notification[]
+  productViews     ProductView[]
+  searchQueries    SearchQuery[]
+  favorites        UserFavorite[]
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Address {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @map("user_id")
+  type           String    // shipping, billing
+  isDefault      Boolean   @default(false) @map("is_default")
+  
+  label          String?
+  contactPerson  String?   @map("contact_person")
+  phone          String?
+  
+  addressLine1   String    @map("address_line1")
+  addressLine2   String?   @map("address_line2")
+  city           String
+  state          String
+  postalCode     String?   @map("postal_code")
+  country        String    @default("Nigeria")
+  
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("addresses")
+}
+
+// =====================================================
+// QUOTE MODELS
+// =====================================================
+
+model Quote {
+  id                 String   @id @default(uuid())
+  reference          String   @unique
+  
+  userId             Int?     @map("user_id")
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  buyerCompanyId     String?
+  buyerContactPhone  String?
+  buyerContactEmail  String?
+  
+  status             String   @default("draft")
+  total              Float?
+  
+  lines              QuoteLine[]
+  messages           NegotiationMessage[]
+  events             QuoteEvent[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model QuoteLine {
+  id        String  @id @default(uuid())
+  quoteId   String
+  productId String? 
+  qty       Int
+  unitPrice Float?
+  
+  quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  productName String
+  productSku  String?
+  description String?
+}
+
+model NegotiationMessage {
+  id              String   @id @default(uuid())
+  quoteId         String
+  direction       String   
+  channel         String   
+  fromNumber      String?
+  toNumber        String?
+  body            String
+  vendorMessageId String?
+  metadata        Json?
+  status          String?  
+  
+  quote           Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+}
+
+model QuoteEvent {
+  id        String   @id @default(uuid())
+  quoteId   String
+  actorId   String?  
+  eventType String
+  payload   Json
+  version   Int      @default(1)
+  
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// =====================================================
+// NOTIFICATION & ANALYTICS MODELS
+// =====================================================
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  type        String    
+  message     String
+  isRead      Boolean   @default(false)
+  link        String?   
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("notifications")
+}
+
+model ProductView {
+  id        Int       @id @default(autoincrement())
+  productId Int
+  userId    Int?      
+  ipAddress String?
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+
+  @@map("product_views")
+}
+
+model SearchQuery {
+  id        Int       @id @default(autoincrement())
+  query     String
+  userId    Int?      
+  results   Int       @default(0)
+
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+
+  @@map("search_queries")
+}
+
+model UserFavorite {
+  userId    Int
+  productId Int
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+
+  @@id([userId, productId])
+  @@map("user_favorites")
+}
+
+// =====================================================
+// ERROR LOGGING MODEL
+// =====================================================
+
+model ErrorLog {
+  id          String   @id @default(uuid())
+  message     String
+  stack       String?
+  context     Json?
+  severity    String
+  url         String
+  userAgent   String?
+  sessionId   String
+  userId      String?
+  breadcrumbs Json?
+  sourceMap   Json?
+  environment String
+  version     String
+  timestamp   DateTime @default(now())
+
+  @@map("error_logs")
+}

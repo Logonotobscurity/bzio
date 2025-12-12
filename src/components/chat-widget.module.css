@@ -1,0 +1,35 @@
+/* Chat Widget SVG and animation styles */
+.chatIconSvg {
+  width: 32px;
+  height: 32px;
+}
+
+@media (min-width: 640px) {
+  .chatIconSvg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 768px) {
+  .chatIconSvg {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.typingBubbleBase {
+  animation-delay: 0ms;
+}
+
+.typingBubbleDelay1 {
+  animation-delay: 150ms;
+}
+
+.typingBubbleDelay2 {
+  animation-delay: 300ms;
+}
+
+.chatIconPath {
+  fill: #008ad0;
+}

@@ -1,0 +1,105 @@
+
+# STYLING GUIDE: Responsive Breakpoints, Sizing, and Styling Approach
+
+This document outlines the core principles of the application's styling architecture. It is designed to ensure consistency, scalability, and a high-quality user experience across all devices.
+
+---
+
+## 1. Responsive Breakpoints & Behavior
+
+The project employs a **fluid-first responsive design strategy**, which means that instead of relying on a few fixed breakpoints, the layout and typography scale smoothly with the viewport size. This is achieved using CSS `clamp()` functions for most sizing and spacing.
+
+However, standard breakpoints are used for major layout shifts (e.g., changing from a single-column to a multi-column grid). These follow Tailwind CSS defaults:
+
+| Breakpoint | Minimum Width | CSS Media Query            | Target Device      |
+| :---       | :---          | :---                       | :---               |
+| `sm`       | 640px         | `@media (min-width: 640px)`  | Small tablets      |
+| `md`       | 768px         | `@media (min-width: 768px)`  | Tablets            |
+| `lg`       | 1024px        | `@media (min-width: 1024px)` | Laptops            |
+| `xl`       | 1280px        | `@media (min-width: 1280px)` | Desktops           |
+| `2xl`      | 1536px        | `@media (min-width: 1536px)` | Large desktops     |
+
+**Primary Behavior:** Use fluid sizing for typography and spacing. Use Tailwind's responsive prefixes (`md:`, `lg:`, etc.) for structural layout changes only.
+
+---
+
+## 2. Section Sizes & Spacing System
+
+All spacing (margins, padding, gaps) is defined by a set of CSS variables in `src/app/globals.css` and mapped to Tailwind's theme in `tailwind.config.ts`. This ensures a consistent visual rhythm throughout the application.
+
+### A. Section Padding (Vertical)
+
+These variables control the vertical space (`padding-top` and `padding-bottom`) of major page sections.
+
+| Tailwind Class | Variable Name              | Fluid Size Range (min → max) |
+| :---           | :---                       | :---                         |
+| `py-section-xs`| `--section-spacing-xs`     | `48px` → `80px`              |
+| `py-section-sm`| `--section-spacing-sm`     | `64px` → `112px`             |
+| `py-section-md`| `--section-spacing-md`     | `96px` → `160px`             |
+| `py-section-lg`| `--section-spacing-lg`     | `128px` → `224px`            |
+| `py-section-xl`| `--section-spacing-xl`     | `160px` → `288px`            |
+
+**Example Usage:** `<section className="py-section-md">...</section>`
+
+### B. Grid & Flex Gaps
+
+These variables control the spacing between elements in a grid or flex container.
+
+| Tailwind Class | Variable Name | Fluid Size Range (min → max) |
+| :---           | :---          | :---                         |
+| `gap-gap-xxs`  | `--gap-xxs`   | `12px` → `16px`              |
+| `gap-gap-xs`   | `--gap-xs`    | `16px` → `24px`              |
+| `gap-gap-sm`   | `--gap-sm`    | `24px` → `40px`              |
+| `gap-gap-md`   | `--gap-md`    | `32px` → `56px`              |
+| `gap-gap-lg`   | `--gap-lg`    | `48px` → `80px`              |
+| `gap-gap-xl`   | `--gap-xl`    | `64px` → `112px`             |
+
+**Example Usage:** `<div className="grid grid-cols-3 gap-gap-md">...</div>`
+
+### C. Container Padding (Horizontal)
+
+This variable controls the left and right padding of main page containers, ensuring content doesn't touch the screen edges.
+
+| Tailwind Class   | Variable Name             | Fluid Size Range (min → max) |
+| :---             | :---                      | :---                         |
+| `px-container-px`| `--container-padding-x`   | `24px` → `64px`              |
+
+**Example Usage:** `<div className="container-constrained px-container-px">...</div>`
+
+### D. Navigation (Header/Footer) Spacing
+
+These variables control the spacing within the main header navigation and footer link sections.
+
+| Tailwind Class | Variable Name        | Fluid Size Range (min → max) | Description               |
+| :---           | :---                 | :---                         | :---                      |
+| `gap-nav-gap`  | `--nav-gap`          | `6px` → `10px`               | Gap between nav items     |
+| `px-nav-px`    | `--nav-padding-x`    | `8px` → `12px`               | Horizontal padding in nav |
+| `py-nav-py`    | `--nav-padding-y`    | `6px` → `8px`                | Vertical padding in nav   |
+
+**Example Usage:** `<nav className="flex items-center gap-nav-gap">...</nav>`
+
+---
+
+## 3. Styling Approach
+
+Our styling approach is built on a clear hierarchy to ensure maintainability and consistency.
+
+### A. Core Styling (`src/app/globals.css`)
+
+- **CSS Variables for Theming**: All colors, border radii, and spacing are defined as CSS variables under the `:root` selector. This allows for easy theme switching (e.g., dark mode) and global style changes.
+- **Fluid Typography**: Headings (`h1`-`h4`) and paragraph tags use `clamp()` to scale their `font-size` based on the viewport width, ensuring text is always legible and well-proportioned.
+- **Base Styles**: Base styles for `body`, `html`, and other global elements are defined here.
+
+### B. Tailwind CSS (`tailwind.config.ts`)
+
+- **Utility-First**: We use Tailwind CSS for the majority of styling. Utility classes are composed to build components directly in the JSX.
+- **Theme Integration**: The `tailwind.config.ts` file is configured to use the CSS variables from `globals.css`. For example, `bg-primary` maps to `hsl(var(--primary))`. This ensures that Tailwind's utilities are always in sync with our design system.
+- **No Magic Numbers**: Developers should always use the predefined theme values (e.g., `p-gap-md`) instead of arbitrary values (e.g., `p-[32px]`).
+
+### C. Shadcn/UI Components (`src/components/ui/`)
+
+- **Un-opinionated Building Blocks**: We use `shadcn/ui` for our base component library (Button, Card, Input, etc.). These components are intentionally simple and can be composed to build more complex features.
+- **Consistency**: Using these pre-built components ensures a consistent look and feel across the application and improves development speed.
+- **Styling**: These components are styled using the same Tailwind utilities and CSS variables, so they automatically adapt to our theme.
+
+By adhering to this structured approach, we ensure that the application's visual language remains consistent, responsive, and easy to maintain as the project grows.

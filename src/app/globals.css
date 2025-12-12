@@ -1,0 +1,399 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe area support for notched devices */
+.safe-area-inset-bottom {
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+.safe-area-inset-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.safe-area-inset-left {
+  padding-left: max(0px, env(safe-area-inset-left));
+}
+
+.safe-area-inset-right {
+  padding-right: max(0px, env(safe-area-inset-right));
+}
+
+@layer base {
+  :root {
+    --background: 220 20% 96%; /* Light Gray */
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 220.5 100% 18.8%; /* BZION Blue */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 47.9 95.8% 53.1%; /* BZION Gold */
+    --secondary-foreground: 224 71.4% 4.1%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 47.9 95.8% 53.1%; /* BZION Gold */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 47.9 95.8% 53.1%;
+    --radius: 1.5rem;
+
+    /* FLUID TYPOGRAPHY SYSTEM - Using clamp() for smooth scaling */
+    /* H1: 2rem min → scales with 5vw → 4.5rem max */
+    /* H2: 1.75rem min → scales with 3.5vw → 3rem max */
+    /* Body: 1rem min → scales with 0.5vw → 1.125rem max */
+    
+    /* Section Spacing Variables - Responsive with clamp() */
+    --section-spacing-xs: clamp(2rem, 4vw, 3.5rem);      /* Mobile 32px → Desktop 56px */
+    --section-spacing-sm: clamp(3rem, 6vw, 5rem);        /* Mobile 48px → Desktop 80px */
+    --section-spacing-md: clamp(4rem, 8vw, 6.5rem);      /* Mobile 64px → Desktop 104px */
+    --section-spacing-lg: clamp(5rem, 10vw, 8rem);       /* Mobile 80px → Desktop 128px */
+    --section-spacing-xl: clamp(6rem, 12vw, 10rem);      /* Mobile 96px → Desktop 160px */
+    
+    /* Grid Gap Variables - Proportional responsive gaps */
+    --gap-xxs: clamp(0.5rem, 1vw, 0.75rem);              /* Mobile 8px → Desktop 12px */
+    --gap-xs: clamp(0.75rem, 1.5vw, 1.25rem);            /* Mobile 12px → Desktop 20px */
+    --gap-sm: clamp(1rem, 2vw, 1.5rem);                  /* Mobile 16px → Desktop 24px */
+    --gap-md: clamp(1.5rem, 3vw, 2.5rem);                /* Mobile 24px → Desktop 40px */
+    --gap-lg: clamp(2rem, 4vw, 3.5rem);                  /* Mobile 32px → Desktop 56px */
+    --gap-xl: clamp(3rem, 6vw, 5rem);                    /* Mobile 48px → Desktop 80px */
+    
+    /* Container Padding - Full width with responsive horizontal padding */
+    --container-padding-x: clamp(1rem, 4vw, 3.5rem);     /* Mobile 16px → Desktop 56px */
+    
+    /* Navbar Spacing - Optimized for compact header */
+    --navbar-padding-block: clamp(0.875rem, 1.5vw, 1rem);     /* 14px → 16px */
+    --navbar-padding-inline: clamp(1.5rem, 3vw, 2.5rem);      /* 24px → 40px */
+    --navbar-gap: clamp(1.25rem, 3vw, 2rem);                  /* 20px → 32px */
+    
+    /* Nav Link Spacing - Tighter for compact layout */
+    --nav-link-spacing: clamp(0.125rem, 0.25vw, 0.375rem);    /* 2px → 6px */
+    --nav-link-padding-inline: clamp(0.625rem, 0.75vw, 0.875rem); /* 10px → 14px */
+    --nav-link-padding-block: clamp(0.375rem, 0.5vw, 0.5rem);    /* 6px → 8px */
+    
+    /* Button Spacing - Responsive button scaling */
+    --btn-padding-x-sm: clamp(0.75rem, 1.5vw, 1rem);     /* Mobile 12px → Desktop 16px */
+    --btn-padding-x-lg: clamp(1rem, 2.5vw, 1.5rem);      /* Mobile 16px → Desktop 24px */
+    --btn-padding-y: clamp(0.5rem, 1vw, 0.75rem);        /* Mobile 8px → Desktop 12px */
+    
+    /* Card Padding - Responsive inner spacing */
+    --card-padding: clamp(1.5rem, 3vw, 2.5rem);          /* Mobile 24px → Desktop 40px */
+    --card-gap: clamp(1rem, 2vw, 1.5rem);                /* Mobile 16px → Desktop 24px */
+    
+    /* Border Radius - Subtle responsive rounding */
+    --radius-sm: clamp(0.375rem, 0.5vw, 0.5rem);         /* 6px → 8px */
+    --radius-md: clamp(0.5rem, 1vw, 1rem);               /* 8px → 16px */
+    --radius-lg: clamp(0.75rem, 1.5vw, 1.5rem);          /* 12px → 24px */
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 224 71.4% 4.1%;
+    --secondary: 47.9 95.8% 53.1%;
+    --secondary-foreground: 224 71.4% 4.1%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 215 25% 65.1%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 47.9 95.8% 53.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border tracking-tight;
+  }
+  html {
+    font-size: 16px;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  h1, .text-h1 {
+    font-size: clamp(2rem, 5vw + 1rem, 4.5rem);
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  h2, .text-h2 {
+    font-size: clamp(1.75rem, 3.5vw + 0.75rem, 3.5rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  h3, .text-h3 {
+    font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2.5rem);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  h4, .text-h4 {
+    font-size: clamp(1.125rem, 1.5vw + 0.5rem, 1.75rem);
+    line-height: 1.4;
+    font-weight: 600;
+  }
+  p, div, span, a, li, button {
+     font-size: clamp(1rem, 0.5vw + 0.875rem, 1.125rem);
+     line-height: 1.6;
+  }
+
+  .text-fluid-body-lg {
+    font-size: clamp(1.125rem, 1vw + 0.875rem, 1.5rem);
+    line-height: 1.6;
+  }
+
+  .text-fluid-body {
+    font-size: clamp(1rem, 0.5vw + 0.875rem, 1.125rem);
+    line-height: 1.6;
+  }
+
+  .text-fluid-small {
+    font-size: clamp(0.875rem, 0.25vw + 0.75rem, 1.0625rem);
+    line-height: 1.5;
+  }
+
+  .text-fluid-xs {
+    font-size: clamp(0.75rem, 0.1vw + 0.7rem, 0.875rem);
+    line-height: 1.5;
+  }
+
+  .text-nav {
+    font-size: clamp(0.875rem, 0.5vw + 0.75rem, 1rem);
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Responsive Transitions & Animations */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-bounce {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* Page Loader Animations */
+  @keyframes rotate-loader {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes dash-loader {
+    0% {
+      stroke-dasharray: 1, 200;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 200;
+      stroke-dashoffset: -35px;
+    }
+    100% {
+      stroke-dashoffset: -125px;
+    }
+  }
+
+  .animate-spin-loader {
+    width: 3.25em;
+    transform-origin: center;
+    animation: rotate-loader 2s linear infinite;
+  }
+
+  .animate-dash-loader {
+    animation: dash-loader 1.5s ease-in-out infinite;
+  }
+  
+  /* Full-Width Container with Proportional Padding */
+  .container-full {
+    width: 100%;
+    padding-left: var(--container-padding-x);
+    padding-right: var(--container-padding-x);
+  }
+  
+  .container-constrained {
+    width: 100%;
+    max-width: 100%;
+    padding-left: var(--container-padding-x);
+    padding-right: var(--container-padding-x);
+  }
+  
+  /* Responsive Grid - Auto-fit layout that adapts without breakpoints */
+  .grid-auto-responsive {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    gap: var(--gap-md);
+    width: 100%;
+  }
+  
+  .grid-auto-fit-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: var(--gap-lg);
+    width: 100%;
+  }
+  
+  .grid-auto-fit-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+    gap: var(--gap-md);
+    width: 100%;
+  }
+  
+  .grid-auto-fit-4 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+    gap: var(--gap-md);
+    width: 100%;
+  }
+  
+  /* Responsive Flexbox - Wrapping layout that adapts naturally */
+  .flex-auto-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-lg);
+    width: 100%;
+  }
+  
+  .flex-auto-wrap-sm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-md);
+    width: 100%;
+  }
+  
+  /* Flex Item - Grows/shrinks with minimum width constraint */
+  .flex-item {
+    flex: 1 1 min(350px, 100%);
+  }
+  
+  .flex-item-sm {
+    flex: 1 1 min(280px, 100%);
+  }
+  
+  .flex-item-lg {
+    flex: 1 1 min(400px, 100%);
+  }
+  
+  /* Card Styling with Responsive Padding */
+  .card-responsive {
+    padding: var(--card-padding);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.04) 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-responsive:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Section Padding - Responsive vertical spacing */
+  .section-padding-xs {
+    padding-top: var(--section-spacing-xs);
+    padding-bottom: var(--section-spacing-xs);
+  }
+  
+  .section-padding-sm {
+    padding-top: var(--section-spacing-sm);
+    padding-bottom: var(--section-spacing-sm);
+  }
+  
+  .section-padding-md {
+    padding-top: var(--section-spacing-md);
+    padding-bottom: var(--section-spacing-md);
+  }
+  
+  .section-padding-lg {
+    padding-top: var(--section-spacing-lg);
+    padding-bottom: var(--section-spacing-lg);
+  }
+  
+  .section-padding-xl {
+    padding-top: var(--section-spacing-xl);
+    padding-bottom: var(--section-spacing-xl);
+  }
+  
+  /* Responsive Gap Utilities */
+  .gap-fluid-xs {
+    gap: var(--gap-xs);
+  }
+  
+  .gap-fluid-sm {
+    gap: var(--gap-sm);
+  }
+  
+  .gap-fluid-md {
+    gap: var(--gap-md);
+  }
+  
+  .gap-fluid-lg {
+    gap: var(--gap-lg);
+  }
+  
+  .gap-fluid-xl {
+    gap: var(--gap-xl);
+  }
+  
+  /* Aspect Ratios */
+  .aspect-h-3 { --tw-aspect-h: 3; }
+  .aspect-w-4 { --tw-aspect-w: 4; }
+  .aspect-h-3, .aspect-w-4 {
+    position: relative;
+    padding-bottom: calc(var(--tw-aspect-h) / var(--tw-aspect-w) * 100%);
+  }
+  .aspect-h-3 > *, .aspect-w-4 > * {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+  
+  /* Responsive Typography Utilities */
+  /* Note: text-wrap is not widely supported yet, using fallback */
+  
+  /* Responsive Padding Utilities */
+  .px-fluid {
+    padding-left: var(--container-padding-x);
+    padding-right: var(--container-padding-x);
+  }
+  
+  .px-card {
+    padding-left: var(--card-padding);
+    padding-right: var(--card-padding);
+  }
+  
+  /* Responsive Margin Utilities */
+  .mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

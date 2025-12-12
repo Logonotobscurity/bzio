@@ -1,0 +1,45 @@
+
+[
+    {
+        "id": "CAT_001",
+        "name": "Baking & Confectionery",
+        "slug": "baking-confectionery",
+        "description": "Sugar, flour, and other baking essentials for your confectionery needs.",
+        "imageUrl": "https://i.ibb.co/2mgRbth/Baking.png"
+    },
+    {
+        "id": "CAT_002",
+        "name": "Cooking Oils & Fats",
+        "slug": "cooking-oils-fats",
+        "description": "A variety of cooking oils, spreads, and mayonnaise for every kitchen.",
+        "imageUrl": "https://i.ibb.co/jkKsdywJ/Cooking-oil.png"
+    },
+    {
+        "id": "CAT_003",
+        "name": "Dairy",
+        "slug": "dairy-eggs-refrigerated",
+        "description": "Fresh and powdered milk products for your daily needs.",
+        "imageUrl": "https://i.ibb.co/4wcNk9SB/Diary.png"
+    },
+    {
+        "id": "CAT_004",
+        "name": "Pasta, Rice & Grains",
+        "slug": "pasta-rice-grains",
+        "description": "A selection of noodles, flour, and grains for staple meals.",
+        "imageUrl": "https://i.ibb.co/LXQBF0MZ/flour-and-grains.png"
+    },
+    {
+        "id": "CAT_005",
+        "name": "Seasonings & Flavor",
+        "slug": "spices-sauces-condiments",
+        "description": "Spices and enhancers to bring out the best in your dishes.",
+        "imageUrl": "https://i.ibb.co/k68qByK4/Seasoning.png"
+    },
+    {
+        "id": "CAT_006",
+        "name": "Beverages & Mixes",
+        "slug": "snacks-beverages",
+        "description": "A wide range of drink powders and beverage mixes.",
+        "imageUrl": "https://i.ibb.co/cXpxWGgF/Beverages-and-Mixes.png"
+    }
+]

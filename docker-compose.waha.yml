@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  waha:
+    image: devlikeapro/waha
+    restart: always
+    ports:
+      - "3000:3000/tcp"
+    environment:
+      - WHATSAPP_HOOK_URL=${WAHA_WEBHOOK_URL:-http://host.docker.internal:9003/api/webhooks/whatsapp}
+      - WHATSAPP_HOOK_EVENTS=message,message.ack
+    volumes:
+      - waha_data:/app/.sessions
+
+volumes:
+  waha_data:
+    driver: local
