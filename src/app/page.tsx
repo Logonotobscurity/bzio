@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getBestSellers, getCategories } from '@/services/productService';
 import { BestSellersSection } from '@/components/best-sellers-section';
 
+export const revalidate = 3600; // Revalidate every hour
+
 const ValueProps = dynamic(() => import('@/components/value-props').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
 });

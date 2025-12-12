@@ -7,6 +7,8 @@ import { CTASection } from '@/components/cta-section';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+export const revalidate = 3600; // Revalidate every hour
+
 export default async function CompaniesPage() {
   const [companies, categories] = await Promise.all([getCompanies(), getCategories()]);
   
