@@ -208,7 +208,7 @@ const ContactDetails = () => {
                                 <h3 className="font-semibold text-primary">Ogun State</h3>
                             </div>
                             <p className="text-slate-600 pl-8 mb-2">9 Ali Isiba, Street, Ota 112104, Ogun State (opposite matrix filling station, beside stanbic IBTC bank)</p>
-                            <a href="tel:+2341234567" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 1 234 5678</a>
+                            <a href="tel:+2347010326015" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 701 032 6015</a>
                         </div>
                     </div>
                     <div>
@@ -220,7 +220,7 @@ const ContactDetails = () => {
                                     <h3 className="font-semibold text-primary">Temidire</h3>
                                 </div>
                                 <p className="text-slate-600 pl-8 mb-2">Kilometer 28 Lagos Abeokuta expressway Sango ota</p>
-                                <a href="tel:+23420987654" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 20 987 6543</a>
+                                <a href="tel:+2347010326015" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 701 032 6015</a>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
                                 <div className="flex items-center gap-3 mb-2">
@@ -228,7 +228,7 @@ const ContactDetails = () => {
                                     <h3 className="font-semibold text-primary">Singer</h3>
                                 </div>
                                 <p className="text-slate-600 pl-8 mb-2">Km 38, Lagos Abeokuta Exp. Way Singer bus stop</p>
-                                <a href="tel:+23430212345" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 30 212 3456</a>
+                                <a href="tel:+2347010326015" className="text-slate-600 hover:text-primary pl-8 flex items-center gap-2 transition-colors"><Phone className="h-4 w-4"/>+234 701 032 6015</a>
                             </div>
                         </div>
                     </div>

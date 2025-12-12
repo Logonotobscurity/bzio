@@ -160,18 +160,22 @@ export function PageHero({
           )}
           
           <AnimatedDiv delay={0.3}>
-            <div className={cn('flex flex-col sm:flex-row gap-4 px-2 sm:px-0', { 'justify-center': !hasImage, 'justify-start': hasImage })}>
+            <div className={cn('flex flex-col sm:flex-row gap-3 sm:gap-4 px-2 sm:px-0 items-stretch sm:items-center', { 'justify-center': !hasImage, 'justify-start': hasImage })}>
               {primaryCta && (
-                <Button asChild size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary font-bold">
+                <Button asChild size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary font-bold text-sm sm:text-base">
                   <Link href={primaryCta.href}>{primaryCta.text}</Link>
                 </Button>
               )}
               {secondaryCta && (
-                <Button asChild size="lg" variant="secondary" className="font-bold">
+                <Button asChild size="lg" variant="secondary" className="font-bold text-sm sm:text-base">
                   <Link href={secondaryCta.href}>{secondaryCta.text}</Link>
                 </Button>
               )}
-              {actions && actions.map((action, index) => <div key={index}>{action}</div>)}
+              {actions && actions.map((action, index) => (
+                <div key={index} className="[&_button]:w-full [&_button]:sm:w-auto [&_button]:text-xs [&_button]:sm:text-sm [&_button]:font-semibold [&_input]:text-sm">
+                  {action}
+                </div>
+              ))}
             </div>
           </AnimatedDiv>
         </div>

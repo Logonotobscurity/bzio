@@ -13,8 +13,8 @@ interface CategoryCardProps {
 
 const CategoryStat = ({ value, label }: { value: string | number; label: string }) => (
     <div className="text-center">
-        <p className="font-bold text-sm sm:text-base text-slate-800">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className="font-bold text-xs sm:text-sm text-slate-800">{value}</p>
+        <p className="text-xs sm:text-xs text-slate-600">{label}</p>
     </div>
 );
 
@@ -35,8 +35,8 @@ export const CategoryCard = ({ category }: CategoryCardProps) => {
                 </div>
             </CardHeader>
             
-            <CardContent className="p-3 flex-grow flex flex-col">
-                <h3 className="font-bold text-sm text-primary mb-2 line-clamp-2">
+            <CardContent className="p-2 sm:p-3 flex-grow flex flex-col">
+                <h3 className="font-bold text-xs sm:text-sm text-primary mb-2 line-clamp-2">
                     {category.name}
                 </h3>
                 
@@ -47,15 +47,15 @@ export const CategoryCard = ({ category }: CategoryCardProps) => {
                 </div>
 
                 {category.bulkProductCount > 0 && (
-                    <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-300 bg-emerald-50">
+                    <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-300 bg-emerald-50 w-fit">
                         <Package className="h-3 w-3 mr-1" />
                         Bulk Available
                     </Badge>
                 )}
             </CardContent>
             
-            <div className="p-3 bg-slate-50 border-t border-slate-100">
-                <Button asChild size="sm" className="w-full">
+            <div className="p-2 sm:p-3 bg-slate-50 border-t border-slate-100 mt-auto">
+                <Button asChild size="sm" className="w-full text-xs sm:text-sm">
                     <Link href={`/products/category/${category.slug}`}>
                         View Products
                     </Link>

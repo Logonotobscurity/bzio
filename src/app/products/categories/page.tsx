@@ -59,8 +59,8 @@ export default function CategoriesPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>,
-                    <Button key="view-brands" asChild variant="outline"><a href="/products/brands">View by Brands</a></Button>,
-                    <Button key="b2b-pricing" asChild><a href="/b2b-quote">B2B Pricing</a></Button>,
+                    <Button key="view-brands" asChild variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-primary font-bold"><a href="/products/brands">View by Brands</a></Button>,
+                    <Button key="b2b-pricing" asChild size="lg" className="font-bold"><a href="/b2b-quote">B2B Pricing</a></Button>,
                 ]}
             />
             <Section className="py-8 md:py-12 bg-slate-50">
