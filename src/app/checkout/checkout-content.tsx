@@ -131,7 +131,6 @@ export default function CheckoutContent() {
   const handleWhatsAppSubmit = (data: CheckoutFormValues) => {
     if (items.length === 0) return;
 
-    // Create organized message with customer details
     const messageLines = [
       "🛍️ *BZION Quote Request*",
       "",
@@ -158,23 +157,13 @@ export default function CheckoutContent() {
 
     const message = messageLines.join("\n");
     const encodedMessage = encodeURIComponent(message);
-    // Use the WhatsApp Business API URL for quote requests
-    const whatsappApiUrl = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_URL || 'https://api.whatsapp.com/message/TOVLTP6EMAWNI1';
-    const whatsappUrl = `${whatsappApiUrl}?text=${encodedMessage}`;
+    
+    // TODO: Replace with process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_URL once server is restarted
+    const whatsappUrl = `https://wa.me/message/TOVLTP6EMAWNI1?text=${encodedMessage}`;
 
-    // Open WhatsApp with responsive handling
+    // Open WhatsApp in a new tab
     if (typeof window !== 'undefined') {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isAndroid = userAgent.includes('android');
-      const isIOS = /iphone|ipad|ipod/.test(userAgent);
-
-      if (isAndroid || isIOS) {
-        // Mobile: Use wa.me link which opens WhatsApp directly
-        window.location.href = whatsappUrl;
-      } else {
-        // Desktop: Open in new tab
-        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-      }
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -183,7 +172,6 @@ export default function CheckoutContent() {
     const name = `${data.firstName} ${data.lastName}`;
 
     try {
-      // Prepare items data ensuring all required fields are present
       const itemsData = items.map(item => ({
         id: String(item.id),
         quantity: item.quantity,
@@ -204,26 +192,16 @@ export default function CheckoutContent() {
         items: itemsData,
       };
 
-      // Submit to API for logging
       try {
-        const response = await fetch('/api/quote-requests', {
+        await fetch('/api/quote-requests', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-
-        if (!response.ok) {
-          console.warn('API submission warning:', response.status);
-          // Continue anyway - don't fail on API error
-        }
       } catch (apiError) {
         console.warn('API submission error:', apiError);
-        // Continue anyway - WhatsApp submission is more important
       }
 
-      // Show success step
       setStep('Submit');
 
       toast({
@@ -231,12 +209,8 @@ export default function CheckoutContent() {
         description: 'Redirecting to WhatsApp...',
       });
 
-      // Send to WhatsApp after a brief delay
-      setTimeout(() => {
-        handleWhatsAppSubmit(data);
-      }, 500);
+      setTimeout(() => handleWhatsAppSubmit(data), 500);
       
-      // Clear quote and redirect after a longer delay
       setTimeout(() => {
         clearQuote();
         localStorage.removeItem('checkoutForm');
@@ -267,7 +241,6 @@ export default function CheckoutContent() {
         <div className="max-w-5xl mx-auto">
             {step === 'Review' && (
                  <div className="space-y-6">
-                 {/* Brand Info Card - if coming from brand page */}
                  {requestedBrand && (
                     <Card className="shadow-md border-2 border-secondary/30 rounded-2xl overflow-hidden bg-gradient-to-r from-secondary/5 to-secondary/10">
                         <CardContent className="p-4 md:p-6 flex items-center gap-3 md:gap-4">
@@ -282,7 +255,6 @@ export default function CheckoutContent() {
                     </Card>
                  )}
                  
-                 {/* Summary Card */}
                  <Card className="shadow-lg border-2 border-slate-200 rounded-2xl overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 border-b-2 border-slate-200 p-6 md:p-8">
                         <div className="flex items-center justify-between">
@@ -293,28 +265,25 @@ export default function CheckoutContent() {
                     <CardContent className="p-6 md:p-8">
                         <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                             {items.length > 0 ? (
-                                items.map((item) => {
-                                    return (
-                                        <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200 hover:shadow-md transition-shadow">
-                                            <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white border-2 border-slate-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm">
-                                                <Image src={item.imageUrl || '/images/placeholder.jpg'} alt={item.name} fill className="object-contain p-2" sizes="80px" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-slate-900 text-sm md:text-base line-clamp-2 mb-2">{item.name}</p>
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-xs text-slate-600">Quantity:</span>
-                                                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs">{item.quantity}</span>
-                                                </div>
+                                items.map((item) => (
+                                    <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200 hover:shadow-md transition-shadow">
+                                        <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white border-2 border-slate-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm">
+                                            <Image src={item.imageUrl || '/images/placeholder.jpg'} alt={item.name} fill className="object-contain p-2" sizes="80px" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-slate-900 text-sm md:text-base line-clamp-2 mb-2">{item.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-slate-600">Quantity:</span>
+                                                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs">{item.quantity}</span>
                                             </div>
                                         </div>
-                                    )
-                                })
+                                    </div>
+                                ))
                             ) : (
                                 <p className="text-sm text-slate-500 text-center py-12">Your quote request is empty.</p>
                             )}
                         </div>
     
-                        {/* Benefits */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-6 border-t-2 border-slate-200 mt-6">
                           <div className="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200">
                             <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -338,9 +307,7 @@ export default function CheckoutContent() {
                     </CardContent>
                  </Card>
     
-                 {/* Action Buttons */}
                  <div className="flex flex-col sm:flex-row gap-4">
-                   {/* Browse Brand Items Button - Only show if coming from brand page */}
                    {requestedBrand && (
                      <Button 
                        variant="outline" 
@@ -355,7 +322,6 @@ export default function CheckoutContent() {
                      </Button>
                    )}
                    
-                   {/* Proceed Button */}
                    <Button 
                      onClick={() => setStep('Details')} 
                      size="lg" 
@@ -373,7 +339,6 @@ export default function CheckoutContent() {
             <Card className="shadow-lg border-2 border-slate-200 rounded-2xl overflow-hidden">
               <Form {...form}>
                 <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
-                  {/* Contact Information Section */}
                   <CardHeader className="bg-gradient-to-r from-blue-50 via-blue-50/50 to-transparent border-b-2 border-slate-200 p-5 md:p-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 md:h-14 md:w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
@@ -401,7 +366,6 @@ export default function CheckoutContent() {
                     />
                   </CardContent>
 
-                  {/* Business Information Section */}
                   <CardHeader className="bg-gradient-to-r from-green-50 via-green-50/50 to-transparent border-t-2 border-b-2 border-slate-200 p-5 md:p-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 md:h-14 md:w-14 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 shadow-md">
