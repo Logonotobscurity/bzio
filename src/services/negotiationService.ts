@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import type { NegotiationMessage, Prisma } from '@prisma/client';
 
 export const createNegotiationMessage = async (quoteId: string, data: Prisma.NegotiationMessageCreateWithoutQuoteInput): Promise<NegotiationMessage> => {

@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { createVerificationToken, canResendVerification, getUserFromVerificationToken } from '@/lib/email-verification';
 import { sendEmailVerificationEmail } from '@/lib/email-service';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 const resendVerificationSchema = z.object({
   token: z.string().optional(),

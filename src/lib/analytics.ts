@@ -4,7 +4,7 @@
  * Errors are silently logged and don't break user experience
  */
 
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { randomUUID } from 'crypto';
 
 export type EventType =

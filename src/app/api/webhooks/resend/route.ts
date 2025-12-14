@@ -1,12 +1,13 @@
 
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { prisma } from '@/lib/db';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import prisma from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
+    // Initialize Resend inside the handler, not at module load time
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
     const json = await req.json();
     const { type, data } = json;
 

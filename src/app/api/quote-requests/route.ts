@@ -1,13 +1,11 @@
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 import { z } from 'zod';
 import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const quoteRequestSchema = z.object({
   name: z.string(),
@@ -24,6 +22,9 @@ const quoteRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Initialize Resend inside the handler, not at module load time
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
     const json = await req.json();
     const {
       name,

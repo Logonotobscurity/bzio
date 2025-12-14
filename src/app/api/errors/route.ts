@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 // Prevent this route from being statically exported during build
 export const dynamic = 'force-dynamic';

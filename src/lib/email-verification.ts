@@ -3,7 +3,7 @@
  * Handles email verification tokens and verification flow
  */
 
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 
 const VERIFICATION_TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours

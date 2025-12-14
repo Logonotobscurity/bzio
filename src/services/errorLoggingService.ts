@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import prisma from './dbService';
+import { prisma } from './dbService';
 import { ErrorLogReport } from '@/lib/schema';
 
 /**

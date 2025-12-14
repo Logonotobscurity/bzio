@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import type { ProductView, SearchQuery } from '@prisma/client';
 
 export const trackProductView = async (productId: number, userId?: number, ipAddress?: string): Promise<ProductView> => {

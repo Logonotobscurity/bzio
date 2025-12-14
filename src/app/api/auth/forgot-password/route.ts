@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { createPasswordResetToken } from '@/lib/password-reset';
 import { sendPasswordResetEmail } from '@/lib/email-service';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),

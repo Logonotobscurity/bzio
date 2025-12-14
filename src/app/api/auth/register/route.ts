@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/utils';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { createVerificationToken } from '@/lib/email-verification';

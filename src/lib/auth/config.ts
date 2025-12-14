@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import type { User } from '@prisma/client';
 
 declare module 'next-auth' {
