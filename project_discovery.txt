@@ -1,0 +1,663 @@
+# 🔍 Comprehensive Project Discovery & Analysis Questionnaire
+
+## Purpose
+This questionnaire will help me fully understand your project, tech stack, business requirements, and architecture to provide precise, tailored solutions and recommendations.
+
+---
+
+## 📋 **Section 1: Project Overview**
+
+### 1.1 Business Context
+**Please describe your project in your own words (2-3 sentences):**
+```
+[Your answer here]
+```
+
+**What problem does this project solve?**
+```
+[Your answer here]
+```
+
+**Who are the primary users?**
+- [ ] Internal team/employees
+- [ ] External customers/clients
+- [ ] Business partners
+- [ ] Public/Anyone
+- [ ] Other: _______________
+
+**Current project stage:**
+- [ ] Idea/Planning phase
+- [ ] In development (prototype)
+- [ ] In development (MVP)
+- [ ] Partially launched (beta)
+- [ ] Fully launched (production)
+- [ ] Maintenance/Enhancement phase
+
+---
+
+## 💻 **Section 2: Technical Stack**
+
+### 2.1 Frontend
+
+**Framework/Library:**
+- [ ] React
+- [ ] Next.js (Version: _____ )
+- [ ] Vue.js
+- [ ] Angular
+- [ ] Svelte
+- [ ] Plain HTML/CSS/JavaScript
+- [ ] Other: _______________
+
+**State Management:**
+- [ ] Redux
+- [ ] Zustand
+- [ ] Context API
+- [ ] Recoil
+- [ ] MobX
+- [ ] None
+- [ ] Other: _______________
+
+**UI Framework:**
+- [ ] Tailwind CSS
+- [ ] Material-UI
+- [ ] Chakra UI
+- [ ] shadcn/ui
+- [ ] Bootstrap
+- [ ] Custom CSS
+- [ ] Other: _______________
+
+**Build Tools:**
+- [ ] Vite
+- [ ] Webpack
+- [ ] Turbopack
+- [ ] Parcel
+- [ ] Other: _______________
+
+### 2.2 Backend
+
+**Backend Framework:**
+- [ ] Next.js API Routes
+- [ ] Node.js/Express
+- [ ] NestJS
+- [ ] Python/Django
+- [ ] Python/FastAPI
+- [ ] PHP/Laravel
+- [ ] Ruby on Rails
+- [ ] Go
+- [ ] Java/Spring Boot
+- [ ] .NET Core
+- [ ] Other: _______________
+
+**API Architecture:**
+- [ ] RESTful API
+- [ ] GraphQL
+- [ ] tRPC
+- [ ] gRPC
+- [ ] WebSockets
+- [ ] Mix of multiple
+- [ ] Other: _______________
+
+### 2.3 Database
+
+**Primary Database:**
+- [ ] PostgreSQL (Version: _____ )
+- [ ] MySQL/MariaDB
+- [ ] MongoDB
+- [ ] SQLite
+- [ ] Supabase
+- [ ] Firebase Firestore
+- [ ] DynamoDB
+- [ ] Redis
+- [ ] Other: _______________
+
+**ORM/Database Client:**
+- [ ] Prisma
+- [ ] TypeORM
+- [ ] Sequelize
+- [ ] Mongoose
+- [ ] Drizzle
+- [ ] Raw SQL queries
+- [ ] Other: _______________
+
+**Caching Layer:**
+- [ ] Redis
+- [ ] Memcached
+- [ ] In-memory cache
+- [ ] CDN caching
+- [ ] None currently
+- [ ] Other: _______________
+
+### 2.4 Authentication & Authorization
+
+**Auth System:**
+- [ ] NextAuth.js
+- [ ] Auth0
+- [ ] Clerk
+- [ ] Supabase Auth
+- [ ] Firebase Auth
+- [ ] Custom JWT implementation
+- [ ] OAuth 2.0
+- [ ] Session-based
+- [ ] None yet
+- [ ] Other: _______________
+
+**User Roles/Permissions:**
+- [ ] Single role (all users equal)
+- [ ] Multiple roles (admin, user, etc.)
+- [ ] Complex permission system
+- [ ] Not implemented yet
+- [ ] Other: _______________
+
+---
+
+## 🏗️ **Section 3: Infrastructure & Deployment**
+
+### 3.1 Hosting & Deployment
+
+**Frontend Hosting:**
+- [ ] Vercel
+- [ ] Netlify
+- [ ] AWS (S3, CloudFront, Amplify)
+- [ ] Google Cloud Platform
+- [ ] Azure
+- [ ] Digital Ocean
+- [ ] Self-hosted
+- [ ] Other: _______________
+
+**Backend Hosting:**
+- [ ] Same as frontend (serverless functions)
+- [ ] Vercel
+- [ ] AWS (EC2, ECS, Lambda)
+- [ ] Google Cloud Run
+- [ ] Heroku
+- [ ] Railway
+- [ ] Digital Ocean
+- [ ] Self-hosted VPS
+- [ ] Other: _______________
+
+**Database Hosting:**
+- [ ] Supabase
+- [ ] AWS RDS
+- [ ] PlanetScale
+- [ ] MongoDB Atlas
+- [ ] Heroku Postgres
+- [ ] Railway
+- [ ] Self-hosted
+- [ ] Other: _______________
+
+**CI/CD Pipeline:**
+- [ ] GitHub Actions
+- [ ] GitLab CI
+- [ ] Vercel auto-deploy
+- [ ] Jenkins
+- [ ] CircleCI
+- [ ] Manual deployment
+- [ ] None currently
+- [ ] Other: _______________
+
+### 3.2 Domain & SSL
+
+**Domain Management:**
+- [ ] Vercel domains
+- [ ] Cloudflare
+- [ ] AWS Route 53
+- [ ] GoDaddy
+- [ ] Namecheap
+- [ ] Other: _______________
+
+**SSL Certificate:**
+- [ ] Auto-managed (Vercel/Netlify)
+- [ ] Let's Encrypt
+- [ ] Cloudflare
+- [ ] Purchased SSL
+- [ ] Other: _______________
+
+---
+
+## 🔌 **Section 4: Third-Party Integrations**
+
+### 4.1 Current Integrations
+
+**Which services are you currently using?** (Check all that apply)
+
+**Payment Processing:**
+- [ ] Stripe
+- [ ] PayPal
+- [ ] Square
+- [ ] Razorpay
+- [ ] None
+- [ ] Other: _______________
+
+**Email Services:**
+- [ ] SendGrid
+- [ ] Mailgun
+- [ ] AWS SES
+- [ ] Resend
+- [ ] Postmark
+- [ ] Nodemailer (SMTP)
+- [ ] None
+- [ ] Other: _______________
+
+**File Storage:**
+- [ ] AWS S3
+- [ ] Cloudinary
+- [ ] Firebase Storage
+- [ ] Uploadcare
+- [ ] Vercel Blob
+- [ ] Local storage
+- [ ] None
+- [ ] Other: _______________
+
+**Analytics:**
+- [ ] Google Analytics
+- [ ] Mixpanel
+- [ ] Amplitude
+- [ ] PostHog
+- [ ] Plausible
+- [ ] None
+- [ ] Other: _______________
+
+**Error Tracking:**
+- [ ] Sentry
+- [ ] LogRocket
+- [ ] Rollbar
+- [ ] Bugsnag
+- [ ] None
+- [ ] Other: _______________
+
+**Search:**
+- [ ] Algolia
+- [ ] Elasticsearch
+- [ ] Meilisearch
+- [ ] Database full-text search
+- [ ] None
+- [ ] Other: _______________
+
+**Communication:**
+- [ ] Twilio (SMS)
+- [ ] SendGrid (Email)
+- [ ] Slack webhooks
+- [ ] Discord webhooks
+- [ ] Push notifications
+- [ ] None
+- [ ] Other: _______________
+
+### 4.2 eCommerce Specific (if applicable)
+
+**eCommerce Platform:**
+- [ ] Shopify
+- [ ] WooCommerce
+- [ ] Magento
+- [ ] BigCommerce
+- [ ] Custom built
+- [ ] None - not eCommerce
+- [ ] Other: _______________
+
+**Admin Access:**
+- [ ] Yes, full admin access
+- [ ] Yes, limited access
+- [ ] No, third-party managed
+- [ ] Not applicable
+
+**API Access:**
+- [ ] Yes, have API keys
+- [ ] Yes, but need to generate keys
+- [ ] No API access
+- [ ] Not sure
+- [ ] Not applicable
+
+---
+
+## 📊 **Section 5: Data & Content Management**
+
+### 5.1 Data Structure
+
+**How is your data currently organized?**
+```
+Example:
+- Users (authentication, profiles)
+- Products (catalog, inventory)
+- Orders (transactions, status)
+- Content (blog posts, pages)
+
+[Your answer here]
+```
+
+**Do you have existing data to migrate?**
+- [ ] Yes, from spreadsheets (Excel/Google Sheets)
+- [ ] Yes, from another database
+- [ ] Yes, from CSV files
+- [ ] Yes, from API/external source
+- [ ] No, starting fresh
+- [ ] Other: _______________
+
+**Estimated data volume:**
+- [ ] Less than 1,000 records
+- [ ] 1,000 - 10,000 records
+- [ ] 10,000 - 100,000 records
+- [ ] 100,000 - 1M records
+- [ ] 1M+ records
+
+### 5.2 Content Management
+
+**CMS/Content Management:**
+- [ ] Headless CMS (Contentful, Strapi, Sanity)
+- [ ] WordPress
+- [ ] Custom admin panel
+- [ ] Database-driven
+- [ ] Static content
+- [ ] Not applicable
+- [ ] Other: _______________
+
+---
+
+## 🔐 **Section 6: Security & Compliance**
+
+**Security Requirements:**
+- [ ] GDPR compliance needed
+- [ ] HIPAA compliance needed
+- [ ] PCI DSS compliance needed
+- [ ] SOC 2 compliance needed
+- [ ] Basic security best practices
+- [ ] Not sure yet
+- [ ] Other: _______________
+
+**Data Privacy:**
+- [ ] User data encryption at rest
+- [ ] User data encryption in transit
+- [ ] Data anonymization required
+- [ ] Right to deletion (GDPR)
+- [ ] Data export functionality
+- [ ] None implemented yet
+
+**Authentication Security:**
+- [ ] Multi-factor authentication (MFA)
+- [ ] Password strength requirements
+- [ ] Email verification
+- [ ] Rate limiting on auth endpoints
+- [ ] Session management
+- [ ] None implemented yet
+
+---
+
+## 📱 **Section 7: User Experience & Features**
+
+### 7.1 Core Features
+
+**List your main features (top 5-10):**
+1. _____________________________
+2. _____________________________
+3. _____________________________
+4. _____________________________
+5. _____________________________
+6. _____________________________
+7. _____________________________
+8. _____________________________
+9. _____________________________
+10. _____________________________
+
+### 7.2 User Flows
+
+**Critical user journeys:**
+```
+Example:
+1. User signs up → Verifies email → Completes profile → Browses products → Makes purchase
+
+[Describe your main user flows here]
+```
+
+### 7.3 Responsiveness
+
+**Device Support:**
+- [ ] Desktop only
+- [ ] Desktop + Tablet
+- [ ] Desktop + Tablet + Mobile
+- [ ] Mobile-first design
+- [ ] PWA (Progressive Web App)
+
+---
+
+## 🎯 **Section 8: Specific Integration Needs**
+
+### 8.1 Webhook Requirements
+
+**What data needs to be synced via webhooks?**
+- [ ] Orders/Transactions
+- [ ] User registrations
+- [ ] Inventory updates
+- [ ] Payment confirmations
+- [ ] Form submissions
+- [ ] Status changes
+- [ ] Other: _______________
+
+**Sync frequency needed:**
+- [ ] Real-time (instant)
+- [ ] Near real-time (within 1 minute)
+- [ ] Batched (every 5-15 minutes)
+- [ ] Scheduled (hourly/daily)
+- [ ] On-demand (manual trigger)
+
+**Direction of data flow:**
+- [ ] One-way: External → Your system
+- [ ] One-way: Your system → External
+- [ ] Two-way: Bidirectional sync
+- [ ] Multiple sources → Your system
+
+### 8.2 API Integrations
+
+**External APIs you need to integrate:**
+```
+Example:
+- Stripe API (payment processing)
+- Shopify API (inventory sync)
+- Google Sheets API (data export)
+
+[List your required integrations here]
+```
+
+---
+
+## 📈 **Section 9: Performance & Scale**
+
+**Current traffic/usage:**
+- [ ] In development (no users yet)
+- [ ] Less than 100 users
+- [ ] 100 - 1,000 users
+- [ ] 1,000 - 10,000 users
+- [ ] 10,000 - 100,000 users
+- [ ] 100,000+ users
+
+**Expected growth:**
+- [ ] Slow/steady growth
+- [ ] Moderate growth
+- [ ] Rapid growth expected
+- [ ] Viral/unpredictable
+- [ ] Not sure
+
+**Performance requirements:**
+- [ ] Page load under 3 seconds
+- [ ] API response under 500ms
+- [ ] Real-time updates required
+- [ ] High availability (99.9% uptime)
+- [ ] Not critical yet
+
+---
+
+## 🐛 **Section 10: Current Challenges**
+
+**What issues are you currently facing?** (Check all that apply)
+- [ ] Performance/Speed issues
+- [ ] Scalability concerns
+- [ ] Code organization/architecture
+- [ ] Testing/Quality assurance
+- [ ] Deployment/DevOps challenges
+- [ ] Security vulnerabilities
+- [ ] Data synchronization issues
+- [ ] Integration problems
+- [ ] User experience issues
+- [ ] Technical debt
+- [ ] Other: _______________
+
+**Describe your top 3 pain points:**
+1. _____________________________
+2. _____________________________
+3. _____________________________
+
+---
+
+## 🎯 **Section 11: Goals & Priorities**
+
+**What are you trying to achieve?** (Rank 1-5, where 1 is highest priority)
+
+___ Improve performance/speed
+___ Add new features
+___ Fix bugs/issues
+___ Improve code quality
+___ Better documentation
+___ Enhanced security
+___ Scale infrastructure
+___ Reduce costs
+___ Improve user experience
+___ Automate processes
+
+**Timeline:**
+- [ ] Urgent (within 1 week)
+- [ ] High priority (within 1 month)
+- [ ] Medium priority (within 3 months)
+- [ ] Low priority (6+ months)
+- [ ] Exploratory (no deadline)
+
+**Budget considerations:**
+- [ ] No budget constraints
+- [ ] Limited budget (prefer free/open-source)
+- [ ] Moderate budget (can use paid services)
+- [ ] Need cost optimization
+- [ ] Not sure yet
+
+---
+
+## 📁 **Section 12: Code Repository & Documentation**
+
+**Repository hosting:**
+- [ ] GitHub
+- [ ] GitLab
+- [ ] Bitbucket
+- [ ] Other: _______________
+
+**Can you share the repository?**
+- [ ] Yes, it's public
+- [ ] Yes, can provide access
+- [ ] No, confidential
+- [ ] Partial access possible
+
+**Existing documentation:**
+- [ ] Comprehensive docs
+- [ ] README only
+- [ ] Minimal documentation
+- [ ] No documentation
+- [ ] In progress
+
+**Code quality tools in use:**
+- [ ] ESLint
+- [ ] Prettier
+- [ ] TypeScript
+- [ ] Husky (git hooks)
+- [ ] Jest/Vitest (testing)
+- [ ] None currently
+- [ ] Other: _______________
+
+---
+
+## 🔧 **Section 13: Development Environment**
+
+**Team size:**
+- [ ] Solo developer
+- [ ] 2-3 developers
+- [ ] 4-10 developers
+- [ ] 10+ developers
+
+**Development workflow:**
+- [ ] Feature branches + PRs
+- [ ] Trunk-based development
+- [ ] Git flow
+- [ ] Direct commits to main
+- [ ] Other: _______________
+
+**Local development setup:**
+- [ ] Docker/Docker Compose
+- [ ] Native installation
+- [ ] VS Code Dev Containers
+- [ ] GitHub Codespaces
+- [ ] Other: _______________
+
+---
+
+## 📝 **Section 14: Additional Context**
+
+**Is there anything else important I should know about your project?**
+```
+[Your answer here - any additional context, constraints, special requirements, legacy systems, business rules, etc.]
+```
+
+**Specific questions or concerns you have:**
+```
+[Your questions here]
+```
+
+**What's the most important thing I should understand about your project?**
+```
+[Your answer here]
+```
+
+---
+
+## 🎁 **Bonus: Quick Wins**
+
+**What would make the biggest immediate impact?** (Choose top 3)
+- [ ] Performance optimization
+- [ ] Bug fixes
+- [ ] New feature implementation
+- [ ] Code refactoring
+- [ ] Better error handling
+- [ ] Improved documentation
+- [ ] Automated testing
+- [ ] CI/CD setup
+- [ ] Security improvements
+- [ ] Database optimization
+- [ ] API improvements
+- [ ] UI/UX enhancements
+
+---
+
+# 📊 **Output Format**
+
+Once you complete this questionnaire, I will provide:
+
+✅ **Comprehensive Project Analysis**
+- Technical architecture diagram
+- Technology stack assessment
+- Identified gaps and opportunities
+
+✅ **Tailored Recommendations**
+- Specific solutions for your stack
+- Best practices applicable to your setup
+- Priority-ordered action items
+
+✅ **Implementation Roadmap**
+- Phase-by-phase plan
+- Effort estimates
+- Quick wins vs long-term improvements
+
+✅ **Code Examples & Templates**
+- Ready-to-use code snippets
+- Configuration files
+- Integration guides
+
+✅ **Documentation**
+- Architecture decisions
+- Setup guides
+- Troubleshooting playbook
+
+---
+
+**Please fill out as much as you can. Even partial information helps me understand your project better and provide more accurate, relevant assistance!** 🚀

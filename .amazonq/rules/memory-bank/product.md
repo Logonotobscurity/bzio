@@ -1,7 +1,7 @@
 # Product Overview
 
 ## Project Purpose
-Bzion is a B2B e-commerce platform for bulk FMCG (Fast-Moving Consumer Goods) procurement, connecting buyers with suppliers for wholesale food products, spices, and consumer goods. The platform facilitates quote-based negotiations, bulk ordering, and supplier discovery.
+Bzion is a B2B  platform for bulk FMCG (Fast-Moving Consumer Goods) procurement, connecting buyers with suppliers for wholesale food products, spices, and consumer goods. The platform facilitates quote-based negotiations, bulk ordering, and supplier discovery.
 
 ## Value Proposition
 - Streamlined bulk procurement process for FMCG products
@@ -49,13 +49,11 @@ Bzion is a B2B e-commerce platform for bulk FMCG (Fast-Moving Consumer Goods) pr
 - **Distributors**: Regional distributors sourcing products for resale
 
 ### Secondary Users
-- **Suppliers**: Companies listing their products (future feature)
 - **Administrators**: Platform managers overseeing operations
 
 ## Use Cases
 
 1. **Bulk Product Sourcing**: Browse catalog, add products to quote request, negotiate pricing
-2. **Supplier Discovery**: Find and compare suppliers by brand and product offerings
 3. **Order Management**: Track quotes, manage addresses, view order history
 4. **Market Research**: Search products, compare prices, analyze product specifications
 5. **Account Management**: Update profile, manage preferences, track activity

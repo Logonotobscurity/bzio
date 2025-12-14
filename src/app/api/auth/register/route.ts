@@ -5,9 +5,13 @@ import { hashPassword } from '@/lib/auth/utils';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters long' }),
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters long' })
+    .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   company: z.string().optional(),
 });
 
@@ -24,7 +28,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, email, password } = registerSchema.parse(body);
+    const validation = registerSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors.map(e => e.message).join(', ') },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, password, company } = validation.data;
 
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) {
@@ -38,6 +51,7 @@ export async function POST(request: Request) {
         firstName: name,
         email,
         passwordHash: hashedPassword,
+        companyName: company,
         role: 'customer',
       },
     });
@@ -47,9 +61,8 @@ export async function POST(request: Request) {
       { status: 201, headers }
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
+    // Catch any other unexpected errors
+    console.error('Registration error:', error);
+    return NextResponse.json({ error: 'Registration failed due to a server error' }, { status: 500 });
   }
 }

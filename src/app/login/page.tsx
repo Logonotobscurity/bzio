@@ -166,7 +166,7 @@ export default function LoginPage() {
               Terms and Privacy
             </Link>
              <p className="text-center text-large">
-              Don't have an account? <Link href="/contact" className="font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">Contact us</Link>
+              Don't have an account? <Link href="/register" className="font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">Sign up</Link>
             </p>
           </div>
         </div>
