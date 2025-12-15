@@ -1,4 +1,3 @@
-
 import { PageHero } from '@/components/layout/PageHero';
 import { Section } from '@/components/ui/section';
 import { getCompanies, getCategories } from '@/services/productService';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export const revalidate = 3600; // Revalidate every hour
+export const dynamic = 'force-dynamic';
 
 export default async function CompaniesPage() {
   const [companies, categories] = await Promise.all([getCompanies(), getCategories()]);

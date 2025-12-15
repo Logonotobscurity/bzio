@@ -1,26 +1,26 @@
-
 import HomeCarousel from '@/components/home-carousel';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
-import dynamic from 'next/dynamic';
+import dynamicComponent from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getBestSellers, getCategories } from '@/services/productService';
 import { BestSellersSection } from '@/components/best-sellers-section';
 
 export const revalidate = 3600; // Revalidate every hour
+export const dynamic = 'force-dynamic';
 
-const ValueProps = dynamic(() => import('@/components/value-props').then(mod => mod.default), {
+const ValueProps = dynamicComponent(() => import('@/components/value-props').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
 });
-const InfoBlocks = dynamic(() => import('@/components/info-blocks').then(mod => mod.default), {
+const InfoBlocks = dynamicComponent(() => import('@/components/info-blocks').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
 });
-const LocationsSection = dynamic(() => import('@/components/locations-section').then(mod => mod.LocationsSection), {
+const LocationsSection = dynamicComponent(() => import('@/components/locations-section').then(mod => mod.LocationsSection), {
   loading: () => <Skeleton className="h-[400px] w-full" />,
 });
-const Testimonials = dynamic(() => import('@/components/testimonials').then(mod => mod.default), {
+const Testimonials = dynamicComponent(() => import('@/components/testimonials').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[400px] w-full" />,
 });
-const FaqSection = dynamic(() => import('@/components/faq-section').then(mod => mod.default), {
+const FaqSection = dynamicComponent(() => import('@/components/faq-section').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
 });
 
