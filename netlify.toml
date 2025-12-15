@@ -13,12 +13,6 @@
   targetPort = 3000
   port = 8888
 
-# Redirect to custom domain if needed
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 # Cache control headers
 [[headers]]
   for = "/_next/static/*"

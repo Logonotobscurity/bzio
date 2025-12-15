@@ -12,9 +12,9 @@
 
 import nodemailer from 'nodemailer';
 
-const emailFrom = process.env.EMAIL_FROM || 'noreply@bzion.com';
+const emailFrom = process.env.EMAIL_FROM || 'noreply@bzion.shop';
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'BZION B2B Platform';
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bzion.com';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bzion.shop';
 
 /**
  * Resend SMTP Configuration
@@ -188,14 +188,14 @@ export async function sendPasswordResetEmail(
               ⚠️ This link will expire in 1 hour for security reasons.
             </div>
 
-            <p>If you didn't request a password reset, please ignore this email or <a href="mailto:support@bzion.com">contact support</a> immediately.</p>
+            <p>If you didn't request a password reset, please ignore this email or <a href="mailto:support@bzion.shop">contact support</a> immediately.</p>
           </div>
 
           <div class="footer">
             <p>© ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
             <p>
               <a href="${appUrl}">Visit Website</a> | 
-              <a href="mailto:support@bzion.com">Support</a>
+              <a href="mailto:support@bzion.shop">Support</a>
             </p>
           </div>
         </div>
@@ -276,14 +276,14 @@ export async function sendEmailVerificationEmail(
               ⏰ This link will expire in 24 hours.
             </div>
 
-            <p>If you didn't create this account, please ignore this email or <a href="mailto:support@bzion.com">contact support</a>.</p>
+            <p>If you didn't create this account, please ignore this email or <a href="mailto:support@bzion.shop">contact support</a>.</p>
           </div>
 
           <div class="footer">
             <p>© ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
             <p>
               <a href="${appUrl}">Visit Website</a> | 
-              <a href="mailto:support@bzion.com">Support</a>
+              <a href="mailto:support@bzion.shop">Support</a>
             </p>
           </div>
         </div>
@@ -367,8 +367,8 @@ export async function sendWelcomeEmail(
             <h3>Need Help?</h3>
             <p>Our support team is here to assist you. Don't hesitate to reach out:</p>
             <ul>
-              <li>Email: <a href="mailto:support@bzion.com">support@bzion.com</a></li>
-              <li>Phone: +1 (234) 567-8900</li>
+              <li>Email: <a href="mailto:support@bzion.shop">support@bzion.shop</a></li>
+              <li>Phone: +234 701 032 6015</li>
               <li>Chat: Available on our website</li>
             </ul>
           </div>
@@ -377,7 +377,7 @@ export async function sendWelcomeEmail(
             <p>© ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
             <p>
               <a href="${appUrl}">Visit Website</a> | 
-              <a href="mailto:support@bzion.com">Support</a>
+              <a href="mailto:support@bzion.shop">Support</a>
             </p>
           </div>
         </div>
@@ -402,8 +402,8 @@ export async function sendWelcomeEmail(
 
     Need Help?
     Our support team is here to assist you:
-    - Email: support@bzion.com
-    - Phone: +1 (234) 567-8900
+    - Email: support@bzion.shop
+    - Phone: +234 701 032 6015
 
     © ${new Date().getFullYear()} ${appName}
   `;
@@ -445,7 +445,7 @@ export async function sendPasswordChangedEmail(email: string): Promise<boolean> 
             <p>Hello,</p>
             <p>Your password has been successfully changed. You can now log in with your new password.</p>
             
-            <p>If you didn't make this change or suspect any unauthorized activity, please <a href="mailto:support@bzion.com">contact support</a> immediately.</p>
+            <p>If you didn't make this change or suspect any unauthorized activity, please <a href="mailto:support@bzion.shop">contact support</a> immediately.</p>
           </div>
 
           <div class="footer">
@@ -546,4 +546,3 @@ export async function sendTestEmail(to: string): Promise<boolean> {
     text,
   });
 }
-
