@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuoteStore, type QuoteItem } from '@/lib/store/quote';
+import { useQuoteStore, type QuoteItem } from '@/stores/quoteStore';
 import { Button } from '@/components/ui/button';
 import { Section } from '@/components/ui/section';
 import Image from 'next/image';

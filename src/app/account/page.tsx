@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { useAuthStore } from '@/lib/store/auth';
-import { useActivityStore } from '@/lib/store/activity';
+import { useAuthStore } from '@/stores/authStore';
+import { useActivityStore } from '@/stores/activity';
 import { Section } from '@/components/ui/section';
 import {
   LogOut,

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useQuoteStore } from '@/lib/store/quote';
+import { useQuoteStore } from '@/stores/quoteStore';
 import { useRouter } from 'next/navigation';
 import { type Product } from '@/lib/schema';
 

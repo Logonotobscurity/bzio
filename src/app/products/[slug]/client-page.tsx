@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useQuoteStore } from '@/lib/store/quote';
+import { useQuoteStore } from '@/stores/quoteStore';
 import { Check, ShieldCheck, Factory, Share2, Truck, Star, AlertCircle, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';

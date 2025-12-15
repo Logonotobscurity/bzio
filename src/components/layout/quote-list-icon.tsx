@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuoteStore } from "@/lib/store/quote";
+import { useQuoteStore } from "@/stores/quoteStore";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "../ui/button";
 

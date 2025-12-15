@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useQuoteStore } from "@/lib/store/quote";
+import { useQuoteStore } from "@/stores/quoteStore";
 import { Trash2, Plus, Minus, ShoppingBag, Package } from "lucide-react";
 import Link from "next/link";
 import { AnimatedDiv } from "@/components/animated-div";

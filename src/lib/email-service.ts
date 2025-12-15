@@ -2,6 +2,12 @@
  * Email Service
  * Handles sending emails for authentication flows using Resend SMTP
  * Documentation: https://resend.com/docs/send-with-smtp
+ * 
+ * SMTP Configuration:
+ * - Host: smtp.resend.com
+ * - Port: 465 (SSL/TLS - Implicit encryption - RECOMMENDED)
+ * - Alternative: 587 (STARTTLS - Explicit encryption)
+ * - Encryption: TLS/SSL for all secure connections
  */
 
 import nodemailer from 'nodemailer';
@@ -12,22 +18,34 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bzion.com';
 
 /**
  * Resend SMTP Configuration
- * Uses Resend's SMTP server with your API key as password
+ * Port 465: SSL/TLS Implicit (recommended for production)
  * 
  * Benefits:
+ * - Implicit TLS encryption from connection start
+ * - Faster connection (no negotiation overhead)
+ * - Industry standard for secure SMTP
  * - Works with existing SMTP tooling
- * - Supports SMTP clients and libraries
  * - Same reliability as REST API
  * - Full Resend features (analytics, webhooks, etc.)
  */
 const transporter = nodemailer.createTransport({
-  host: 'smtp.resend.com',
-  port: 465,
-  secure: true, // TLS
+  host: process.env.SMTP_HOST || 'smtp.resend.com',
+  port: parseInt(process.env.SMTP_PORT || '465'),
+  secure: process.env.SMTP_SECURE !== 'false', // TLS encryption (default: true)
   auth: {
-    user: 'resend',
+    user: process.env.SMTP_USERNAME || 'resend',
     pass: process.env.RESEND_API_KEY || '',
   },
+  // Timeouts and connection settings
+  connectionTimeout: process.env.SMTP_TIMEOUT ? parseInt(process.env.SMTP_TIMEOUT) : 5000,
+  socketTimeout: 10000,
+  // Production security
+  ...(process.env.NODE_ENV === 'production' && {
+    tls: {
+      rejectUnauthorized: true, // Verify SSL certificate
+      minVersion: 'TLSv1.2',   // Minimum TLS version
+    },
+  }),
 });
 
 interface EmailOptions {
@@ -35,6 +53,48 @@ interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+}
+
+/**
+ * Test SMTP connection
+ * Useful for health checks and debugging
+ */
+export async function testSMTPConnection(): Promise<{
+  success: boolean;
+  message: string;
+  details?: Record<string, unknown>;
+}> {
+  try {
+    const verified = await transporter.verify();
+    if (verified) {
+      console.log('✅ SMTP connection verified successfully');
+      return {
+        success: true,
+        message: 'SMTP connection verified',
+        details: {
+          host: process.env.SMTP_HOST || 'smtp.resend.com',
+          port: parseInt(process.env.SMTP_PORT || '465'),
+          secure: process.env.SMTP_SECURE !== 'false',
+          timestamp: new Date().toISOString(),
+        },
+      };
+    }
+    return {
+      success: false,
+      message: 'SMTP verification failed',
+    };
+  } catch (error) {
+    console.error('❌ SMTP connection test failed:', error);
+    return {
+      success: false,
+      message: `SMTP connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      details: {
+        host: process.env.SMTP_HOST || 'smtp.resend.com',
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        error: error instanceof Error ? error.message : String(error),
+      },
+    };
+  }
 }
 
 /**
@@ -415,3 +475,75 @@ export async function sendPasswordChangedEmail(email: string): Promise<boolean> 
     text,
   });
 }
+
+/**
+ * Send test email
+ * Used for verifying SMTP connection and configuration
+ */
+export async function sendTestEmail(to: string): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .content { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+          .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
+          .success { color: #10b981; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${appName}</h1>
+            <p class="success">✅ SMTP Configuration Test</p>
+          </div>
+
+          <div class="content">
+            <p>Hello,</p>
+            <p>This is a test email to verify your SMTP configuration is working correctly.</p>
+            
+            <p><strong>Configuration Details:</strong></p>
+            <ul>
+              <li><strong>Host:</strong> ${process.env.SMTP_HOST || 'smtp.resend.com'}</li>
+              <li><strong>Port:</strong> ${process.env.SMTP_PORT || '465'}</li>
+              <li><strong>Encryption:</strong> ${process.env.SMTP_SECURE !== 'false' ? 'TLS/SSL (secure)' : 'STARTTLS'}</li>
+              <li><strong>Timestamp:</strong> ${new Date().toISOString()}</li>
+            </ul>
+
+            <p><strong>If you received this email, your email service is working correctly! ✅</strong></p>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+    SMTP Configuration Test
+
+    This is a test email to verify your SMTP configuration is working correctly.
+
+    Configuration:
+    - Host: ${process.env.SMTP_HOST || 'smtp.resend.com'}
+    - Port: ${process.env.SMTP_PORT || '465'}
+    - Encryption: ${process.env.SMTP_SECURE !== 'false' ? 'TLS/SSL' : 'STARTTLS'}
+    - Time: ${new Date().toISOString()}
+
+    © ${new Date().getFullYear()} ${appName}
+  `;
+
+  return sendEmail({
+    to,
+    subject: `SMTP Test - ${appName}`,
+    html,
+    text,
+  });
+}
+
