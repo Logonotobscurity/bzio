@@ -1,4 +1,4 @@
-import { handlers } from '@/lib/auth/config';
+import { handlers } from '@/lib/auth';
 
 // Prevent this route from being statically exported during build
 export const dynamic = 'force-dynamic';

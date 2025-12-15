@@ -87,8 +87,8 @@ export default function AccountPage() {
   const userActivities = activities.slice(0, 20);
 
   // Calculate stats
-  const quoteRequestCount = userActivities.filter((a) => a.type === 'quote_request').length;
-  const productViewCount = userActivities.filter((a) => a.type === 'product_view').length;
+  const quoteRequestCount = userActivities.filter((a) => a.type === 'quote').length;
+  const productViewCount = userActivities.filter((a) => a.type === 'view').length;
 
   return (
     <>
@@ -300,7 +300,7 @@ export default function AccountPage() {
               {userActivities.length > 0 ? (
                 <div className="space-y-3">
                   {userActivities.map((activity) => {
-                    const details = activity.details as Record<string, unknown> | undefined;
+                    const details = activity.details || activity.metadata as Record<string, unknown> | undefined;
                     return (
                       <div
                         key={activity.id}
@@ -308,16 +308,15 @@ export default function AccountPage() {
                       >
                         <div className="flex gap-3 sm:gap-4">
                           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-secondary to-secondary/70 flex items-center justify-center text-primary/80 group-hover/item:text-primary transition-colors">
-                            {activity.type === 'quote_request' && <FileText className="w-5 h-5" />}
-                            {activity.type === 'product_view' && <Eye className="w-5 h-5" />}
+                            {activity.type === 'quote' && <FileText className="w-5 h-5" />}
+                            {activity.type === 'view' && <Eye className="w-5 h-5" />}
                             {activity.type === 'search' && <Search className="w-5 h-5" />}
                             {activity.type === 'purchase' && <ShoppingCart className="w-5 h-5" />}
-                            {activity.type === 'profile_update' && <Edit2 className="w-5 h-5" />}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2">
                               <h4 className="font-semibold text-sm text-primary">
-                                {activity.title}
+                                {activity.title || activity.description}
                               </h4>
                               <span className="text-xs text-primary/50 whitespace-nowrap">
                                 {formatDistanceToNow(new Date(activity.timestamp), {

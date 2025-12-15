@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {

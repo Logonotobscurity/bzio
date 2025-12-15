@@ -4,7 +4,7 @@
  * Wraps Prisma, password hashing, token generation, and email sending
  */
 
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import type { User } from '@prisma/client';
 import bcryptjs from 'bcryptjs';
 import { createPasswordResetToken, resetPasswordWithToken } from '@/lib/password-reset';

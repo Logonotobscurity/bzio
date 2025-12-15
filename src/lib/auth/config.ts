@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import type { User } from '@prisma/client';
 
 declare module 'next-auth' {
@@ -16,7 +16,7 @@ declare module 'next-auth' {
   }
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const nextAuthConfig = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   pages: {
@@ -88,3 +88,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
+
+export const { handlers, signIn, signOut, auth: authExport } = nextAuthConfig;
+
+// Explicitly export auth as a function for better compatibility
+export const auth = authExport;
+export { handlers, signIn, signOut };

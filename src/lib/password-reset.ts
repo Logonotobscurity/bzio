@@ -3,7 +3,7 @@
  * Handles password reset tokens and password reset flow
  */
 
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/auth/utils';
 import crypto from 'crypto';
 

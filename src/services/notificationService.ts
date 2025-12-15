@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import type { Notification } from '@prisma/client';
 
 type CreateNotificationInput = Omit<Notification, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;

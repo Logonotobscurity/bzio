@@ -7,7 +7,7 @@
  * - Or run: node -r esbuild-register scripts/setup-db.ts
  */
 
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 export async function setupDatabase() {
   try {

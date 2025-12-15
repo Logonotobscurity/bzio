@@ -23,6 +23,7 @@ export default function ProductDetailClient(data: ProductPageData) {
   const { addProduct, items } = useQuoteStore();
   const [shareSuccess, setShareSuccess] = useState(false);
   const [isProductAdded, setIsProductAdded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const { product, brand, company, category, relatedProducts } = data;
   const fallbackImage = getPlaceholderImage(String(product.id));
@@ -74,12 +75,14 @@ export default function ProductDetailClient(data: ProductPageData) {
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl -ml-12 -mb-12" />
               
               <Image 
-                src={product.imageUrl || fallbackImage}
+                src={imageError ? fallbackImage : (product.imageUrl || fallbackImage)}
                 alt={product.name} 
                 width={350}
                 height={350}
-                className="w-full h-full object-contain relative z-10" 
-                priority
+                className="w-full h-full object-contain relative z-10"
+                loading="lazy"
+                unoptimized={process.env.NODE_ENV === 'development'}
+                onError={() => setImageError(true)}
               />
             </div>
           </div>

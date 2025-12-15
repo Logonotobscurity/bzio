@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 interface CreateQuotePayload {
   actorId?: string;

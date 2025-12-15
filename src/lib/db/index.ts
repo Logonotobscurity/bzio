@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { withAccelerate } from '@prisma/extension-accelerate'
 import { Pool } from 'pg'
 
 declare global {
@@ -31,7 +32,7 @@ export const prisma =
   new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  })
+  }).$extends(withAccelerate())
 
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma
 

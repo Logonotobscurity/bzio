@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { auth } from '@/lib/auth/config';
+import { prisma } from '@/lib/db';
+import { auth } from '@/lib/auth';
 
 /**
  * GET /api/admin/crm-sync

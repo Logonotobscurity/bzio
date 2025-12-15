@@ -6,9 +6,11 @@ import { persist } from 'zustand/middleware';
 export interface Activity {
   id: string;
   type: 'quote' | 'purchase' | 'view' | 'search';
+  title?: string;
   description: string;
   timestamp: Date;
   metadata?: Record<string, unknown>;
+  details?: Record<string, unknown>;
 }
 
 interface ActivityState {

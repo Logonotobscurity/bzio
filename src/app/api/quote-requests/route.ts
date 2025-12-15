@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 import { z } from 'zod';
 import { Resend } from 'resend';

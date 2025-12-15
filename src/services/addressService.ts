@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import type { Address } from '@prisma/client';
 
 type CreateAddressInput = Omit<Address, 'id' | 'createdAt' | 'updatedAt'>;

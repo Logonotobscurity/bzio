@@ -4,7 +4,7 @@
  * Errors are silently logged and don't break user experience
  */
 
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { randomUUID } from 'crypto';
 
 export type EventType =
@@ -28,6 +28,7 @@ interface TrackEventOptions {
 /**
  * Track a custom analytics event
  * Non-blocking, errors are silently caught
+ * Skips if database connection is not available
  */
 export async function trackEvent(
   eventType: EventType,
@@ -38,7 +39,12 @@ export async function trackEvent(
   try {
     const finalSessionId = sessionId || generateSessionId();
 
-    await prisma.analyticsEvent.create({
+    // Use a timeout to avoid hanging if database is unavailable
+    const timeoutPromise = new Promise<void>((_, reject) =>
+      setTimeout(() => reject(new Error('Analytics timeout')), 3000)
+    );
+
+    const trackPromise = prisma.analyticsEvent.create({
       data: {
         eventType,
         userId: userId || null,
@@ -48,9 +54,14 @@ export async function trackEvent(
         source: 'B2B_PLATFORM',
       },
     });
+
+    await Promise.race([trackPromise, timeoutPromise]);
   } catch (error) {
     // Silently log errors - analytics should never break user experience
-    console.error(`Failed to track event ${eventType}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`Analytics tracking skipped (${eventType}): ${errorMessage}`);
+    }
   }
 }
 

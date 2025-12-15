@@ -39,6 +39,9 @@ const nextConfig = {
     ];
   },
   images: {
+    // Disable optimization in development to prevent timeout errors
+    unoptimized: process.env.NODE_ENV === 'development',
+    
     remotePatterns: [
       {
         protocol: 'https',
@@ -81,6 +84,12 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    // Cache optimized images for 1 year in production
+    minimumCacheTTL: 31536000,
+    // Improved device sizes for better responsiveness
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/avif', 'image/webp'],
     qualities: [75, 80, 85],
     dangerouslyAllowSVG: true,
   },
