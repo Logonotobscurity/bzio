@@ -8,17 +8,26 @@ function getRedis(): Redis | null {
     return redis;
   }
 
-  const isRedisConfigured = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   
-  if (!isRedisConfigured) {
+  // If credentials are missing or incomplete, mark as not configured
+  if (!url || !token || url.trim() === '' || token.trim() === '') {
+    redis = null;
+    return null;
+  }
+
+  // Validate URL format before attempting to create client
+  if (!url.startsWith('https://')) {
+    console.warn('[Cache] Upstash Redis URL must start with https://, got:', url);
     redis = null;
     return null;
   }
 
   try {
     redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url,
+      token,
     });
     return redis;
   } catch (error) {

@@ -20,6 +20,9 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Prisma } from '@prisma/client';
 
+// Prevent prerendering this page - it requires database access
+export const dynamic = 'force-dynamic';
+
 interface ProductsPageProps {
   searchParams: Promise<{
     search?: string;

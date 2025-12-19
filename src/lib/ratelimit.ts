@@ -9,17 +9,26 @@ function getRedis(): Redis | null {
     return redis;
   }
 
-  const isRedisConfigured = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   
-  if (!isRedisConfigured) {
+  // If credentials are missing or incomplete, mark as not configured
+  if (!url || !token || url.trim() === '' || token.trim() === '') {
+    redis = null;
+    return null;
+  }
+
+  // Validate URL format before attempting to create client
+  if (!url.startsWith('https://')) {
+    console.warn('[Ratelimit] Upstash Redis URL must start with https://, got:', url);
     redis = null;
     return null;
   }
 
   try {
     redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url,
+      token,
     });
     return redis;
   } catch (error) {
@@ -70,10 +79,10 @@ export function getRatelimitInstance() {
   return cachedRatelimit;
 }
 
-export const ratelimit = getRatelimitInstance();
-
 export async function checkRateLimit(identifier: string, type: 'api' | 'auth' | 'rfq' | 'newsletter' = 'api') {
-  if (!ratelimit) {
+  const ratelimitInstance = getRatelimitInstance();
+  
+  if (!ratelimitInstance) {
     // Fallback when Redis is not configured - allow all requests
     return {
       success: true,
@@ -89,7 +98,7 @@ export async function checkRateLimit(identifier: string, type: 'api' | 'auth' | 
   }
   
   try {
-    const { success, limit, reset, remaining } = await ratelimit[type].limit(identifier);
+    const { success, limit, reset, remaining } = await ratelimitInstance[type].limit(identifier);
     
     return {
       success,
