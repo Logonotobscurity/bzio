@@ -34,11 +34,14 @@ export async function GET(request: Request) {
     const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20')));
     const offset = page * limit;
 
+    console.log('[DASHBOARD_API] Request received', { page, limit, offset });
+
     // Check authorization
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       const urlObj = new URL(request.url);
       if (!urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1')) {
+        console.warn('[DASHBOARD_API] Unauthorized request from', urlObj.hostname);
         return NextResponse.json(
           { error: 'Unauthorized' },
           { status: 401 }
@@ -47,7 +50,8 @@ export async function GET(request: Request) {
     }
 
     // Fetch all data in parallel (3 main queries)
-    const [activitiesResult, stats, quotesResult, newUsersResult, newsletterResult, formsResult] = 
+    console.log('[DASHBOARD_API] Starting data fetch...');
+    const [activitiesResult, statsResult, quotesResult, newUsersResult, newsletterResult, formsResult] = 
       await Promise.allSettled([
         getRecentActivitiesOptimized(offset, limit),
         getActivityStatsOptimized(),
@@ -57,9 +61,26 @@ export async function GET(request: Request) {
         getFormSubmissionsOptimized(offset, limit),
       ]);
 
+    console.log('[DASHBOARD_API] Results:', {
+      activities: activitiesResult.status,
+      stats: statsResult.status,
+      quotes: quotesResult.status,
+      users: newUsersResult.status,
+      newsletter: newsletterResult.status,
+      forms: formsResult.status,
+    });
+
+    // Log any errors
+    if (activitiesResult.status === 'rejected') {
+      console.error('[DASHBOARD_API] Activities error:', activitiesResult.reason);
+    }
+    if (statsResult.status === 'rejected') {
+      console.error('[DASHBOARD_API] Stats error:', statsResult.reason);
+    }
+
     // Extract results with fallbacks
     const activities = activitiesResult.status === 'fulfilled' ? activitiesResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-    const dashboardStats = stats.status === 'fulfilled' ? stats.value : {
+    const dashboardStats = statsResult.status === 'fulfilled' ? statsResult.value : {
       totalUsers: 0,
       newUsersThisWeek: 0,
       totalQuotes: 0,

@@ -68,11 +68,19 @@ export default function AdminDashboardClient({
     try {
       setIsRefreshing(true);
       const limit = 20;
-      const response = await fetch(`/api/admin/dashboard-data?page=${page}&limit=${limit}`, {
+      
+      // Try main endpoint first
+      let response = await fetch(`/api/admin/dashboard-data?page=${page}&limit=${limit}`, {
         headers: {
           'If-None-Match': lastUpdated.getTime().toString(),
         },
       });
+      
+      // If main endpoint fails, try fallback
+      if (!response.ok && response.status !== 304) {
+        console.warn('[DASHBOARD] Main endpoint failed, trying fallback...');
+        response = await fetch(`/api/admin/dashboard-data-fallback`);
+      }
       
       if (response.status === 304) {
         console.log('[DASHBOARD] Using cached data (304 Not Modified)');
@@ -86,10 +94,10 @@ export default function AdminDashboardClient({
         setActivities(data.activities);
         setQuotes(data.quotes);
         setNewUsers(data.newUsers);
-        setNewsletterSubscribers(data.newsletterSubscribers);
-        setFormSubmissions(data.formSubmissions);
+        setNewsletterSubscribers(data.newsletter);
+        setFormSubmissions(data.forms);
         setLastUpdated(new Date());
-        console.log(`[DASHBOARD] Data loaded in ${data.responseTime}`);
+        console.log(`[DASHBOARD] Data loaded successfully`);
       }
     } catch (error) {
       console.error('Failed to refresh dashboard data:', error);

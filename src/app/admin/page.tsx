@@ -9,10 +9,13 @@ import {
 import AdminDashboardClient from './_components/AdminDashboardClient';
 
 export default async function AdminPage() {
+  console.log('[ADMIN_PAGE] Loading dashboard...');
+  
   // Fetch all data in parallel with individual error handling
   // Use Promise.allSettled so one slow query doesn't block all others
+  // With extended timeout for Vercel compatibility
   const results = await Promise.allSettled([
-    getRecentActivities(50),
+    getRecentActivities(20),  // Reduced from 50 to 20 for faster load
     getActivityStats(),
     getQuotes(undefined, 20),
     getNewUsers(20),
@@ -20,8 +23,21 @@ export default async function AdminPage() {
     getFormSubmissions(20),
   ]);
 
+  console.log('[ADMIN_PAGE] Query results:', {
+    activities: results[0].status,
+    stats: results[1].status,
+    quotes: results[2].status,
+    users: results[3].status,
+    newsletter: results[4].status,
+    forms: results[5].status,
+  });
+
   // Extract results with fallbacks
   const activities = results[0].status === 'fulfilled' ? results[0].value : [];
+  if (results[0].status === 'rejected') {
+    console.error('[ADMIN_PAGE] Activities error:', results[0].reason);
+  }
+  
   const stats = results[1].status === 'fulfilled' ? results[1].value : {
     totalUsers: 0,
     newUsersThisWeek: 0,
