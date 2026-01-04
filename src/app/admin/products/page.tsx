@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,6 +59,12 @@ async function getProducts(search: string | undefined) {
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  // ✅ CRITICAL: Verify user is admin before loading product data
+  const session = await getServerSession();
+  if (!session || session.user?.role !== 'admin') {
+    redirect('/');
+  }
+
   const resolvedSearchParams = await searchParams;
   const products = await getProducts(resolvedSearchParams.search);
 

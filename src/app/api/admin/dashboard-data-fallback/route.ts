@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import {
   getRecentActivities,
   getActivityStats,
@@ -13,34 +14,31 @@ import {
  * Fallback endpoint using non-optimized but more reliable queries
  * Used when the optimized endpoint fails
  */
-export async function GET(request: Request) {
+export async function GET() {
   const startTime = Date.now();
 
   try {
-    console.log('[DASHBOARD_FALLBACK] Request received');
-
-    // Check authorization
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      const url = new URL(request.url);
-      if (!url.hostname.includes('localhost') && !url.hostname.includes('127.0.0.1')) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
+    // ✅ CRITICAL: Use NextAuth session for proper role-based access control
+    const session = await getServerSession();
+    if (!session || session.user?.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin access required' },
+        { status: 403 }
+      );
     }
+
+    console.log('[DASHBOARD_FALLBACK] Admin request received', { adminId: session.user?.id });
 
     // Fetch all data in parallel with longer timeouts
     console.log('[DASHBOARD_FALLBACK] Fetching data...');
     const [activitiesResult, statsResult, quotesResult, newUsersResult, newsletterResult, formsResult] =
       await Promise.allSettled([
-        getRecentActivities(50),
+        getRecentActivities(0, 50),
         getActivityStats(),
-        getQuotes(undefined, 20),
-        getNewUsers(20),
-        getNewsletterSubscribers(20),
-        getFormSubmissions(20),
+        getQuotes(0, 20),
+        getNewUsers(0, 20),
+        getNewsletterSubscribers(0, 20),
+        getFormSubmissions(0, 20),
       ]);
 
     console.log('[DASHBOARD_FALLBACK] Results:', {
@@ -53,7 +51,7 @@ export async function GET(request: Request) {
     });
 
     // Extract results with fallbacks
-    const activities = activitiesResult.status === 'fulfilled' ? activitiesResult.value : [];
+    const activities: any[] = activitiesResult.status === 'fulfilled' ? (activitiesResult.value?.data || []) : [];
     const stats = statsResult.status === 'fulfilled' ? statsResult.value : {
       totalUsers: 0,
       newUsersThisWeek: 0,
@@ -63,10 +61,10 @@ export async function GET(request: Request) {
       totalFormSubmissions: 0,
       totalCheckouts: 0,
     };
-    const quotes = quotesResult.status === 'fulfilled' ? quotesResult.value : [];
-    const newUsers = newUsersResult.status === 'fulfilled' ? newUsersResult.value : [];
-    const newsletter = newsletterResult.status === 'fulfilled' ? newsletterResult.value : [];
-    const forms = formsResult.status === 'fulfilled' ? formsResult.value : [];
+    const quotes: any[] = quotesResult.status === 'fulfilled' ? (quotesResult.value?.data || []) : [];
+    const newUsers: any[] = newUsersResult.status === 'fulfilled' ? (newUsersResult.value?.data || []) : [];
+    const newsletter: any[] = newsletterResult.status === 'fulfilled' ? (newsletterResult.value?.data || []) : [];
+    const forms: any[] = formsResult.status === 'fulfilled' ? (formsResult.value?.data || []) : [];
 
     const duration = Date.now() - startTime;
 

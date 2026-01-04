@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WelcomeAlert } from '@/components/auth/WelcomeAlert';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 
 import { useAuthStore } from '@/stores/authStore';
 import { useActivityStore } from '@/stores/activity';
@@ -73,6 +74,19 @@ export default function AccountPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Redirect admins to admin dashboard
+  // This prevents admin users from being able to access the customer account page
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.role === USER_ROLES.ADMIN) {
+      console.log('[ACCOUNT_PAGE] Admin user redirected to admin dashboard', {
+        userId: session.user?.id,
+        role: session.user?.role,
+        timestamp: new Date().toISOString(),
+      });
+      router.replace(REDIRECT_PATHS.ADMIN_DASHBOARD);
+    }
+  }, [status, session?.user?.role, router]);
 
   // Fetch database activities when session is ready
   useEffect(() => {

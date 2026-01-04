@@ -5,17 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Section, SectionHeading, SectionTitle, SectionDescription } from "@/components/ui/section";
 import { Mail, MapPin } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
-
-const contactFormSchema = z.object({
-    firstName: z.string().min(1, "First name is required."),
-    email: z.string().email("Invalid email address."),
-    message: z.string().min(10, "Message must be at least 10 characters."),
-});
+import { contactFormSchema } from "@/lib/validations/forms";
+import { z } from "zod";
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
@@ -23,8 +18,9 @@ const CtaBanner = () => {
     const form = useForm<ContactFormValues>({
         resolver: zodResolver(contactFormSchema),
         defaultValues: {
-            firstName: "",
+            name: "",
             email: "",
+            company: "",
             message: "",
         }
     });
@@ -65,7 +61,7 @@ const CtaBanner = () => {
                 <div className="bg-primary-foreground/5 p-8 rounded-lg">
                      <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <FormField control={form.control} name="firstName" render={({ field }) => (
+                            <FormField control={form.control} name="name" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-white">Your Name</FormLabel>
                                     <FormControl><Input placeholder="Enter your name" {...field} className="bg-primary-foreground/10 border-slate-600 text-white" /></FormControl>

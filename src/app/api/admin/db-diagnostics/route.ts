@@ -4,10 +4,12 @@
  * 
  * Provides detailed information about database setup status
  * Useful for debugging connection and migration issues
+ * ADMIN-ONLY ENDPOINT
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { prisma } from '@/lib/db';
 
 interface DiagnosticResult {
   timestamp: string;
@@ -30,6 +32,15 @@ interface DiagnosticResult {
 }
 
 export async function GET(request: NextRequest) {
+  // ✅ CRITICAL: Verify admin access
+  const session = await getServerSession();
+  if (!session || session.user.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 403 }
+    );
+  }
+
   const result: DiagnosticResult = {
     timestamp: new Date().toISOString(),
     environment: {

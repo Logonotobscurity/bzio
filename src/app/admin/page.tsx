@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
 import {
   getRecentActivities,
   getActivityStats,
@@ -9,7 +11,13 @@ import {
 import AdminDashboardClient from './_components/AdminDashboardClient';
 
 export default async function AdminPage() {
-  console.log('[ADMIN_PAGE] Loading dashboard...');
+  // ✅ CRITICAL: Verify user is admin before loading dashboard data
+  const session = await getServerSession();
+  if (!session || session.user?.role !== 'admin') {
+    redirect('/');
+  }
+
+  console.log('[ADMIN_PAGE] Loading dashboard for admin:', session.user?.email);
   
   // Fetch all data in parallel with individual error handling
   // Use Promise.allSettled so one slow query doesn't block all others

@@ -1,19 +1,18 @@
 
 import Link from 'next/link';
-import { EnrichedBrandData } from '@/services/productService';
+import { EnrichedBrandData } from '@/services/enrichmentService';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { formatPrice as formatPriceService } from '@/services/pricing';
 
 interface BrandCardProps {
   brand: EnrichedBrandData;
 }
 
 export function BrandCard({ brand }: BrandCardProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(price);
-  };
+  const formatPrice = (price: number) => formatPriceService(price, 'NGN');
 
   const brandNameForUrl = encodeURIComponent(brand.name);
 

@@ -1,0 +1,24 @@
+/* Carousel image transform styles */
+.imageTransform0 {
+  transform: translateX(0px);
+  z-index: 30;
+}
+
+.imageTransform1 {
+  transform: translateX(4px);
+  z-index: 29;
+}
+
+.imageTransform2 {
+  transform: translateX(8px);
+  z-index: 28;
+}
+
+/* Responsive font sizes using clamp */
+.headingLarge {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+.headingMedium {
+  font-size: clamp(1.125rem, 4vw, 1.875rem);
+}

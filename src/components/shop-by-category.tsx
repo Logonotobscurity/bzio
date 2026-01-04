@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Section, SectionHeading, SectionPreamble, SectionTitle, SectionDescription } from '@/components/ui/section';
-import { getCategoryPageData, type EnrichedCategoryData } from '@/services/productService';
+import { getCategoryPageData, type EnrichedCategoryData } from '@/services/enrichmentService';
 import { CategoryCard } from '@/components/ui/category-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';

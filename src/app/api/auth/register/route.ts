@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { sendEmailVerificationEmail, sendWelcomeEmail } from '@/lib/email-service';
+import { trackUserRegistration } from '@/app/admin/_actions/tracking';
 
 export async function POST(req: Request) {
   try {
@@ -39,6 +40,21 @@ export async function POST(req: Request) {
         companyName: companyName?.trim() || null,
       },
     });
+
+    // Track user registration (async - non-blocking)
+    try {
+      await trackUserRegistration({
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        companyName: user.companyName || undefined,
+      });
+      console.log('✅ User registration tracked');
+    } catch (trackingError) {
+      console.error('❌ Failed to track user registration:', trackingError);
+      // Don't fail registration if tracking fails
+    }
 
     // Send verification email (async - non-blocking)
     try {

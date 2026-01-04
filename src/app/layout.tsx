@@ -6,12 +6,14 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Toaster } from "@/components/ui/toaster";
-import { ClientChatWidget } from "@/components/layout/ClientChatWidget";
-import { CookieBanner } from "@/components/cookie-banner";
-import WhatsappWidget from "@/components/layout/WhatsappWidget";
+import { 
+  LazyWhatsappWidget, 
+  LazyChatWidget, 
+  LazyNewsletterPopup,
+  LazyCookieBanner 
+} from "@/components/lazy-widgets";
 import { MonitoringProvider } from "@/components/layout/MonitoringProvider";
 import { PageLoadingProvider } from "@/components/layout/PageLoadingProvider";
-import NewsletterPopup from "@/components/newsletter-popup";
 import Providers from "@/components/providers";
 
 export const metadata: Metadata = {
@@ -53,10 +55,11 @@ export default function RootLayout({
               <main id="main-content" className="flex-grow pt-0">{children}</main>
               <Footer />
               <Toaster />
-              <WhatsappWidget />
-              <ClientChatWidget />
-              <CookieBanner />
-              <NewsletterPopup delay={10000} />
+              {/* Lazy-loaded non-critical widgets */}
+              <LazyWhatsappWidget />
+              <LazyChatWidget />
+              <LazyCookieBanner />
+              <LazyNewsletterPopup delay={10000} />
             </ErrorBoundary>
           </PageLoadingProvider>
         </Providers>

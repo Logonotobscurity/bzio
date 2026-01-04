@@ -120,6 +120,7 @@ export async function trackNewsletterSignup(data: {
 }
 
 export async function trackFormSubmission(data: {
+  formSubmissionId?: string;
   formType: string;
   email: string;
   name: string;
@@ -131,10 +132,12 @@ export async function trackFormSubmission(data: {
   userAgent?: string;
 }) {
   try {
-    const submission = await prisma.formSubmission.create({
+    await prisma.analyticsEvent.create({
       data: {
-        formType: data.formType,
+        eventType: 'form_submitted',
         data: {
+          formSubmissionId: data.formSubmissionId,
+          formType: data.formType,
           email: data.email,
           name: data.name,
           message: data.message,
@@ -142,29 +145,11 @@ export async function trackFormSubmission(data: {
           company: data.company,
           subject: data.subject,
         },
-        ipAddress: data.ipAddress,
-        userAgent: data.userAgent,
-        status: 'new',
-      },
-    });
-
-    // Track event
-    await prisma.analyticsEvent.create({
-      data: {
-        eventType: 'form_submitted',
-        data: {
-          formSubmissionId: submission.id,
-          formType: data.formType,
-          email: data.email,
-        },
         source: 'B2B_PLATFORM',
       },
     });
-
-    return submission;
   } catch (error) {
     console.error('Error tracking form submission:', error);
-    throw error;
   }
 }
 

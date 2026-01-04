@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
 import { logActivity } from '@/lib/activity-service';
+import { trackQuoteRequest } from '@/app/admin/_actions/tracking';
+import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,8 +43,10 @@ export async function POST(req: Request) {
     } = quoteRequestSchema.parse(json);
 
     // Try to create quote record in database (non-blocking)
+    let quoteId: string | null = null;
+    let quoteReference: string | null = null;
     try {
-      await prisma.quote.create({
+      const quote = await prisma.quote.create({
         data: {
           reference: `QR-${Date.now()}`,
           buyerContactEmail: email,
@@ -58,9 +62,50 @@ export async function POST(req: Request) {
           },
         },
       });
+      quoteId = quote.id;
+      quoteReference = quote.reference;
     } catch (dbError) {
       console.warn('[QUOTE_DB_SAVE_WARNING]', dbError);
       // Don't fail the request if database save fails - user can still proceed with WhatsApp
+    }
+
+    // Track quote request (async - non-blocking)
+    try {
+      if (quoteId && quoteReference) {
+        await trackQuoteRequest({
+          quoteId,
+          reference: quoteReference,
+          email,
+          itemCount: items.length,
+        });
+        console.log('✅ Quote request tracked');
+      }
+    } catch (trackingError) {
+      console.error('❌ Failed to track quote request:', trackingError);
+      // Don't fail the request if tracking fails
+    }
+
+    // Notify admins about new quote (async - non-blocking)
+    try {
+      if (quoteId && quoteReference) {
+        await broadcastAdminNotification(
+          'new_quote',
+          `New Quote Request: ${quoteReference}`,
+          `Quote from ${name} (${email}) with ${items.length} items`,
+          {
+            quoteId,
+            quoteReference,
+            customerName: name,
+            customerEmail: email,
+            itemCount: items.length,
+          },
+          `/admin/dashboard?tab=quotes&id=${quoteId}`
+        );
+        console.log('✅ Admin notifications sent');
+      }
+    } catch (notificationError) {
+      console.error('❌ Failed to send admin notifications:', notificationError);
+      // Don't fail the request if notifications fail
     }
 
     // Generate WhatsApp URLs (non-blocking)

@@ -252,9 +252,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   // Initialize connection on mount
   useEffect(() => {
+    if (!mergedOptions.enabled) {
+      return;
+    }
+    
     connect();
-    return () => disconnect();
-  }, [connect, disconnect]);
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect, mergedOptions.enabled]);
 
   // Expose socket for advanced usage
   return {

@@ -4,4 +4,4 @@
  * Re-exports the Prisma singleton from the new centralized location
  */
 
-export { default as prisma } from '@/lib/prisma';
+export { prisma } from '@/lib/db';

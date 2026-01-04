@@ -15,6 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { MetricsCards } from './MetricsCards';
 import { ActivityFeed } from './ActivityFeed';
+import { EventsAnalytics } from './EventsAnalytics';
+import { AdminNotifications } from './AdminNotifications';
 import { formatDistanceToNow, format } from 'date-fns';
 import Link from 'next/link';
 import { Eye, MessageSquare, Trash2, Download, RefreshCw, Clock } from 'lucide-react';
@@ -47,11 +49,11 @@ export default function AdminDashboardClient({
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('activity');
   const [stats, setStats] = useState(initialStats);
-  const [activities, setActivities] = useState(initialActivities);
-  const [quotes, setQuotes] = useState(initialQuotes);
-  const [newUsers, setNewUsers] = useState(initialNewUsers);
-  const [newsletterSubscribers, setNewsletterSubscribers] = useState(initialNewsletterSubscribers);
-  const [formSubmissions, setFormSubmissions] = useState(initialFormSubmissions);
+  const [activities, setActivities] = useState(initialActivities ?? []);
+  const [quotes, setQuotes] = useState(initialQuotes ?? []);
+  const [newUsers, setNewUsers] = useState(initialNewUsers ?? []);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState(initialNewsletterSubscribers ?? []);
+  const [formSubmissions, setFormSubmissions] = useState(initialFormSubmissions ?? []);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -149,7 +151,8 @@ export default function AdminDashboardClient({
               <span>Last updated: {format(lastUpdated, 'MMM dd, yyyy HH:mm:ss')}</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-end">
+            <AdminNotifications />
             <Button
               onClick={() => setAutoRefresh(!autoRefresh)}
               variant={autoRefresh ? 'default' : 'outline'}
@@ -246,8 +249,8 @@ export default function AdminDashboardClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {quotes.length > 0 ? (
-                      quotes.map((quote) => (
+                    {(quotes ?? []).length > 0 ? (
+                      (quotes ?? []).map((quote) => (
                         <TableRow key={quote.id}>
                           <TableCell className="font-mono text-xs sm:text-sm">{quote.reference}</TableCell>
                           <TableCell className="min-w-[150px]">
@@ -322,8 +325,8 @@ export default function AdminDashboardClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newUsers.length > 0 ? (
-                      newUsers.map((user) => (
+                    {(newUsers ?? []).length > 0 ? (
+                      (newUsers ?? []).map((user) => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium min-w-[120px] text-sm">
                             {user.firstName} {user.lastName}
@@ -390,8 +393,8 @@ export default function AdminDashboardClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newsletterSubscribers.length > 0 ? (
-                      newsletterSubscribers.map((sub) => (
+                    {(newsletterSubscribers ?? []).length > 0 ? (
+                      (newsletterSubscribers ?? []).map((sub) => (
                         <TableRow key={sub.id}>
                           <TableCell className="text-xs sm:text-sm min-w-[180px] truncate">
                             {sub.email}
@@ -446,8 +449,8 @@ export default function AdminDashboardClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {formSubmissions.length > 0 ? (
-                      formSubmissions.map((submission) => {
+                    {(formSubmissions ?? []).length > 0 ? (
+                      (formSubmissions ?? []).map((submission) => {
                         const data = submission.data as any;
                         return (
                           <TableRow key={submission.id}>
@@ -497,20 +500,7 @@ export default function AdminDashboardClient({
 
         {/* EVENTS TAB */}
         <TabsContent value="events" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Analytics</CardTitle>
-              <CardDescription>
-                System-wide event tracking and analytics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Analytics charts coming soon</p>
-                <p className="text-sm">Event visualization dashboard will be available shortly</p>
-              </div>
-            </CardContent>
-          </Card>
+          <EventsAnalytics activities={activities} />
         </TabsContent>
         </Tabs>
       </div>

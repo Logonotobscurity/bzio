@@ -73,7 +73,7 @@ const BulkPackageFlyer = ({ pkg }: { pkg: BulkPackage }) => {
                 alt={`${pkg.name} ${i + 1}`}
                 loading="lazy"
                 className="max-h-32 sm:max-h-44 object-contain drop-shadow-md"
-                style={{ transform: `translateX(${i * 4}px)`, zIndex: 30 - i }}
+                style={{ transform: `translateX(${i * 4}px)`, zIndex: 30 - i } as React.CSSProperties}
               />
             ))}
           </div>
@@ -85,7 +85,7 @@ const BulkPackageFlyer = ({ pkg }: { pkg: BulkPackage }) => {
           <div className="flex items-start justify-between gap-2 md:gap-4">
             <div>
               <span className="text-amber-600 text-[10px] sm:text-xs font-bold uppercase tracking-widest">{pkg.badge}</span>
-              <h3 className="font-extrabold text-slate-900 mt-1 md:mt-2" style={{ fontSize: 'clamp(1.125rem, 4vw, 1.875rem)' }}>{pkg.name}</h3>
+              <h3 className="font-extrabold text-slate-900 mt-1 md:mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl">{pkg.name}</h3>
             </div>
             {pkg.isTopSeller && (
               <div className="text-xs sm:text-sm text-white bg-sky-900 px-2 sm:px-3 py-1 sm:py-2 rounded-full font-semibold flex items-center gap-1 sm:gap-2 shadow flex-shrink-0">
@@ -182,7 +182,7 @@ export const BulkPackagesCarousel = ({ packages }: Props) => {
         <div className="mb-6 md:mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
             <p className="text-amber-600 font-bold uppercase text-[10px] sm:text-xs tracking-widest">WHOLESALE PACKAGES</p>
-            <h2 className="font-extrabold text-slate-900 mt-2" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.25rem)' }}>Curated Bulk Packages</h2>
+            <h2 className="font-extrabold text-slate-900 mt-2 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Curated Bulk Packages</h2>
             <p className="text-gray-600 mt-1 md:mt-2 text-xs sm:text-sm md:text-base">Pre-configured packages for restaurants, retailers & wholesalers</p>
           </div>
 

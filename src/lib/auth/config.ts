@@ -95,7 +95,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // When the user signs in, the `user` object from the database is passed.
       if (user) {
         token.id = user.id;
@@ -106,6 +106,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.phone = user.phone;
         token.isNewUser = user.isNewUser;
         token.lastLogin = user.lastLogin;
+      } else if (token.id) {
+        // CRITICAL FIX: Refresh user data on every session check to ensure role changes are reflected
+        // This prevents stale role data when admin role is updated in database
+        const refreshedUser = await prisma.user.findUnique({
+          where: { id: Number(token.id) },
+          select: {
+            id: true,
+            role: true,
+            firstName: true,
+            lastName: true,
+            companyName: true,
+            phone: true,
+            isNewUser: true,
+            lastLogin: true,
+          },
+        });
+
+        if (refreshedUser) {
+          token.id = refreshedUser.id;
+          token.role = refreshedUser.role;
+          token.firstName = refreshedUser.firstName;
+          token.lastName = refreshedUser.lastName;
+          token.companyName = refreshedUser.companyName;
+          token.phone = refreshedUser.phone;
+          token.isNewUser = refreshedUser.isNewUser;
+          token.lastLogin = refreshedUser.lastLogin;
+        }
       }
       return token;
     },

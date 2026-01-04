@@ -3,7 +3,7 @@ import { PageHero } from '@/components/layout/PageHero';
 import { Section } from '@/components/ui/section';
 import { BrandCard } from '@/components/BrandCard';
 import { CTASection } from '@/components/cta-section';
-import { getBrandsPageData } from '@/services/productService';
+import { getBrandsPageData } from '@/services/enrichmentService';
 import { notFound } from 'next/navigation';
 
 export default async function AllBrandsPage() {

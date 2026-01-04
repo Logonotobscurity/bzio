@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Product, Category } from '@/lib/schema';
 import { Star, Package, ShoppingCart } from 'lucide-react';
-import { formatPrice } from '@/lib/utils/formatters';
+import { formatPrice } from '@/services/pricing';
 
 interface BestSellerCardProps {
   product: Product & { category?: Pick<Category, 'name' | 'slug'> };

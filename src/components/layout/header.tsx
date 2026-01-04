@@ -1,13 +1,14 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { X, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { getUserDashboardPath, USER_ROLES } from "@/lib/auth-constants";
 import { SearchBar } from "@/components/search-bar";
 import { cn } from "@/lib/utils";
 import {
@@ -79,7 +80,8 @@ export function Header() {
   const [productBrands, setProductBrands] = useState<{ title: string, href: string }[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   const pathname = usePathname();
 
@@ -235,11 +237,33 @@ export function Header() {
             <Button asChild size="sm" className="font-semibold">
               <Link href="/products">Shop now</Link>
             </Button>
-            {session?.user ? (
-              <Button asChild variant="outline" size="sm" className="font-semibold">
-                <Link href="/account">
-                  Welcome back: {session.user.firstName || session.user.email}
-                </Link>
+            {status === 'authenticated' && session?.user ? (
+              <Button
+                onClick={() => {
+                  if (!session.user.role) {
+                    console.error('[HEADER] No role found in session', {
+                      userId: session.user.id,
+                      role: session.user.role,
+                      session: session.user,
+                    });
+                    router.push('/account'); // Fallback to customer dashboard
+                    return;
+                  }
+                  const dashboardPath = getUserDashboardPath(session.user.role);
+                  console.log('[HEADER] Dashboard button clicked', {
+                    userId: session.user.id,
+                    role: session.user.role,
+                    dashboardPath,
+                    sessionUser: session.user,
+                    timestamp: new Date().toISOString(),
+                  });
+                  router.push(dashboardPath);
+                }}
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+              >
+                Welcome back: {session.user.firstName || session.user.email}
               </Button>
             ) : (
               <Button asChild variant="outline" size="sm" className="font-semibold">
@@ -330,11 +354,35 @@ export function Header() {
                   Shop now
                 </Link>
               </Button>
-              {session?.user ? (
-                <Button asChild variant="outline" size="lg" className="w-full">
-                  <Link href="/account" onClick={toggleMenu}>
-                    Welcome back: {session.user.firstName || session.user.email}
-                  </Link>
+              {status === 'authenticated' && session?.user ? (
+                <Button
+                  onClick={() => {
+                    if (!session.user.role) {
+                      console.error('[HEADER_MOBILE] No role found in session', {
+                        userId: session.user.id,
+                        role: session.user.role,
+                        session: session.user,
+                      });
+                      setIsMenuOpen(false);
+                      router.push('/account'); // Fallback to customer dashboard
+                      return;
+                    }
+                    const dashboardPath = getUserDashboardPath(session.user.role);
+                    console.log('[HEADER_MOBILE] Dashboard button clicked', {
+                      userId: session.user.id,
+                      role: session.user.role,
+                      dashboardPath,
+                      sessionUser: session.user,
+                      timestamp: new Date().toISOString(),
+                    });
+                    setIsMenuOpen(false);
+                    router.push(dashboardPath);
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  Welcome back: {session.user.firstName || session.user.email}
                 </Button>
               ) : (
                 <Button asChild variant="outline" size="lg" className="w-full">

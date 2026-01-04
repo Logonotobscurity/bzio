@@ -4,6 +4,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 // =====================================================
@@ -161,6 +162,7 @@ model User {
   searchQueries    SearchQuery[]
   favorites        UserFavorite[]
   analyticsEvents  AnalyticsEvent[]
+  adminNotifications AdminNotification[]
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -259,6 +261,7 @@ model Quote {
   
   lines              QuoteLine[]
   messages           NegotiationMessage[]
+  quoteMessages      QuoteMessage[]
   events             QuoteEvent[]
 
   customer   Customer? @relation(fields: [customerId], references: [id])
@@ -503,4 +506,44 @@ model CrmNotification {
   @@index([targetSystem, read])
   @@index([createdAt])
   @@map("crm_notifications")
+}
+
+model AdminNotification {
+  id        String @id @default(uuid())
+  adminId   Int    @map("admin_id")
+  type      String // e.g., new_quote, new_form, new_user, quote_message, new_newsletter
+  title     String
+  message   String
+  data      Json @default("{}")
+  actionUrl String? @map("action_url")
+  read      Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  admin     User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([adminId, read])
+  @@map("admin_notifications")
+}
+
+model QuoteMessage {
+  id        String @id @default(uuid())
+  quoteId   String @map("quote_id")
+  senderRole String @map("sender_role") // ADMIN or CUSTOMER
+  senderEmail String @map("sender_email")
+  senderName String @map("sender_name")
+  senderId  Int? @map("sender_id")
+  message   String
+  isRead    Boolean @default(false) @map("is_read")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  quote     Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@map("quote_messages")
 }

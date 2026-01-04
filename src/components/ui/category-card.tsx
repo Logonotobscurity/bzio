@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { EnrichedCategoryData } from '@/services/productService';
+import { EnrichedCategoryData } from '@/services/enrichmentService';
 import { Package } from 'lucide-react';
 
 interface CategoryCardProps {

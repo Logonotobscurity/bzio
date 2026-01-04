@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { checkRateLimit } from '@/lib/ratelimit';
 import {
   VALID_FORM_TYPES,
@@ -8,6 +8,8 @@ import {
   getLeadTypeForFormType,
   getNotificationPriority,
 } from '@/lib/constants/form-types';
+import { trackFormSubmission } from '@/app/admin/_actions/tracking';
+import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 
 const formSubmissionSchema = z.object({
   formType: z.enum(VALID_FORM_TYPES, {
@@ -139,6 +141,41 @@ export async function POST(request: NextRequest) {
 
       return { formSubmission, lead, notification };
     });
+
+    // Track form submission (async - non-blocking)
+    try {
+      await trackFormSubmission({
+        formSubmissionId: result.formSubmission.id,
+        formType,
+        email,
+        name: name || 'Unknown',
+      });
+      console.log('✅ Form submission tracked');
+    } catch (trackingError) {
+      console.error('❌ Failed to track form submission:', trackingError);
+      // Don't fail the request if tracking fails
+    }
+
+    // Notify admins about new form submission (async - non-blocking)
+    try {
+      await broadcastAdminNotification(
+        'new_form',
+        `New Form Submission: ${formType}`,
+        `${name || 'Unknown'} (${email}) submitted a ${formType.replace('_', ' ')} form`,
+        {
+          formSubmissionId: result.formSubmission.id,
+          leadId: result.lead.id,
+          formType,
+          customerName: name,
+          customerEmail: email,
+        },
+        `/admin/dashboard?tab=forms&id=${result.formSubmission.id}`
+      );
+      console.log('✅ Admin notifications sent');
+    } catch (notificationError) {
+      console.error('❌ Failed to send admin notifications:', notificationError);
+      // Don't fail the request if notifications fail
+    }
 
     return NextResponse.json(
       {

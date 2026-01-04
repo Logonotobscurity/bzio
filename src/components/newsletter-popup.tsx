@@ -57,9 +57,11 @@ export const NewsletterPopup = ({ delay = 10000 }: NewsletterPopupProps) => {
       if (response.ok) {
         localStorage.setItem('bzion-newsletter-dismissed', 'true');
         setIsSubmitted(true);
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           handleClose();
         }, 2000);
+        // Cleanup will happen in useEffect or on component unmount
+        return () => clearTimeout(timeoutId);
       } else {
         // Handle non-ok responses if needed, e.g., show an error message
       }

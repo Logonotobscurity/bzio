@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { checkRateLimit } from '@/lib/ratelimit';
+import { trackNewsletterSignup } from '@/app/admin/_actions/tracking';
 
 const subscriptionSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -73,6 +74,18 @@ export async function POST(request: NextRequest) {
         metadata,
       },
     });
+
+    // Track newsletter signup (async - non-blocking)
+    try {
+      await trackNewsletterSignup({
+        email,
+        source,
+      });
+      console.log('✅ Newsletter signup tracked');
+    } catch (trackingError) {
+      console.error('❌ Failed to track newsletter signup:', trackingError);
+      // Don't fail the request if tracking fails
+    }
 
     // Create associated lead record for CRM
     await prisma.lead.create({

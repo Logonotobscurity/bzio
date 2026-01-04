@@ -40,17 +40,25 @@ async function handleIncomingMessage(webhook: Record<string, unknown>): Promise<
       return;
     }
 
+    // Safely extract payload with null checks
     const payload = webhook.payload as Record<string, unknown> | undefined;
+    
+    // Validate payload exists before proceeding
+    if (!payload || typeof payload !== 'object') {
+      console.warn('Invalid or missing payload in webhook:', webhook);
+      return;
+    }
+
     await prisma.negotiationMessage.create({
       data: {
-        quoteId: (payload?.quoteId as string) || 'unknown',
+        quoteId: (payload.quoteId as string) || 'unknown',
         direction: 'inbound',
         channel: 'whatsapp',
-        fromNumber: (payload?.from as string) || '',
-        body: (payload?.body as string) || '',
-        vendorMessageId: payload?.id as string | undefined,
+        fromNumber: (payload.from as string) || '',
+        body: (payload.body as string) || '',
+        vendorMessageId: (payload.id as string) || undefined,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        metadata: (payload || {}) as any,
+        metadata: payload as any,
         status: 'received',
       },
     });

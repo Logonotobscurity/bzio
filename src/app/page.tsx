@@ -4,6 +4,9 @@ import dynamicComponent from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getBestSellers, getCategories } from '@/services/productService';
 import { BestSellersSection } from '@/components/best-sellers-section';
+import { getServerSession } from 'next-auth/next';
+import { redirect } from 'next/navigation';
+import { REDIRECT_PATHS } from '@/lib/auth-constants';
 
 export const revalidate = 3600; // Revalidate every hour
 export const dynamic = 'force-dynamic';
@@ -14,7 +17,7 @@ const ValueProps = dynamicComponent(() => import('@/components/value-props').the
 const InfoBlocks = dynamicComponent(() => import('@/components/info-blocks').then(mod => mod.default), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
 });
-const LocationsSection = dynamicComponent(() => import('@/components/locations-section').then(mod => mod.LocationsSection), {
+const LocationsSection = dynamicComponent(() => import('@/components/locations-section').then(mod => ({ default: mod.LocationsSection })), {
   loading: () => <Skeleton className="h-[400px] w-full" />,
 });
 const Testimonials = dynamicComponent(() => import('@/components/testimonials').then(mod => mod.default), {
@@ -26,6 +29,11 @@ const FaqSection = dynamicComponent(() => import('@/components/faq-section').the
 
 
 export default async function Home() {
+  // NOTE: The home page is public and accessible to both authenticated and unauthenticated users
+  // It displays the carousel and product information for all visitors
+  // Authentication doesn't affect access to this page
+  // If you want to redirect authenticated users to their dashboard automatically,
+  // you would need to make this a client component with useSession hook
 
   const [products, categories] = await Promise.all([
     getBestSellers(),

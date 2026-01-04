@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import {
-  getRecentActivitiesOptimized,
-  getActivityStatsOptimized,
-  getQuotesOptimized,
-  getNewUsersOptimized,
-  getNewsletterSubscribersOptimized,
-  getFormSubmissionsOptimized,
-} from '@/app/admin/_actions/activities-optimized';
+  getRecentActivities,
+  getActivityStats,
+  getQuotes,
+  getNewUsers,
+  getNewsletterSubscribers,
+  getFormSubmissions,
+} from '@/app/admin/_actions/activities';
 import crypto from 'crypto';
 
 /**
@@ -28,37 +29,35 @@ export async function GET(request: Request) {
   const startTime = Date.now();
 
   try {
+    // ✅ CRITICAL: Use NextAuth session for proper role-based access control
+    const session = await getServerSession();
+    
+    // Deny access if not authenticated or not admin
+    if (!session || session.user?.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin access required' },
+        { status: 403 }
+      );
+    }
+
     // Parse query parameters for pagination
     const url = new URL(request.url);
     const page = Math.max(0, parseInt(url.searchParams.get('page') || '0'));
     const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20')));
     const offset = page * limit;
 
-    console.log('[DASHBOARD_API] Request received', { page, limit, offset });
-
-    // Check authorization
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      const urlObj = new URL(request.url);
-      if (!urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1')) {
-        console.warn('[DASHBOARD_API] Unauthorized request from', urlObj.hostname);
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-    }
+    console.log('[DASHBOARD_API] Admin request received', { adminId: session.user.id, page, limit, offset });
 
     // Fetch all data in parallel (3 main queries)
     console.log('[DASHBOARD_API] Starting data fetch...');
     const [activitiesResult, statsResult, quotesResult, newUsersResult, newsletterResult, formsResult] = 
       await Promise.allSettled([
-        getRecentActivitiesOptimized(offset, limit),
-        getActivityStatsOptimized(),
-        getQuotesOptimized(offset, limit),
-        getNewUsersOptimized(offset, limit),
-        getNewsletterSubscribersOptimized(offset, limit),
-        getFormSubmissionsOptimized(offset, limit),
+        getRecentActivities(offset, limit),
+        getActivityStats(),
+        getQuotes(offset, limit),
+        getNewUsers(offset, limit),
+        getNewsletterSubscribers(offset, limit),
+        getFormSubmissions(offset, limit),
       ]);
 
     console.log('[DASHBOARD_API] Results:', {

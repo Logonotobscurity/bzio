@@ -1,15 +1,22 @@
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
 import { Bell, Home, Package2, ShoppingCart, Users, FileText, Mail, BarChart3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function AdminLayout({
+export default async function AdminLayout({
     children,
   }: {
     children: React.ReactNode
   }) {
+  // ✅ CRITICAL: Verify user is admin before rendering layout
+  const session = await getServerSession();
+  if (!session || session.user?.role !== 'admin') {
+    redirect('/');
+  }
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
         <div className="hidden border-r bg-muted/40 md:block">

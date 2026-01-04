@@ -12,7 +12,7 @@ export type ActivityType =
   | 'email_sent';
 
 export interface ActivityData {
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined | Record<string, unknown>;
 }
 
 /**
