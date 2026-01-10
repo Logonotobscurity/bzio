@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createQuote } from '@/services/quoteService';
+import { quoteService } from '@/services/quote.service';
 import { sendEmail } from '@/lib/api/email';
 import { sendQuoteRequestToWhatsApp } from '@/lib/api/whatsapp';
 import RfqSubmissionEmail from '@/components/emails/rfq-submission-email';
@@ -43,7 +43,9 @@ export async function POST(request: Request) {
     }
 
     // Create quote in database
-    const quote = await createQuote({
+    const quoteReference = `Q-${Date.now()}-${String(Math.random()).substring(2, 6)}`;
+    const quote = await quoteService.createQuote({
+      reference: quoteReference,
       buyerContactEmail: validated.email,
       buyerContactPhone: validated.phone,
       buyerCompanyId: validated.company,
@@ -64,10 +66,10 @@ export async function POST(request: Request) {
           data: {
             quoteId: quote.id,
             quoteReference: quote.reference,
-            customerId: quote.customerId,
-            customerEmail: quote.buyerContactEmail,
-            companyName: quote.buyerCompanyId,
-            totalItems: quote.lines.reduce((sum, line) => sum + line.qty, 0),
+            customerId: (quote as any).customerId,
+            customerEmail: (quote as any).buyerContactEmail,
+            companyName: (quote as any).buyerCompanyId,
+            totalItems: (quote as any).lines.reduce((sum: number, line: any) => sum + line.qty, 0),
             submittedAt: new Date().toISOString(),
           },
         },

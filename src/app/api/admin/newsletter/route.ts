@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Resubscribe
     if (action === 'resubscribe' && id) {
       const subscriber = await newsletterService.updateSubscriber(id, {
-        isActive: true,
+        status: 'active',
       });
 
       await analyticsService.trackEvent({

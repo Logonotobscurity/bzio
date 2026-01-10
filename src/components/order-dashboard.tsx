@@ -10,9 +10,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { DollarSign, ShoppingBag } from 'lucide-react';
+import { DollarSign, ShoppingBag, Edit2, Loader } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import RecentActivity from '@/components/recent-activity';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from 'sonner';
 
 interface Order {
   id: string;
@@ -26,17 +38,46 @@ interface Order {
   updatedAt: Date | string;
 }
 
+interface UserProfile {
+  id: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  companyName: string | null;
+  companyPhone: string | null;
+  businessType: string | null;
+  businessRegistration: string | null;
+}
+
 export default function OrderDashboard() {
+  const { data: session } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState({ totalOrders: 0, pendingOrders: 0, totalValue: 0 });
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    companyName: '',
+    companyPhone: '',
+    businessType: '',
+    businessRegistration: '',
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/admin/orders');
-        if (response.ok) {
-          const data = await response.json();
+        const [ordersRes, profileRes] = await Promise.all([
+          fetch('/api/admin/orders'),
+          fetch('/api/user/profile'),
+        ]);
+
+        if (ordersRes.ok) {
+          const data = await ordersRes.json();
           setOrders(data.orders || []);
           setStats({
             totalOrders: data.stats?.totalQuotes || 0,
@@ -44,15 +85,63 @@ export default function OrderDashboard() {
             totalValue: data.stats?.totalValue || 0,
           });
         }
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setProfile(profileData);
+          setProfileForm({
+            firstName: profileData.firstName || '',
+            lastName: profileData.lastName || '',
+            phone: profileData.phone || '',
+            companyName: profileData.companyName || '',
+            companyPhone: profileData.companyPhone || '',
+            businessType: profileData.businessType || '',
+            businessRegistration: profileData.businessRegistration || '',
+          });
+        }
       } catch (error) {
-        console.error('Failed to fetch orders:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    if (session?.user?.id) {
+      fetchData();
+    }
+  }, [session]);
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setProfile(updated);
+        setIsEditModalOpen(false);
+        toast.success('Profile updated successfully');
+      } else {
+        toast.error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('An error occurred');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -84,6 +173,62 @@ export default function OrderDashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
+      {/* Account Details Section - Condensed Inline Edit */}
+      {profile && !isEditModalOpen && (
+        <Card className="rounded-lg sm:rounded-2xl border-0 sm:border bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+          <CardHeader className="flex flex-row items-start justify-between px-3 sm:px-6 py-3 sm:py-4">
+            <div className="flex-1">
+              <CardTitle className="text-base sm:text-lg mb-1">Account Details</CardTitle>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {profile.email}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditModalOpen(true)}
+              className="text-xs sm:text-sm h-8 sm:h-9 flex-shrink-0"
+            >
+              <Edit2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              Edit
+            </Button>
+          </CardHeader>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase">Name</p>
+                <p className="text-xs sm:text-sm font-medium line-clamp-1 mt-1">
+                  {profile.firstName || profile.lastName 
+                    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase">Phone</p>
+                <p className="text-xs sm:text-sm font-medium line-clamp-1 mt-1">
+                  {profile.phone || '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase">Company</p>
+                <p className="text-xs sm:text-sm font-medium line-clamp-1 mt-1">
+                  {profile.companyName || '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase">Business Type</p>
+                <p className="text-xs sm:text-sm font-medium line-clamp-1 mt-1">
+                  {profile.businessType || '—'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Activity Section */}
+      <RecentActivity />
+
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg sm:rounded-xl">
@@ -143,6 +288,7 @@ export default function OrderDashboard() {
         <CardContent className="px-0 sm:px-6 pb-3 sm:pb-6">
           {loading ? (
             <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
+              <Loader className="h-5 w-5 animate-spin mr-2" />
               Loading orders...
             </div>
           ) : orders.length === 0 ? (
@@ -187,6 +333,114 @@ export default function OrderDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Profile Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="w-11/12 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">Edit Account Details</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleProfileSubmit} className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  value={profileForm.firstName}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your first name"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  value={profileForm.lastName}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your last name"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <Label htmlFor="phone" className="text-xs sm:text-sm">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your phone number"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor="companyPhone" className="text-xs sm:text-sm">Company Phone</Label>
+                <Input
+                  id="companyPhone"
+                  name="companyPhone"
+                  type="tel"
+                  value={profileForm.companyPhone}
+                  onChange={handleProfileChange}
+                  placeholder="Enter company phone"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <Label htmlFor="companyName" className="text-xs sm:text-sm">Company Name</Label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  value={profileForm.companyName}
+                  onChange={handleProfileChange}
+                  placeholder="Enter company name"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor="businessType" className="text-xs sm:text-sm">Business Type</Label>
+                <Input
+                  id="businessType"
+                  name="businessType"
+                  value={profileForm.businessType}
+                  onChange={handleProfileChange}
+                  placeholder="e.g., Retailer, Wholesaler"
+                  className="mt-1 sm:mt-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="businessRegistration" className="text-xs sm:text-sm">Registration Number</Label>
+              <Input
+                id="businessRegistration"
+                name="businessRegistration"
+                value={profileForm.businessRegistration}
+                onChange={handleProfileChange}
+                placeholder="Enter registration number"
+                className="mt-1 sm:mt-2 text-sm"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2 sm:pt-4">
+              <Button type="submit" disabled={isSaving} className="flex-1 text-sm">
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button type="button" variant="outline" className="flex-1 text-sm" onClick={() => setIsEditModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

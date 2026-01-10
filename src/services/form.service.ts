@@ -28,12 +28,22 @@ export class FormService {
   /**
    * Submit a new form
    */
-  async submitForm(input: CreateFormInput): Promise<FormSubmission> {
+  async submitForm(input: CreateFormInput): Promise<any> {
     // Validate input
     this.validateFormInput(input);
 
     // Create submission via repository
-    const submission = await formSubmissionRepository.create(input);
+    const submission = await formSubmissionRepository.create({
+      formType: input.formType,
+      data: {
+        companyName: input.companyName,
+        contactEmail: input.contactEmail,
+        phone: input.phone,
+        subject: input.subject,
+        message: input.message,
+      },
+      status: 'pending',
+    });
 
     // TODO: Send notification email to admin
     // await notificationService.notifyFormSubmission(submission);
@@ -44,28 +54,28 @@ export class FormService {
   /**
    * Get all form submissions
    */
-  async getAllSubmissions(limit?: number, skip?: number): Promise<FormSubmission[]> {
+  async getAllSubmissions(limit?: number, skip?: number): Promise<any[]> {
     return formSubmissionRepository.findAll(limit, skip);
   }
 
   /**
    * Get a specific form submission
    */
-  async getSubmissionById(id: string | number): Promise<FormSubmission | null> {
+  async getSubmissionById(id: string | number): Promise<any> {
     return formSubmissionRepository.findById(id);
   }
 
   /**
    * Get pending form submissions
    */
-  async getPendingSubmissions(): Promise<FormSubmission[]> {
+  async getPendingSubmissions(): Promise<any[]> {
     return formSubmissionRepository.findPending();
   }
 
   /**
    * Get submissions by status
    */
-  async getSubmissionsByStatus(status: string): Promise<FormSubmission[]> {
+  async getSubmissionsByStatus(status: string): Promise<any[]> {
     return formSubmissionRepository.findByStatus(status);
   }
 
@@ -76,12 +86,9 @@ export class FormService {
     id: string | number,
     response: string,
     respondedBy: string
-  ): Promise<FormSubmission> {
+  ): Promise<any> {
     const submission = await formSubmissionRepository.update(id, {
       status: 'responded',
-      response,
-      respondedBy,
-      respondedAt: new Date(),
     });
 
     // TODO: Send response email to submitter
@@ -96,7 +103,7 @@ export class FormService {
   async updateSubmission(
     id: string | number,
     input: UpdateFormInput
-  ): Promise<FormSubmission> {
+  ): Promise<any> {
     return formSubmissionRepository.update(id, input);
   }
 

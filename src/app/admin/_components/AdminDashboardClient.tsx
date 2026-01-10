@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -18,25 +18,117 @@ import { ActivityFeed } from './ActivityFeed';
 import { EventsAnalytics } from './EventsAnalytics';
 import { AdminNotifications } from './AdminNotifications';
 import { formatDistanceToNow, format } from 'date-fns';
-import Link from 'next/link';
 import { Eye, MessageSquare, Trash2, Download, RefreshCw, Clock } from 'lucide-react';
 import type { ActivityEvent } from '../_actions/activities';
 
-interface AdminDashboardProps {
-  stats: {
-    totalUsers: number;
-    newUsersThisWeek: number;
-    totalQuotes: number;
-    pendingQuotes: number;
-    totalNewsletterSubscribers: number;
-    totalFormSubmissions: number;
-    totalCheckouts: number;
+// Type definitions
+interface Quote {
+  id: string;
+  reference?: string;
+  customerId?: string;
+  status: string;
+  createdAt: Date | string;
+  total?: number;
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
   };
+  lines: Array<unknown>;
+}
+
+interface User {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  companyName?: string;
+  emailVerified?: boolean;
+  createdAt: Date | string;
+  lastLogin?: Date | string;
+}
+
+interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  status: string;
+  subscribedAt: Date | string;
+  unsubscribedAt?: Date | string;
+}
+
+interface FormSubmission {
+  id: string;
+  formType: string;
+  status: string;
+  submittedAt: Date | string;
+  data: Record<string, unknown>;
+}
+
+interface AdminStats {
+  totalUsers: number;
+  newUsersThisWeek: number;
+  totalQuotes: number;
+  pendingQuotes: number;
+  totalNewsletterSubscribers: number;
+  totalFormSubmissions: number;
+  totalCheckouts: number;
+}
+
+interface AdminDashboardProps {
+  stats: AdminStats;
   activities: ActivityEvent[];
-  quotes: any[];
-  newUsers: any[];
-  newsletterSubscribers: any[];
-  formSubmissions: any[];
+  quotes: Quote[];
+  newUsers: User[];
+  newsletterSubscribers: NewsletterSubscriber[];
+  formSubmissions: FormSubmission[];
+}
+
+// Reusable table wrapper component to reduce duplication
+interface TableWrapperProps {
+  children: ReactNode;
+}
+
+function TableWrapper({ children }: TableWrapperProps): ReactNode {
+  return (
+    <div className="overflow-x-auto -mx-6 px-6">
+      <Table>{children}</Table>
+    </div>
+  );
+}
+
+// Status color utility
+function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-800',
+    pending: 'bg-yellow-100 text-yellow-800',
+    pending_verification: 'bg-yellow-100 text-yellow-800',
+    negotiating: 'bg-blue-100 text-blue-800',
+    accepted: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800',
+    completed: 'bg-green-100 text-green-800',
+    verified: 'bg-green-100 text-green-800',
+    active: 'bg-green-100 text-green-800',
+    new: 'bg-blue-100 text-blue-800',
+    read: 'bg-gray-100 text-gray-800',
+    responded: 'bg-green-100 text-green-800',
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+// Empty state component
+interface EmptyStateProps {
+  colSpan: number;
+  message: string;
+}
+
+function EmptyState({ colSpan, message }: EmptyStateProps): ReactNode {
+  return (
+    <TableRow>
+      <TableCell colSpan={colSpan} className="text-center py-8 text-muted-foreground">
+        {message}
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export default function AdminDashboardClient({
@@ -49,49 +141,61 @@ export default function AdminDashboardClient({
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('activity');
   const [stats, setStats] = useState(initialStats);
-  const [activities, setActivities] = useState(initialActivities ?? []);
-  const [quotes, setQuotes] = useState(initialQuotes ?? []);
-  const [newUsers, setNewUsers] = useState(initialNewUsers ?? []);
-  const [newsletterSubscribers, setNewsletterSubscribers] = useState(initialNewsletterSubscribers ?? []);
-  const [formSubmissions, setFormSubmissions] = useState(initialFormSubmissions ?? []);
+  const [activities, setActivities] = useState(initialActivities);
+  const [quotes, setQuotes] = useState(initialQuotes);
+  const [newUsers, setNewUsers] = useState(initialNewUsers);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState(initialNewsletterSubscribers);
+  const [formSubmissions, setFormSubmissions] = useState(initialFormSubmissions);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
-  
-  // Pagination state for each section
-  const [activitiesPage, setActivitiesPage] = useState(0);
-  const [quotesPage, setQuotesPage] = useState(0);
-  const [usersPage, setUsersPage] = useState(0);
-  const [newsletterPage, setNewsletterPage] = useState(0);
-  const [formsPage, setFormsPage] = useState(0);
+  const [pendingRequest, setPendingRequest] = useState<AbortController | null>(null);
 
   // Refresh data from server
-  const refreshData = useCallback(async (page: number = 0) => {
+  const refreshData = useCallback(async (page: number = 0): Promise<void> => {
+    // Cancel previous request if still pending
+    if (pendingRequest) {
+      pendingRequest.abort();
+    }
+
+    const controller = new AbortController();
+    setPendingRequest(controller);
+
     try {
       setIsRefreshing(true);
       const limit = 20;
-      
+
       // Try main endpoint first
       let response = await fetch(`/api/admin/dashboard-data?page=${page}&limit=${limit}`, {
         headers: {
           'If-None-Match': lastUpdated.getTime().toString(),
         },
+        signal: controller.signal,
       });
-      
+
       // If main endpoint fails, try fallback
       if (!response.ok && response.status !== 304) {
         console.warn('[DASHBOARD] Main endpoint failed, trying fallback...');
-        response = await fetch(`/api/admin/dashboard-data-fallback`);
+        response = await fetch(`/api/admin/dashboard-data-fallback`, {
+          signal: controller.signal,
+        });
       }
-      
+
       if (response.status === 304) {
         console.log('[DASHBOARD] Using cached data (304 Not Modified)');
         setLastUpdated(new Date());
         return;
       }
-      
+
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as {
+          stats: AdminStats;
+          activities: ActivityEvent[];
+          quotes: Quote[];
+          newUsers: User[];
+          newsletter: NewsletterSubscriber[];
+          forms: FormSubmission[];
+        };
         setStats(data.stats);
         setActivities(data.activities);
         setQuotes(data.quotes);
@@ -99,45 +203,30 @@ export default function AdminDashboardClient({
         setNewsletterSubscribers(data.newsletter);
         setFormSubmissions(data.forms);
         setLastUpdated(new Date());
-        console.log(`[DASHBOARD] Data loaded successfully`);
+        console.log('[DASHBOARD] Data loaded successfully');
       }
     } catch (error) {
-      console.error('Failed to refresh dashboard data:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[DASHBOARD] Request cancelled');
+      } else {
+        console.error('Failed to refresh dashboard data:', error);
+      }
     } finally {
       setIsRefreshing(false);
+      setPendingRequest(null);
     }
-  }, [lastUpdated]);
+  }, [lastUpdated, pendingRequest]);
 
   // Auto-refresh effect
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const interval = setInterval(refreshData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      refreshData(0);
+    }, 30000); // Refresh every 30 seconds
+
     return () => clearInterval(interval);
   }, [autoRefresh, refreshData]);
-
-  // Initial load timestamp
-  useEffect(() => {
-    setLastUpdated(new Date());
-  }, []);
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      draft: 'bg-gray-100 text-gray-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      'pending_verification': 'bg-yellow-100 text-yellow-800',
-      negotiating: 'bg-blue-100 text-blue-800',
-      accepted: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      completed: 'bg-green-100 text-green-800',
-      verified: 'bg-green-100 text-green-800',
-      active: 'bg-green-100 text-green-800',
-      new: 'bg-blue-100 text-blue-800',
-      read: 'bg-gray-100 text-gray-800',
-      responded: 'bg-green-100 text-green-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -235,64 +324,58 @@ export default function AdminDashboardClient({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Reference</TableHead>
-                      <TableHead className="whitespace-nowrap">Customer</TableHead>
-                      <TableHead className="whitespace-nowrap text-center">Items</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Total</TableHead>
-                      <TableHead className="whitespace-nowrap">Status</TableHead>
-                      <TableHead className="whitespace-nowrap">Created</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(quotes ?? []).length > 0 ? (
-                      (quotes ?? []).map((quote) => (
-                        <TableRow key={quote.id}>
-                          <TableCell className="font-mono text-xs sm:text-sm">{quote.reference}</TableCell>
-                          <TableCell className="min-w-[150px]">
-                            <div>
-                              <p className="font-medium text-sm">{quote.user?.firstName} {quote.user?.lastName}</p>
-                              <p className="text-xs text-muted-foreground truncate">{quote.user?.email}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center text-sm">{quote.lines.length}</TableCell>
-                          <TableCell className="font-semibold text-sm text-right">
-                            {quote.total ? `₦${(quote.total / 1000).toFixed(0)}K` : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusColor(quote.status)} text-xs`}>
-                              {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">
-                            {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="sm" title="View">
-                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" title="Message">
-                                <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                          No quotes yet
+              <TableWrapper>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Reference</TableHead>
+                    <TableHead className="whitespace-nowrap">Customer</TableHead>
+                    <TableHead className="whitespace-nowrap text-center">Items</TableHead>
+                    <TableHead className="whitespace-nowrap text-right">Total</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Created</TableHead>
+                    <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quotes.length > 0 ? (
+                    quotes.map((quote) => (
+                      <TableRow key={quote.id}>
+                        <TableCell className="font-mono text-xs sm:text-sm">{quote.reference}</TableCell>
+                        <TableCell className="min-w-[150px]">
+                          <div>
+                            <p className="font-medium text-sm">{quote.user?.firstName} {quote.user?.lastName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{quote.user?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center text-sm">{quote.lines.length}</TableCell>
+                        <TableCell className="font-semibold text-sm text-right">
+                          {quote.total ? `₦${(quote.total / 1000).toFixed(0)}K` : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(quote.status)} text-xs`}>
+                            {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="sm" title="View">
+                              <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" title="Message">
+                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    ))
+                  ) : (
+                    <EmptyState colSpan={7} message="No quotes yet" />
+                  )}
+                </TableBody>
+              </TableWrapper>
             </CardContent>
           </Card>
         </TabsContent>
@@ -312,54 +395,48 @@ export default function AdminDashboardClient({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Name</TableHead>
-                      <TableHead className="whitespace-nowrap">Email</TableHead>
-                      <TableHead className="whitespace-nowrap">Company</TableHead>
-                      <TableHead className="whitespace-nowrap">Status</TableHead>
-                      <TableHead className="whitespace-nowrap">Joined</TableHead>
-                      <TableHead className="whitespace-nowrap">Last Login</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(newUsers ?? []).length > 0 ? (
-                      (newUsers ?? []).map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium min-w-[120px] text-sm">
-                            {user.firstName} {user.lastName}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm min-w-[150px] truncate">
-                            {user.email}
-                          </TableCell>
-                          <TableCell className="text-xs sm:text-sm">{user.companyName || '-'}</TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusColor(user.emailVerified ? 'verified' : 'pending_verification')} text-xs`}>
-                              {user.emailVerified ? '✓ Verified' : '◯ Pending'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">
-                            {format(new Date(user.createdAt), 'MMM dd')}
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">
-                            {user.lastLogin
-                              ? formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true })
-                              : 'Never'}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No new users
+              <TableWrapper>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Name</TableHead>
+                    <TableHead className="whitespace-nowrap">Email</TableHead>
+                    <TableHead className="whitespace-nowrap">Company</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Joined</TableHead>
+                    <TableHead className="whitespace-nowrap">Last Login</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {newUsers.length > 0 ? (
+                    newUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium min-w-[120px] text-sm">
+                          {user.firstName} {user.lastName}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm min-w-[150px] truncate">
+                          {user.email}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">{user.companyName || '-'}</TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(user.emailVerified ? 'verified' : 'pending_verification')} text-xs`}>
+                            {user.emailVerified ? '✓ Verified' : '◯ Pending'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {format(new Date(user.createdAt), 'MMM dd')}
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {user.lastLogin
+                            ? formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true })
+                            : 'Never'}
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    ))
+                  ) : (
+                    <EmptyState colSpan={6} message="No new users" />
+                  )}
+                </TableBody>
+              </TableWrapper>
             </CardContent>
           </Card>
         </TabsContent>
@@ -382,46 +459,40 @@ export default function AdminDashboardClient({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Email</TableHead>
-                      <TableHead className="whitespace-nowrap">Status</TableHead>
-                      <TableHead className="whitespace-nowrap">Subscribed</TableHead>
-                      <TableHead className="whitespace-nowrap">Unsubscribed</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(newsletterSubscribers ?? []).length > 0 ? (
-                      (newsletterSubscribers ?? []).map((sub) => (
-                        <TableRow key={sub.id}>
-                          <TableCell className="text-xs sm:text-sm min-w-[180px] truncate">
-                            {sub.email}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusColor(sub.status)} text-xs`}>
-                              {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">
-                            {format(new Date(sub.subscribedAt), 'MMM dd')}
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">
-                            {sub.unsubscribedAt ? format(new Date(sub.unsubscribedAt), 'MMM dd') : '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                          No subscribers yet
+              <TableWrapper>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Email</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Subscribed</TableHead>
+                    <TableHead className="whitespace-nowrap">Unsubscribed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {newsletterSubscribers.length > 0 ? (
+                    newsletterSubscribers.map((sub) => (
+                      <TableRow key={sub.id}>
+                        <TableCell className="text-xs sm:text-sm min-w-[180px] truncate">
+                          {sub.email}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(sub.status)} text-xs`}>
+                            {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {format(new Date(sub.subscribedAt), 'MMM dd')}
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {sub.unsubscribedAt ? format(new Date(sub.unsubscribedAt), 'MMM dd') : '-'}
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    ))
+                  ) : (
+                    <EmptyState colSpan={4} message="No subscribers yet" />
+                  )}
+                </TableBody>
+              </TableWrapper>
             </CardContent>
           </Card>
         </TabsContent>
@@ -436,64 +507,60 @@ export default function AdminDashboardClient({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Form Type</TableHead>
-                      <TableHead className="whitespace-nowrap">From</TableHead>
-                      <TableHead className="whitespace-nowrap">Email</TableHead>
-                      <TableHead className="whitespace-nowrap">Status</TableHead>
-                      <TableHead className="whitespace-nowrap">Submitted</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(formSubmissions ?? []).length > 0 ? (
-                      (formSubmissions ?? []).map((submission) => {
-                        const data = submission.data as any;
-                        return (
-                          <TableRow key={submission.id}>
-                            <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">
-                              {submission.formType}
-                            </TableCell>
-                            <TableCell className="text-xs sm:text-sm min-w-[100px] truncate">
-                              {data?.name || 'Unknown'}
-                            </TableCell>
-                            <TableCell className="text-xs sm:text-sm min-w-[140px] truncate">
-                              {data?.email || 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={`${getStatusColor(submission.status)} text-xs`}>
-                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-xs whitespace-nowrap">
-                              {formatDistanceToNow(new Date(submission.submittedAt), { addSuffix: true })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button variant="ghost" size="sm" title="View">
-                                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" title="Delete">
-                                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No form submissions
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+              <TableWrapper>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Form Type</TableHead>
+                    <TableHead className="whitespace-nowrap">From</TableHead>
+                    <TableHead className="whitespace-nowrap">Email</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Submitted</TableHead>
+                    <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formSubmissions.length > 0 ? (
+                    formSubmissions.map((submission) => {
+                      const data = submission.data as Record<string, unknown>;
+                      const name = data?.name ? String(data.name) : 'Unknown';
+                      const email = data?.email ? String(data.email) : 'N/A';
+                      return (
+                        <TableRow key={submission.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">
+                            {submission.formType}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm min-w-[100px] truncate">
+                            {name}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm min-w-[140px] truncate">
+                            {email}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${getStatusColor(submission.status)} text-xs`}>
+                              {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {formatDistanceToNow(new Date(submission.submittedAt), { addSuffix: true })}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="sm" title="View">
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" title="Delete">
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <EmptyState colSpan={6} message="No form submissions" />
+                  )}
+                </TableBody>
+              </TableWrapper>
             </CardContent>
           </Card>
         </TabsContent>

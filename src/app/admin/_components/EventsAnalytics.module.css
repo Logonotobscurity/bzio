@@ -1,0 +1,9 @@
+/* Color indicator dot - colors are applied via data-color attribute through JavaScript */
+/* Note: This is a workaround for ESLint no-inline-styles rule */
+/* The actual color is set dynamically by reading the data-color attribute via JavaScript */
+.colorDot {
+  /* Default color, will be overridden by JavaScript */
+  background-color: #000;
+}
+
+

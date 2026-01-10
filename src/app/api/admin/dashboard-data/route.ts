@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
+import { USER_ROLES } from '@/lib/auth-constants';
 import {
   getRecentActivities,
   getActivityStats,
@@ -8,167 +9,49 @@ import {
   getNewsletterSubscribers,
   getFormSubmissions,
 } from '@/app/admin/_actions/activities';
-import crypto from 'crypto';
 
-/**
- * GET /api/admin/dashboard-data
- * Fetch fresh dashboard data with optimized queries
- * 
- * Features:
- * - Optimized from 13 queries → 2-3 queries
- * - 10-second query-level caching
- * - HTTP caching with ETag support
- * - Pagination support
- * - Extended timeout protection (10s)
- * 
- * Query Parameters:
- * - page (optional): Page number for activities (default: 0)
- * - limit (optional): Items per page (default: 20, max: 100)
- */
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
-  const startTime = Date.now();
-
-  try {
-    // ✅ CRITICAL: Use NextAuth session for proper role-based access control
-    const session = await getServerSession();
-    
-    // Deny access if not authenticated or not admin
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // Parse query parameters for pagination
-    const url = new URL(request.url);
-    const page = Math.max(0, parseInt(url.searchParams.get('page') || '0'));
-    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20')));
-    const offset = page * limit;
-
-    console.log('[DASHBOARD_API] Admin request received', { adminId: session.user.id, page, limit, offset });
-
-    // Fetch all data in parallel (3 main queries)
-    console.log('[DASHBOARD_API] Starting data fetch...');
-    const [activitiesResult, statsResult, quotesResult, newUsersResult, newsletterResult, formsResult] = 
-      await Promise.allSettled([
-        getRecentActivities(offset, limit),
-        getActivityStats(),
-        getQuotes(offset, limit),
-        getNewUsers(offset, limit),
-        getNewsletterSubscribers(offset, limit),
-        getFormSubmissions(offset, limit),
-      ]);
-
-    console.log('[DASHBOARD_API] Results:', {
-      activities: activitiesResult.status,
-      stats: statsResult.status,
-      quotes: quotesResult.status,
-      users: newUsersResult.status,
-      newsletter: newsletterResult.status,
-      forms: formsResult.status,
-    });
-
-    // Log any errors
-    if (activitiesResult.status === 'rejected') {
-      console.error('[DASHBOARD_API] Activities error:', activitiesResult.reason);
-    }
-    if (statsResult.status === 'rejected') {
-      console.error('[DASHBOARD_API] Stats error:', statsResult.reason);
-    }
-
-    // Extract results with fallbacks
-    const activities = activitiesResult.status === 'fulfilled' ? activitiesResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-    const dashboardStats = statsResult.status === 'fulfilled' ? statsResult.value : {
-      totalUsers: 0,
-      newUsersThisWeek: 0,
-      totalQuotes: 0,
-      pendingQuotes: 0,
-      totalNewsletterSubscribers: 0,
-      totalFormSubmissions: 0,
-      totalCheckouts: 0,
-    };
-    const quotes = quotesResult.status === 'fulfilled' ? quotesResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-    const newUsers = newUsersResult.status === 'fulfilled' ? newUsersResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-    const newsletter = newsletterResult.status === 'fulfilled' ? newsletterResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-    const forms = formsResult.status === 'fulfilled' ? formsResult.value : { data: [], total: 0, offset, limit, hasMore: false };
-
-    const responseData = {
-      stats: dashboardStats,
-      activities: activities.data,
-      activitiesPagination: {
-        total: activities.total,
-        offset: activities.offset,
-        limit: activities.limit,
-        hasMore: activities.hasMore,
-      },
-      quotes: quotes.data,
-      quotesPagination: {
-        total: quotes.total,
-        offset: quotes.offset,
-        limit: quotes.limit,
-        hasMore: quotes.hasMore,
-      },
-      newUsers: newUsers.data,
-      newUsersPagination: {
-        total: newUsers.total,
-        offset: newUsers.offset,
-        limit: newUsers.limit,
-        hasMore: newUsers.hasMore,
-      },
-      newsletterSubscribers: newsletter.data,
-      newsletterPagination: {
-        total: newsletter.total,
-        offset: newsletter.offset,
-        limit: newsletter.limit,
-        hasMore: newsletter.hasMore,
-      },
-      formSubmissions: forms.data,
-      formsPagination: {
-        total: forms.total,
-        offset: forms.offset,
-        limit: forms.limit,
-        hasMore: forms.hasMore,
-      },
-      timestamp: new Date().toISOString(),
-      responseTime: `${Date.now() - startTime}ms`,
-    };
-
-    // Generate ETag for cache validation
-    const etagHash = crypto.createHash('md5').update(JSON.stringify(responseData)).digest('hex');
-
-    // Check If-None-Match header for conditional requests
-    const clientETag = request.headers.get('if-none-match');
-    if (clientETag === etagHash) {
-      console.log('[DASHBOARD_API] Returning 304 Not Modified (ETag match)');
-      return new NextResponse(null, {
-        status: 304,
-        headers: {
-          'ETag': etagHash,
-          'Cache-Control': 'private, max-age=10, stale-while-revalidate=30',
-        },
-      });
-    }
-
-    console.log(`[DASHBOARD_API] Completed in ${Date.now() - startTime}ms`);
-
-    return NextResponse.json(responseData, {
-      headers: {
-        'ETag': etagHash,
-        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30',
-        'X-Response-Time': `${Date.now() - startTime}ms`,
-        'X-Cache-Key': 'dashboard-data',
-      },
-    });
-  } catch (error) {
-    console.error('[DASHBOARD_API] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch dashboard data',
-        timestamp: new Date().toISOString(),
-        responseTime: `${Date.now() - startTime}ms`,
-      },
-      { status: 500 }
-    );
+  const session = await getServerSession();
+  
+  if (!session?.user || session.user.role !== USER_ROLES.ADMIN) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const limit = parseInt(searchParams.get('limit') || '20');
+
+  const results = await Promise.allSettled([
+    getRecentActivities(limit),
+    getActivityStats(),
+    getQuotes(undefined, limit),
+    getNewUsers(limit),
+    getNewsletterSubscribers(limit),
+    getFormSubmissions(limit),
+  ]);
+
+  const activities = results[0].status === 'fulfilled' ? (results[0].value.data || []) : [];
+  const stats = results[1].status === 'fulfilled' ? results[1].value : {
+    totalUsers: 0,
+    newUsersThisWeek: 0,
+    totalQuotes: 0,
+    pendingQuotes: 0,
+    totalNewsletterSubscribers: 0,
+    totalFormSubmissions: 0,
+    totalCheckouts: 0,
+  };
+  const quotes = results[2].status === 'fulfilled' ? (results[2].value.data || []) : [];
+  const newUsers = results[3].status === 'fulfilled' ? (results[3].value.data || []) : [];
+  const newsletter = results[4].status === 'fulfilled' ? (results[4].value.data || []) : [];
+  const forms = results[5].status === 'fulfilled' ? (results[5].value.data || []) : [];
+
+  return NextResponse.json({
+    stats,
+    activities,
+    quotes,
+    newUsers,
+    newsletter,
+    forms,
+  });
 }

@@ -99,7 +99,7 @@ export async function POST(req: Request) {
             customerEmail: email,
             itemCount: items.length,
           },
-          `/admin/dashboard?tab=quotes&id=${quoteId}`
+          `/admin?tab=quotes&id=${quoteId}`
         );
         console.log('✅ Admin notifications sent');
       }

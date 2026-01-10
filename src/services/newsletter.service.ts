@@ -6,20 +6,22 @@
  */
 
 import { newsletterSubscriberRepository } from '@/repositories';
-import type { NewsletterSubscriber } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
+
+// Use repository type directly
+type NewsletterSubscriber = Prisma.NewsletterSubscriberGetPayload<{}>;
 
 interface SubscribeInput {
   email: string;
-  firstName?: string;
-  lastName?: string;
-  interests?: string[];
+  source?: string;
+  status?: string;
+  metadata?: Prisma.InputJsonValue;
 }
 
 interface UpdateSubscriberInput {
-  firstName?: string;
-  lastName?: string;
-  interests?: string[];
-  isActive?: boolean;
+  status?: string;
+  metadata?: Prisma.InputJsonValue;
+  unsubscribedAt?: Date;
 }
 
 export class NewsletterService {
@@ -32,46 +34,43 @@ export class NewsletterService {
 
     // Check if already subscribed
     const existing = await newsletterSubscriberRepository.findByEmail(input.email);
-    if (existing && existing.isActive) {
+    if (existing && existing.status === 'active') {
       throw new Error('Email already subscribed');
     }
 
     // Create or reactivate subscription
-    if (existing && !existing.isActive) {
-      return newsletterSubscriberRepository.update(existing.id, {
-        isActive: true,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        interests: input.interests,
-      });
+    if (existing && existing.status !== 'active') {
+      return (await newsletterSubscriberRepository.update(existing.id, {
+        status: 'active',
+        metadata: input.metadata,
+      })) as unknown as NewsletterSubscriber;
     }
 
-    return newsletterSubscriberRepository.create({
+    return (await newsletterSubscriberRepository.create({
       email: input.email,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      interests: input.interests,
-      isActive: true,
-    });
+      source: input.source || 'web',
+      status: input.status || 'active',
+      metadata: input.metadata,
+    })) as unknown as NewsletterSubscriber;
   }
 
   /**
    * Unsubscribe an email from newsletter
    */
-  async unsubscribe(email: string): Promise<boolean> {
+  async unsubscribe(email: string): Promise<NewsletterSubscriber> {
     const subscriber = await newsletterSubscriberRepository.findByEmail(email);
     if (!subscriber) {
       throw new Error('Subscriber not found');
     }
 
-    return newsletterSubscriberRepository.unsubscribe(subscriber.id);
+    return (await newsletterSubscriberRepository.unsubscribe(subscriber.id)) as unknown as NewsletterSubscriber;
   }
 
   /**
    * Get all subscribers
    */
   async getAllSubscribers(limit?: number, skip?: number): Promise<NewsletterSubscriber[]> {
-    return newsletterSubscriberRepository.findAll(limit, skip);
+    return (await newsletterSubscriberRepository.findAll(limit, skip)) as unknown as NewsletterSubscriber[];
   }
 
   /**
@@ -79,7 +78,7 @@ export class NewsletterService {
    */
   async getActiveSubscribers(limit?: number, skip?: number): Promise<NewsletterSubscriber[]> {
     const all = await newsletterSubscriberRepository.findAll(limit, skip);
-    return all.filter(s => s.isActive);
+    return (all?.filter(s => s.status === 'active') || []) as unknown as NewsletterSubscriber[];
   }
 
   /**
@@ -87,28 +86,28 @@ export class NewsletterService {
    */
   async getRecentSubscribers(limit: number = 50): Promise<NewsletterSubscriber[]> {
     const all = await newsletterSubscriberRepository.findAll(limit, 0);
-    return all || [];
+    return (all || []) as unknown as NewsletterSubscriber[];
   }
 
   /**
    * Get subscriber count
    */
   async getSubscriberCount(): Promise<number> {
-    return this.getTotalSubscriberCount();
+    return await this.getTotalSubscriberCount();
   }
 
   /**
    * Get subscriber by ID
    */
   async getSubscriberById(id: string | number): Promise<NewsletterSubscriber | null> {
-    return newsletterSubscriberRepository.findById(id);
+    return (await newsletterSubscriberRepository.findById(id)) as unknown as NewsletterSubscriber | null;
   }
 
   /**
    * Get subscriber by email
    */
   async getSubscriberByEmail(email: string): Promise<NewsletterSubscriber | null> {
-    return newsletterSubscriberRepository.findByEmail(email);
+    return (await newsletterSubscriberRepository.findByEmail(email)) as unknown as NewsletterSubscriber | null;
   }
 
   /**
@@ -118,36 +117,28 @@ export class NewsletterService {
     id: string | number,
     input: UpdateSubscriberInput
   ): Promise<NewsletterSubscriber> {
-    return newsletterSubscriberRepository.update(id, input);
+    return (await newsletterSubscriberRepository.update(id, input)) as unknown as NewsletterSubscriber;
   }
 
   /**
    * Delete a subscriber
    */
   async deleteSubscriber(id: string | number): Promise<boolean> {
-    return newsletterSubscriberRepository.delete(id);
+    return await newsletterSubscriberRepository.delete(id);
   }
 
   /**
    * Get count of all subscribers
    */
   async getTotalSubscriberCount(): Promise<number> {
-    return newsletterSubscriberRepository.count();
+    return (await newsletterSubscriberRepository.count()) || 0;
   }
 
   /**
    * Get count of active subscribers
    */
   async getActiveSubscriberCount(): Promise<number> {
-    return newsletterSubscriberRepository.countActive();
-  }
-
-  /**
-   * Get subscribers by interest
-   */
-  async getSubscribersByInterest(interest: string): Promise<NewsletterSubscriber[]> {
-    const all = await newsletterSubscriberRepository.findAll();
-    return all.filter(s => s.interests?.includes(interest));
+    return (await newsletterSubscriberRepository.countActive()) || 0;
   }
 
   /**

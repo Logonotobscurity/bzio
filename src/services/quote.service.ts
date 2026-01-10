@@ -11,6 +11,14 @@ import { errorLoggingService } from './error-logging.service';
 const quoteRepository = new QuoteRepository();
 
 /**
+ * Helper function to format error logging
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+/**
  * QuoteService - Manages quote operations
  */
 export class QuoteService {
@@ -22,9 +30,12 @@ export class QuoteService {
       const quotes = await quoteRepository.findAll(limit, skip);
       return quotes || [];
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getAllQuotes',
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.getAllQuotes',
+        },
       });
       throw error;
     }
@@ -46,10 +57,13 @@ export class QuoteService {
 
       return quote;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getQuoteById',
-        quoteId: String(id),
-        severity: 'warn',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'medium',
+        metadata: {
+          context: 'QuoteService.getQuoteById',
+          quoteId: String(id),
+        },
       });
       throw error;
     }
@@ -71,10 +85,13 @@ export class QuoteService {
 
       return quote;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getQuoteByReference',
-        reference,
-        severity: 'warn',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'medium',
+        metadata: {
+          context: 'QuoteService.getQuoteByReference',
+          reference,
+        },
       });
       throw error;
     }
@@ -96,11 +113,14 @@ export class QuoteService {
       const quote = await quoteRepository.update(id, updates as any);
       return quote;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.updateQuote',
-        quoteId: String(id),
-        updates: JSON.stringify(updates),
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.updateQuote',
+          quoteId: String(id),
+          updates: JSON.stringify(updates),
+        },
       });
       throw error;
     }
@@ -125,10 +145,13 @@ export class QuoteService {
 
       return true;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.deleteQuote',
-        quoteId: String(id),
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.deleteQuote',
+          quoteId: String(id),
+        },
       });
       throw error;
     }
@@ -146,10 +169,13 @@ export class QuoteService {
       const quotes = await quoteRepository.findByUserId(userId, limit, skip);
       return quotes || [];
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getUserQuotes',
-        userId,
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.getUserQuotes',
+          userId,
+        },
       });
       throw error;
     }
@@ -167,10 +193,13 @@ export class QuoteService {
       const quotes = await quoteRepository.findByStatus(status, limit, skip);
       return quotes || [];
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getQuotesByStatus',
-        status,
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.getQuotesByStatus',
+          status,
+        },
       });
       throw error;
     }
@@ -185,10 +214,13 @@ export class QuoteService {
       const count = await quoteRepository.count(where);
       return count || 0;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.getQuoteCount',
-        status,
-        severity: 'warn',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'medium',
+        metadata: {
+          context: 'QuoteService.getQuoteCount',
+          status,
+        },
       });
       throw error;
     }
@@ -228,10 +260,13 @@ export class QuoteService {
 
       return quote;
     } catch (error) {
-      await errorLoggingService.logError(error, {
-        context: 'QuoteService.createQuote',
-        reference: data.reference,
-        severity: 'error',
+      await errorLoggingService.logError({
+        message: getErrorMessage(error),
+        severity: 'high',
+        metadata: {
+          context: 'QuoteService.createQuote',
+          reference: data.reference,
+        },
       });
       throw error;
     }

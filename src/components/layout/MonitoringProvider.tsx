@@ -7,7 +7,7 @@ import { useMonitoring } from "@/hooks/use-monitoring";
  * Initializes all monitoring services (Web Vitals, Error Logging, Performance Metrics)
  * Must be a client component to use React hooks
  */
-export function MonitoringProvider() {
+export function MonitoringProvider(): null {
   // Initialize all monitoring services
   useMonitoring()
 

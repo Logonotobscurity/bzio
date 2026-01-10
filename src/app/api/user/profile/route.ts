@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
+import { logActivity } from '@/lib/activity-service';
 
 export async function GET() {
   try {
@@ -66,6 +67,16 @@ export async function PUT(req: Request) {
 
     const { firstName, lastName, phone, companyName, companyPhone, businessType, businessRegistration } = body;
 
+    // Track which fields were updated
+    const updatedFields: string[] = [];
+    if (firstName !== undefined) updatedFields.push('firstName');
+    if (lastName !== undefined) updatedFields.push('lastName');
+    if (phone !== undefined) updatedFields.push('phone');
+    if (companyName !== undefined) updatedFields.push('companyName');
+    if (companyPhone !== undefined) updatedFields.push('companyPhone');
+    if (businessType !== undefined) updatedFields.push('businessType');
+    if (businessRegistration !== undefined) updatedFields.push('businessRegistration');
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -90,6 +101,15 @@ export async function PUT(req: Request) {
         updatedAt: true,
       },
     });
+
+    // Log activity
+    if (updatedFields.length > 0) {
+      await logActivity(userId, 'profile_update', {
+        message: `Updated account details: ${updatedFields.join(', ')}`,
+        title: 'Updated profile information',
+        updatedFields: updatedFields.join(', '),
+      });
+    }
 
     return NextResponse.json(updatedUser);
   } catch (error) {

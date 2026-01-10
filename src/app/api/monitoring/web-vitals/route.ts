@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       avgFID: 0,
       avgCLS: 0,
       avgTTFB: 0,
-      poorMetrics: [],
+      poorMetrics: [] as any[],
     }
 
     return NextResponse.json(metrics, { status: 200 })

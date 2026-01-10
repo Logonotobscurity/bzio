@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export type ActivityType = 
   | 'login' 
@@ -9,37 +9,52 @@ export type ActivityType =
   | 'password_reset'
   | 'email_verified'
   | 'account_created'
-  | 'email_sent';
+  | 'email_sent'
+  | 'view'
+  | 'cart_add'
+  | 'cart_remove'
+  | 'quote_create'
+  | 'quote_update'
+  | 'quote_submitted'
+  | 'search'
+  | 'purchase'
+  | 'order_placement';
 
 export interface ActivityData {
-  [key: string]: string | number | boolean | null | undefined | Record<string, unknown>;
+  [key: string]: string | number | boolean | null | undefined | string[] | Record<string, unknown>;
 }
 
 /**
- * Logs a user activity to the analytics_events table
+ * Logs a user activity using the UserActivity model
  */
 export async function logActivity(
   userId: number,
-  eventType: ActivityType,
+  activityType: ActivityType,
   data: ActivityData = {}
 ) {
   try {
-    await prisma.analyticsEvent.create({
+    // Build metadata by filtering out known fields
+    const metadataObj = Object.keys(data).length > 0 
+      ? Object.fromEntries(
+          Object.entries(data).filter(([key]) => 
+            !['title', 'message', 'referenceId', 'referenceType'].includes(key)
+          )
+        ) 
+      : null;
+
+    await prisma.userActivity.create({
       data: {
-        eventType,
         userId,
-        sessionId: undefined,
-        timestamp: new Date(),
-        data: {
-          ...data,
-          timestamp: new Date().toISOString(),
-        },
-        source: 'B2B_PLATFORM',
+        activityType,
+        title: (data.title as string) || null,
+        description: (data.message as string) || activityType,
+        referenceId: (data.referenceId as string) || null,
+        referenceType: (data.referenceType as string) || null,
+        metadata: metadataObj as any,
       },
     });
   } catch (error) {
-    console.error(`Failed to log activity ${eventType} for user ${userId}:`, error);
-    // Don't throw - activity logging should not break the main flow
+    console.error(`Failed to log activity ${activityType} for user ${userId}:`, error);
   }
 }
 
@@ -48,15 +63,19 @@ export async function logActivity(
  */
 export async function getUserActivities(userId: number, limit: number = 10) {
   try {
-    const activities = await prisma.analyticsEvent.findMany({
+    const activities = await prisma.userActivity.findMany({
       where: { userId },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
         id: true,
-        eventType: true,
-        timestamp: true,
-        data: true,
+        activityType: true,
+        title: true,
+        description: true,
+        referenceId: true,
+        referenceType: true,
+        metadata: true,
+        createdAt: true,
       },
     });
     return activities;
@@ -75,26 +94,26 @@ export async function getActivitySummary(userId: number) {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
-    const [totalLogins, recentLogins, quoteRequests, checkouts] = await Promise.all([
-      prisma.analyticsEvent.count({
-        where: { userId, eventType: 'login' },
+    const [totalActivities, viewActivities, quoteActivities, cartActivities] = await Promise.all([
+      prisma.userActivity.count({
+        where: { userId },
       }),
-      prisma.analyticsEvent.count({
-        where: { userId, eventType: 'login', timestamp: { gte: thirtyDaysAgo } },
+      prisma.userActivity.count({
+        where: { userId, activityType: 'view', createdAt: { gte: thirtyDaysAgo } },
       }),
-      prisma.analyticsEvent.count({
-        where: { userId, eventType: 'quote_request', timestamp: { gte: ninetyDaysAgo } },
+      prisma.userActivity.count({
+        where: { userId, activityType: { in: ['quote_create', 'quote_update', 'quote_submitted'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
-      prisma.analyticsEvent.count({
-        where: { userId, eventType: 'checkout', timestamp: { gte: ninetyDaysAgo } },
+      prisma.userActivity.count({
+        where: { userId, activityType: { in: ['cart_add', 'cart_remove'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
     ]);
 
     return {
-      totalLogins,
-      recentLogins,
-      quoteRequests,
-      checkouts,
+      totalActivities,
+      viewActivities,
+      quoteActivities,
+      cartActivities,
     };
   } catch (error) {
     console.error(`Failed to fetch activity summary for user ${userId}:`, error);

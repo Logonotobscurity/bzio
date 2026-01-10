@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, FileText, Mail, ShoppingCart } from 'lucide-react';
+import styles from './EventsAnalytics.module.css';
 import type { ActivityEvent } from '../_actions/activities';
 import {
   LineChart,
@@ -244,23 +245,25 @@ export function EventsAnalytics({ activities }: EventsAnalyticsProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {eventTypesData.map((event, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: event.color }}
-                  ></div>
-                  <span className="font-medium">{event.name}</span>
+            {eventTypesData.map((event, index) => {
+              return (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-3 h-3 rounded-full ${styles.colorDot}`}
+                      style={{ backgroundColor: event.color }}
+                    ></div>
+                    <span className="font-medium">{event.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold">{event.value}</span>
+                    <span className="text-muted-foreground text-sm">
+                      {totalEvents > 0 ? `${Math.round((event.value / totalEvents) * 100)}%` : '0%'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold">{event.value}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {totalEvents > 0 ? `${Math.round((event.value / totalEvents) * 100)}%` : '0%'}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>

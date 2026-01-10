@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     const metrics = {
       total: 0,
-      metrics: [],
+      metrics: [] as any[],
       statistics: {},
     }
 

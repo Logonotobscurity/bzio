@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  storeErrorLog,
-  getErrorLogs,
-  deleteErrorLog,
-  sendAlert,
-} from '@/services/errorLoggingService';
+import { errorLoggingService } from '@/services/error-logging.service';
 import { ErrorLogReport } from '@/lib/schema';
 
 /**
@@ -28,9 +23,15 @@ export async function POST(request: NextRequest) {
       (process.env.NODE_ENV === 'development' && errorLog.severity === 'warning');
 
     if (shouldLog) {
-      const storedError = await storeErrorLog(errorLog);
+      const storedError = await errorLoggingService.logError({
+        message: errorLog.message,
+        stack: errorLog.stack,
+        severity: errorLog.severity as 'low' | 'medium' | 'high' | 'critical',
+        userId: errorLog.userId,
+        metadata: errorLog.context as Record<string, unknown>,
+      });
       if (storedError && errorLog.severity === 'critical') {
-        await sendAlert(errorLog);
+        console.log(`[Alert] Critical Error: ${errorLog.message}`);
       }
     }
 
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('sessionId') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
 
-    const errors = await getErrorLogs({ severity, sessionId, limit, cursor });
+    const errors = await errorLoggingService.getAllErrors(limit, cursor ? parseInt(cursor) : undefined);
 
     return NextResponse.json({ total: errors.length, limit, errors }, { status: 200 });
   } catch (error) {
@@ -92,7 +93,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing error ID' }, { status: 400 });
     }
 
-    await deleteErrorLog(id);
+    await errorLoggingService.deleteError(id);
 
     return NextResponse.json({ success: true, id }, { status: 200 });
   } catch (error) {

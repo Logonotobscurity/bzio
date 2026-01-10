@@ -193,7 +193,7 @@ export function validateSendEmailRequest(data: unknown) {
     return {
       success: true,
       data: sendEmailSchema.parse(data),
-      errors: [],
+      errors: [] as any[],
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -209,7 +209,7 @@ export function validateSendEmailRequest(data: unknown) {
     return {
       success: false,
       data: null,
-      errors: [{ field: 'unknown', message: 'Validation error' }],
+      errors: [{ field: 'unknown', message: 'Validation error' }] as any[],
     };
   }
 }
@@ -222,7 +222,7 @@ export function validateUserContactRequest(data: unknown) {
     return {
       success: true,
       data: userContactSchema.parse(data),
-      errors: [],
+      errors: [] as any[],
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -238,7 +238,7 @@ export function validateUserContactRequest(data: unknown) {
     return {
       success: false,
       data: null,
-      errors: [{ field: 'unknown', message: 'Validation error' }],
+      errors: [{ field: 'unknown', message: 'Validation error' }] as any[],
     };
   }
 }

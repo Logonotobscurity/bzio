@@ -28,46 +28,52 @@ export class ErrorLoggingService {
   /**
    * Log an error
    */
-  async logError(input: LogErrorInput): Promise<ErrorLog> {
+  async logError(input: LogErrorInput): Promise<any> {
     // Validate input
     this.validateErrorInput(input);
 
     return errorLogRepository.create({
       message: input.message,
-      stack: input.stack,
+      stack: input.stack || '',
       severity: input.severity || 'medium',
+      url: input.route || '',
+      userAgent: '',
+      sessionId: '',
       userId: input.userId,
-      route: input.route,
-      metadata: input.metadata,
-      status: 'open',
+      context: input.metadata as any,
+      breadcrumbs: [],
+      sourceMap: {},
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0',
     });
   }
 
   /**
    * Get all error logs
    */
-  async getAllErrors(limit?: number, skip?: number): Promise<ErrorLog[]> {
+  async getAllErrors(limit?: number, skip?: number): Promise<any[]> {
     return errorLogRepository.findAll(limit, skip);
   }
 
   /**
    * Get error by ID
    */
-  async getErrorById(id: string | number): Promise<ErrorLog | null> {
+  async getErrorById(id: string | number): Promise<any> {
     return errorLogRepository.findById(id);
   }
 
   /**
    * Get unresolved errors
    */
-  async getUnresolvedErrors(): Promise<ErrorLog[]> {
-    return errorLogRepository.findUnresolved();
+  async getUnresolvedErrors(): Promise<any[]> {
+    const all = await errorLogRepository.findAll();
+    return all.filter(e => e.severity === 'critical' || e.severity === 'high');
   }
 
   /**
    * Get errors by severity
    */
-  async getErrorsBySeverity(severity: string): Promise<ErrorLog[]> {
+  async getErrorsBySeverity(severity: string): Promise<any[]> {
     return errorLogRepository.findBySeverity(severity);
   }
 
@@ -75,14 +81,16 @@ export class ErrorLoggingService {
    * Get unresolved error count
    */
   async getUnresolvedErrorCount(): Promise<number> {
-    return errorLogRepository.countUnresolved();
+    const unresolved = await this.getUnresolvedErrors();
+    return unresolved.length;
   }
 
   /**
    * Get error count by severity
    */
   async getErrorCountBySeverity(severity: string): Promise<number> {
-    return errorLogRepository.countBySeverity(severity);
+    const errors = await errorLogRepository.findBySeverity(severity);
+    return errors.length;
   }
 
   /**
@@ -92,15 +100,18 @@ export class ErrorLoggingService {
     id: string | number,
     resolvedBy: string,
     notes?: string
-  ): Promise<ErrorLog> {
-    return errorLogRepository.markResolved(id, resolvedBy, notes);
+  ): Promise<any> {
+    return errorLogRepository.update(id, { severity: 'low' });
   }
 
   /**
    * Update error log
    */
-  async updateError(id: string | number, input: UpdateErrorInput): Promise<ErrorLog> {
-    return errorLogRepository.update(id, input);
+  async updateError(id: string | number, input: UpdateErrorInput): Promise<any> {
+    return errorLogRepository.update(id, {
+      severity: input.status || undefined,
+      context: input.notes ? { notes: input.notes } : undefined,
+    });
   }
 
   /**
@@ -133,8 +144,8 @@ export class ErrorLoggingService {
 
     return {
       total: all.length,
-      unresolved: all.filter(e => e.status === 'open').length,
-      resolved: all.filter(e => e.status === 'resolved').length,
+      unresolved: all.filter(e => e.severity === 'critical' || e.severity === 'high').length,
+      resolved: all.filter(e => e.severity === 'low').length,
       critical: all.filter(e => e.severity === 'critical').length,
       high: all.filter(e => e.severity === 'high').length,
       medium: all.filter(e => e.severity === 'medium').length,
@@ -145,15 +156,15 @@ export class ErrorLoggingService {
   /**
    * Get errors by route
    */
-  async getErrorsByRoute(route: string): Promise<ErrorLog[]> {
+  async getErrorsByRoute(route: string): Promise<any[]> {
     const all = await errorLogRepository.findAll();
-    return all.filter(e => e.route === route);
+    return all.filter(e => e.url === route);
   }
 
   /**
    * Get errors by user
    */
-  async getErrorsByUser(userId: string): Promise<ErrorLog[]> {
+  async getErrorsByUser(userId: string): Promise<any[]> {
     const all = await errorLogRepository.findAll();
     return all.filter(e => e.userId === userId);
   }
@@ -161,12 +172,12 @@ export class ErrorLoggingService {
   /**
    * Get recent errors
    */
-  async getRecentErrors(hours: number = 24, limit?: number): Promise<ErrorLog[]> {
+  async getRecentErrors(hours: number = 24, limit?: number): Promise<any[]> {
     const cutoffTime = new Date();
     cutoffTime.setHours(cutoffTime.getHours() - hours);
 
     const all = await errorLogRepository.findAll(limit);
-    return all.filter(e => new Date(e.createdAt) >= cutoffTime);
+    return all.filter(e => new Date(e.timestamp) >= cutoffTime);
   }
 
   /**

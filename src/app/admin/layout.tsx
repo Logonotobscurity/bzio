@@ -1,8 +1,8 @@
-
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { Bell, Home, Package2, ShoppingCart, Users, FileText, Mail, BarChart3 } from "lucide-react";
+import { USER_ROLES } from "@/lib/auth-constants";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,9 @@ export default async function AdminLayout({
   }: {
     children: React.ReactNode
   }) {
-  // ✅ CRITICAL: Verify user is admin before rendering layout
   const session = await getServerSession();
-  if (!session || session.user?.role !== 'admin') {
-    redirect('/');
+  if (!session || session.user?.role !== USER_ROLES.ADMIN) {
+    redirect('/admin/login');
   }
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -58,28 +57,28 @@ export default async function AdminLayout({
                 <div className="my-2 border-t" />
                 
                 <Link
-                  href="/admin?tab=quotes"
+                  href="/admin"
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                   <FileText className="h-4 w-4" />
                   Quotes
                 </Link>
                 <Link
-                  href="/admin?tab=newsletter"
+                  href="/admin"
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                   <Mail className="h-4 w-4" />
                   Newsletter
                 </Link>
                 <Link
-                  href="/admin?tab=forms"
+                  href="/admin"
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                   <Bell className="h-4 w-4" />
-                  Form Submissions
+                  Forms
                 </Link>
                 <Link
-                  href="/admin?tab=events"
+                  href="/admin"
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                   <BarChart3 className="h-4 w-4" />

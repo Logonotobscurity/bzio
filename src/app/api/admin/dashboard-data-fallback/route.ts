@@ -51,7 +51,7 @@ export async function GET() {
     });
 
     // Extract results with fallbacks
-    const activities: any[] = activitiesResult.status === 'fulfilled' ? (activitiesResult.value?.data || []) : [];
+    const activities = (activitiesResult.status === 'fulfilled' ? (activitiesResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
     const stats = statsResult.status === 'fulfilled' ? statsResult.value : {
       totalUsers: 0,
       newUsersThisWeek: 0,
@@ -61,10 +61,10 @@ export async function GET() {
       totalFormSubmissions: 0,
       totalCheckouts: 0,
     };
-    const quotes: any[] = quotesResult.status === 'fulfilled' ? (quotesResult.value?.data || []) : [];
-    const newUsers: any[] = newUsersResult.status === 'fulfilled' ? (newUsersResult.value?.data || []) : [];
-    const newsletter: any[] = newsletterResult.status === 'fulfilled' ? (newsletterResult.value?.data || []) : [];
-    const forms: any[] = formsResult.status === 'fulfilled' ? (formsResult.value?.data || []) : [];
+    const quotes = (quotesResult.status === 'fulfilled' ? (quotesResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
+    const newUsers = (newUsersResult.status === 'fulfilled' ? (newUsersResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
+    const newsletter = (newsletterResult.status === 'fulfilled' ? (newsletterResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
+    const forms = (formsResult.status === 'fulfilled' ? (formsResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
 
     const duration = Date.now() - startTime;
 

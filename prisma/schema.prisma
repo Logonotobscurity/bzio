@@ -169,6 +169,7 @@ model User {
   favorites        UserFavorite[]
   analyticsEvents  AnalyticsEvent[]
   adminNotifications AdminNotification[]
+  activities       UserActivity[]
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -593,4 +594,29 @@ model QuoteMessage {
   @@index([createdAt])
   @@index([isRead])
   @@map("quote_messages")
+}
+
+// =====================================================
+// USER ACTIVITY TRACKING MODEL
+// =====================================================
+
+model UserActivity {
+  id          String   @id @default(uuid())
+  userId      Int      @map("user_id")
+  activityType String  @map("activity_type") // view, cart_add, cart_remove, quote_create, quote_update, quote_submitted, search, purchase, order_placement
+  title       String?
+  description String
+  referenceId String?  @map("reference_id") // Links to Quote, Cart, Product, etc.
+  referenceType String? @map("reference_type") // Quote, Cart, Product, Order
+  metadata    Json?    // Store additional context like product name, quantity, price, etc.
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([activityType])
+  @@map("user_activities")
 }

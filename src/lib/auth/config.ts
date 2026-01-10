@@ -1,14 +1,12 @@
-
-import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import Email from "next-auth/providers/email";
-import Credentials from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
-import type { JWT } from "next-auth/jwt";
+import type { NextAuthOptions } from "next-auth";
 import * as bcrypt from "bcryptjs";
 import type { Adapter } from "next-auth/adapters";
 
-// Define custom properties on the session and user objects
 declare module "next-auth" {
   interface Session {
     user: {
@@ -20,7 +18,10 @@ declare module "next-auth" {
       phone: string | null;
       isNewUser: boolean;
       lastLogin: Date | null;
-    } & DefaultSession["user"];
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
   }
 
   interface User {
@@ -35,7 +36,6 @@ declare module "next-auth" {
   }
 }
 
-// Define custom properties on the JWT
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
@@ -49,7 +49,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
   session: { strategy: "jwt" },
   pages: {
@@ -58,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: "/auth/error",
   },
   providers: [
-    Email({
+    EmailProvider({
       server: {
         host: process.env.EMAIL_SERVER_HOST,
         port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
@@ -68,15 +68,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
       },
       from: process.env.EMAIL_FROM,
-      maxAge: 10 * 60, // Magic links expire in 10 minutes
+      maxAge: 10 * 60,
     }),
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
           return null;
         }
@@ -95,8 +95,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      // When the user signs in, the `user` object from the database is passed.
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -106,39 +105,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.phone = user.phone;
         token.isNewUser = user.isNewUser;
         token.lastLogin = user.lastLogin;
-      } else if (token.id) {
-        // CRITICAL FIX: Refresh user data on every session check to ensure role changes are reflected
-        // This prevents stale role data when admin role is updated in database
-        const refreshedUser = await prisma.user.findUnique({
-          where: { id: Number(token.id) },
-          select: {
-            id: true,
-            role: true,
-            firstName: true,
-            lastName: true,
-            companyName: true,
-            phone: true,
-            isNewUser: true,
-            lastLogin: true,
-          },
-        });
 
-        if (refreshedUser) {
-          token.id = refreshedUser.id.toString();
-          token.role = refreshedUser.role;
-          token.firstName = refreshedUser.firstName;
-          token.lastName = refreshedUser.lastName;
-          token.companyName = refreshedUser.companyName;
-          token.phone = refreshedUser.phone;
-          token.isNewUser = refreshedUser.isNewUser;
-          token.lastLogin = refreshedUser.lastLogin;
+        const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+        if (user.isNewUser || !user.lastLogin) {
+          try {
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                isNewUser: false,
+                lastLogin: new Date(),
+              },
+            });
+            token.isNewUser = false;
+            token.lastLogin = new Date();
+          } catch (error) {
+            console.error('[AUTH] Failed to update lastLogin for user', userId, error);
+          }
         }
       }
       return token;
     },
     async session({ session, token }) {
-      // The `session` callback is called after the `jwt` callback.
-      // We can transfer the custom properties from the token to the session.
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
@@ -148,8 +135,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.phone = token.phone;
         session.user.isNewUser = token.isNewUser;
         session.user.lastLogin = token.lastLogin;
-
-        // Combine firstName and lastName for the default `name` property
         session.user.name = [token.firstName, token.lastName]
           .filter(Boolean)
           .join(" ");
@@ -157,4 +142,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
+
+export const handlers = { GET: handler, POST: handler };
+export { handler as GET, handler as POST };
+export const auth = handler.auth;
+export const signIn = handler.signIn;
+export const signOut = handler.signOut;

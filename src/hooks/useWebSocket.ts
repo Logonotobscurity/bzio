@@ -190,7 +190,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       });
 
       // Connection errors
-      socket.on('error', (error) => {
+      socket.on('error', (error: any) => {
         console.error('[WS_ERROR]', error);
       });
 

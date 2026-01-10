@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from '@/lib/auth/config';
+import { USER_ROLES } from '@/lib/auth-constants';
 import {
   getRecentActivities,
   getActivityStats,
@@ -9,12 +10,19 @@ import {
   getFormSubmissions,
 } from './_actions/activities';
 import AdminDashboardClient from './_components/AdminDashboardClient';
-import type { ActivityEvent } from './_types/activity';
+
+interface ActivityEvent {
+  id: string;
+  type: string;
+  timestamp: Date;
+  userId?: number;
+  data?: any;
+}
 
 export default async function AdminPage() {
   const session = await auth();
   
-  if (!session?.user || session.user.role !== 'admin') {
+  if (!session?.user || session.user.role !== USER_ROLES.ADMIN) {
     redirect('/admin/login');
   }
 
@@ -42,11 +50,7 @@ export default async function AdminPage() {
   });
 
   // Extract results with fallbacks
-  const activities: ActivityEvent[] = results[0].status === 'fulfilled' ? (Array.isArray(results[0].value) ? results[0].value : results[0].value.data || []) : [];
-  if (results[0].status === 'rejected') {
-    console.error('[ADMIN_PAGE] Activities error:', results[0].reason);
-  }
-  
+  const activities = results[0].status === 'fulfilled' ? (results[0].value.data || []) : [];
   const stats = results[1].status === 'fulfilled' ? results[1].value : {
     totalUsers: 0,
     newUsersThisWeek: 0,
@@ -56,10 +60,10 @@ export default async function AdminPage() {
     totalFormSubmissions: 0,
     totalCheckouts: 0,
   };
-  const quotes: any[] = results[2].status === 'fulfilled' ? (Array.isArray(results[2].value) ? results[2].value : results[2].value.data || []) : [];
-  const newUsers: any[] = results[3].status === 'fulfilled' ? (Array.isArray(results[3].value) ? results[3].value : results[3].value.data || []) : [];
-  const newsletterSubscribers: any[] = results[4].status === 'fulfilled' ? (Array.isArray(results[4].value) ? results[4].value : results[4].value.data || []) : [];
-  const formSubmissions: any[] = results[5].status === 'fulfilled' ? (Array.isArray(results[5].value) ? results[5].value : results[5].value.data || []) : [];
+  const quotes = (results[2].status === 'fulfilled' ? (results[2].value.data || []) : []) as any;
+  const newUsers = (results[3].status === 'fulfilled' ? (results[3].value.data || []) : []) as any;
+  const newsletterSubscribers = (results[4].status === 'fulfilled' ? (results[4].value.data || []) : []) as any;
+  const formSubmissions = (results[5].status === 'fulfilled' ? (results[5].value.data || []) : []) as any;
 
   return (
     <AdminDashboardClient

@@ -7,119 +7,121 @@
 
 import { adminNotificationRepository } from '@/repositories';
 import type { AdminNotification } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
 
 interface CreateNotificationInput {
-  userId: string;
+  adminId: number;
   type: string;
   title: string;
   message: string;
-  data?: Record<string, unknown>;
+  data?: Prisma.InputJsonValue;
 }
 
 interface UpdateNotificationInput {
-  isRead?: boolean;
-  data?: Record<string, unknown>;
+  read?: boolean;
+  data?: Prisma.InputJsonValue;
 }
 
 export class NotificationService {
   /**
-   * Create a new notification for a user
+   * Create a new notification for an admin
    */
   async createNotification(input: CreateNotificationInput): Promise<AdminNotification> {
     // Validate input
     this.validateNotificationInput(input);
 
-    return adminNotificationRepository.create({
-      userId: input.userId,
+    return (await adminNotificationRepository.create({
+      adminId: input.adminId,
       type: input.type,
       title: input.title,
       message: input.message,
       data: input.data,
-      isRead: false,
-    });
+    })) as unknown as AdminNotification;
   }
 
   /**
-   * Create bulk notifications for multiple users
+   * Create bulk notifications for multiple admins
    */
-  async createBulkNotifications(
-    userIds: string[],
-    input: Omit<CreateNotificationInput, 'userId'>
+  async createBulkNotifications(g
+    adminIds: number[],
+    input: Omit<CreateNotificationInput, 'adminId'>
   ): Promise<AdminNotification[]> {
     const notifications = await Promise.all(
-      userIds.map(userId => this.createNotification({ ...input, userId }))
+      adminIds.map(adminId => this.createNotification({ ...input, adminId }))
     );
     return notifications;
   }
 
   /**
-   * Get all notifications for a user
+   * Get all notifications for an admin
    */
-  async getUserNotifications(
-    userId: string,
+  async getAdminNotifications(
+    adminId: number,
     limit?: number,
     skip?: number
   ): Promise<AdminNotification[]> {
-    return adminNotificationRepository.findByUserId(userId, limit, skip);
+    return (await adminNotificationRepository.findByAdminId(adminId, limit, skip)) as unknown as AdminNotification[];
   }
 
   /**
-   * Get unread notification count for a user
+   * Get unread notification count for an admin
    */
-  async getUnreadCount(userId: string): Promise<number> {
-    return adminNotificationRepository.countUnread(userId);
+  async getUnreadCount(adminId: number): Promise<number> {
+    return await adminNotificationRepository.countUnread(adminId);
   }
 
   /**
    * Mark a notification as read
    */
-  async markAsRead(id: string | number): Promise<AdminNotification> {
-    return adminNotificationRepository.markAsRead(id);
+  async markAsRead(id: string): Promise<AdminNotification> {
+    return (await adminNotificationRepository.markAsRead(id)) as unknown as AdminNotification;
   }
 
   /**
-   * Mark all notifications as read for a user
+   * Mark all notifications as read for an admin
    */
-  async markAllAsRead(userId: string): Promise<number> {
-    return adminNotificationRepository.markAllAsRead(userId);
+  async markAllAsRead(adminId: number): Promise<number> {
+    const result = await adminNotificationRepository.markAllAsRead(adminId);
+    return result?.count || 0;
   }
 
   /**
    * Get a specific notification
    */
-  async getNotificationById(id: string | number): Promise<AdminNotification | null> {
-    return adminNotificationRepository.findById(id);
+  async getNotificationById(id: string): Promise<AdminNotification | null> {
+    return (await adminNotificationRepository.findById(id)) as unknown as AdminNotification | null;
   }
 
   /**
    * Update a notification
    */
   async updateNotification(
-    id: string | number,
+    id: string,
     input: UpdateNotificationInput
   ): Promise<AdminNotification> {
-    return adminNotificationRepository.update(id, input);
+    return (await adminNotificationRepository.update(id, input)) as unknown as AdminNotification;
   }
 
   /**
    * Delete a notification
    */
-  async deleteNotification(id: string | number): Promise<boolean> {
-    return adminNotificationRepository.delete(id);
+  async deleteNotification(id: string): Promise<boolean> {
+    return await adminNotificationRepository.delete(id);
   }
 
   /**
-   * Delete all notifications for a user
+   * Delete all notifications for an admin
    */
-  async deleteAllUserNotifications(userId: string): Promise<number> {
-    return adminNotificationRepository.deleteAll(userId);
+  async deleteAllAdminNotifications(adminId: number): Promise<number> {
+    const result = await adminNotificationRepository.deleteAll(adminId);
+    return result?.count || 0;
   }
 
   /**
-   * Get all notifications (admin)
+   * Get all notifications (admin view)
    */
   async getAllNotifications(limit?: number, skip?: number): Promise<AdminNotification[]> {
-    return adminNotificationRepository.findAll(limit, skip);
+    return (await adminNotificationRepository.findAll(limit, skip)) as unknown as AdminNotification[];
   }
 
   /**
@@ -127,15 +129,15 @@ export class NotificationService {
    */
   async getNotificationsByType(type: string): Promise<AdminNotification[]> {
     const all = await adminNotificationRepository.findAll();
-    return all.filter(n => n.type === type);
+    return (all?.filter(n => n.type === type) || []) as unknown as AdminNotification[];
   }
 
   /**
    * Validate notification input
    */
   private validateNotificationInput(input: CreateNotificationInput): void {
-    if (!input.userId?.trim()) {
-      throw new Error('User ID is required');
+    if (!input.adminId) {
+      throw new Error('Admin ID is required');
     }
     if (!input.type?.trim()) {
       throw new Error('Notification type is required');

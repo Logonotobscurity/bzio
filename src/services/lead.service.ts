@@ -6,26 +6,32 @@
  */
 
 import { leadRepository } from '@/repositories';
-import type { Lead } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
+
+// Use repository type directly instead of domain type
+type Lead = Prisma.LeadGetPayload<{}>;
 
 interface CreateLeadInput {
   email: string;
-  firstName: string;
-  lastName?: string;
+  name: string;
   phone?: string;
-  company?: string;
+  companyName?: string;
   source: string;
   status?: string;
+  type?: string;
+  metadata?: Prisma.InputJsonValue;
 }
 
 interface UpdateLeadInput {
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   phone?: string;
-  company?: string;
+  companyName?: string;
   source?: string;
   status?: string;
-  notes?: string;
+  type?: string;
+  assignedTo?: string;
+  convertedAt?: Date;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export class LeadService {
@@ -42,93 +48,86 @@ export class LeadService {
       throw new Error('Lead with this email already exists');
     }
 
-    return leadRepository.create({
+    return (await leadRepository.create({
       email: input.email,
-      firstName: input.firstName,
-      lastName: input.lastName,
+      name: input.name,
       phone: input.phone,
-      company: input.company,
+      companyName: input.companyName,
+      type: input.type || 'prospect',
       source: input.source,
       status: input.status || 'new',
-    });
+      metadata: input.metadata,
+    })) as unknown as Lead;
   }
 
   /**
    * Get all leads
    */
   async getAllLeads(limit?: number, skip?: number): Promise<Lead[]> {
-    return leadRepository.findAll(limit, skip);
-  }
-
-  /**
-   * Get total lead count
-   */
-  async getLeadCount(): Promise<number> {
-    const all = await leadRepository.findAll();
-    return all ? all.length : 0;
+    return (await leadRepository.findAll(limit, skip)) as unknown as Lead[];
   }
 
   /**
    * Get lead by ID
    */
   async getLeadById(id: string | number): Promise<Lead | null> {
-    return leadRepository.findById(id);
+    return (await leadRepository.findById(id)) as unknown as Lead | null;
   }
 
   /**
    * Get lead by email
    */
   async getLeadByEmail(email: string): Promise<Lead | null> {
-    return leadRepository.findByEmail(email);
+    return (await leadRepository.findByEmail(email)) as unknown as Lead | null;
   }
 
   /**
    * Get leads by status
    */
   async getLeadsByStatus(status: string): Promise<Lead[]> {
-    return leadRepository.findByStatus(status);
+    return (await leadRepository.findByStatus(status)) as unknown as Lead[];
   }
 
   /**
    * Get leads by source
    */
   async getLeadsBySource(source: string): Promise<Lead[]> {
-    return leadRepository.findBySource(source);
+    return (await leadRepository.findBySource(source)) as unknown as Lead[];
   }
 
   /**
    * Update lead
    */
   async updateLead(id: string | number, input: UpdateLeadInput): Promise<Lead> {
-    return leadRepository.update(id, input);
+    return (await leadRepository.update(id, input)) as unknown as Lead;
   }
 
   /**
    * Update lead status
    */
   async updateLeadStatus(id: string | number, status: string): Promise<Lead> {
-    return leadRepository.update(id, { status });
+    return (await leadRepository.update(id, { status })) as unknown as Lead;
   }
 
   /**
    * Delete lead
    */
   async deleteLead(id: string | number): Promise<boolean> {
-    return leadRepository.delete(id);
+    return await leadRepository.delete(id);
   }
 
   /**
    * Get lead count
    */
   async getLeadCount(): Promise<number> {
-    return leadRepository.count();
+    return (await leadRepository.count()) || 0;
   }
 
   /**
    * Get lead count by status
    */
   async getLeadCountByStatus(status: string): Promise<number> {
-    return leadRepository.countByStatus(status);
+    return (await leadRepository.countByStatus(status)) || 0;
   }
 
   /**
@@ -136,7 +135,7 @@ export class LeadService {
    */
   async getLeadCountBySource(source: string): Promise<number> {
     const all = await leadRepository.findAll();
-    return all.filter(l => l.source === source).length;
+    return all?.filter(l => l.source === source).length || 0;
   }
 
   /**
@@ -146,6 +145,10 @@ export class LeadService {
     Array<{ status: string; count: number; percentage: number }>
   > {
     const allLeads = await leadRepository.findAll();
+    if (!allLeads || allLeads.length === 0) {
+      return [];
+    }
+
     const statusCounts = new Map<string, number>();
 
     allLeads.forEach(lead => {
@@ -167,6 +170,10 @@ export class LeadService {
    */
   async getLeadsBySourceBreakdown(): Promise<Array<{ source: string; count: number }>> {
     const allLeads = await leadRepository.findAll();
+    if (!allLeads || allLeads.length === 0) {
+      return [];
+    }
+
     const sourceCounts = new Map<string, number>();
 
     allLeads.forEach(lead => {
@@ -182,7 +189,7 @@ export class LeadService {
    * Convert lead to customer (placeholder for integration)
    */
   async convertLead(id: string | number): Promise<Lead> {
-    return leadRepository.update(id, { status: 'converted' });
+    return (await leadRepository.update(id, { status: 'converted' })) as unknown as Lead;
   }
 
   /**
@@ -192,8 +199,8 @@ export class LeadService {
     if (!input.email?.trim()) {
       throw new Error('Email is required');
     }
-    if (!input.firstName?.trim()) {
-      throw new Error('First name is required');
+    if (!input.name?.trim()) {
+      throw new Error('Name is required');
     }
     if (!input.source?.trim()) {
       throw new Error('Lead source is required');

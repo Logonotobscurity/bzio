@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
           customerName: name,
           customerEmail: email,
         },
-        `/admin/dashboard?tab=forms&id=${result.formSubmission.id}`
+        `/admin?tab=forms&id=${result.formSubmission.id}`
       );
       console.log('✅ Admin notifications sent');
     } catch (notificationError) {

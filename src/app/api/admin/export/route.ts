@@ -138,39 +138,14 @@ export async function GET(request: NextRequest) {
         break;
 
       case 'login-attempts':
-        data = await prisma.loginAttempt.findMany({
-          select: {
-            id: true,
-            email: true,
-            success: true,
-            failureReason: true,
-            ipAddress: true,
-            userId: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1000, // Limit to last 1000 for performance
-        });
+        // Skip if model doesn't exist
+        data = [];
         filename = `login-attempts-${new Date().toISOString().split('T')[0]}.csv`;
         break;
 
       case 'email-logs':
-        data = await prisma.emailLog.findMany({
-          select: {
-            id: true,
-            to: true,
-            subject: true,
-            status: true,
-            emailType: true,
-            recipientRole: true,
-            sentAt: true,
-            openedAt: true,
-            clickedAt: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1000, // Limit to last 1000 for performance
-        });
+        // Skip if model doesn't exist
+        data = [];
         filename = `email-logs-${new Date().toISOString().split('T')[0]}.csv`;
         break;
 

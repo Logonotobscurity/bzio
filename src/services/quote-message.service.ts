@@ -6,13 +6,18 @@
  */
 
 import { quoteMessageRepository } from '@/repositories';
-import type { QuoteMessage } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
+
+// Use repository type directly
+type QuoteMessage = Prisma.QuoteMessageGetPayload<{}>;
 
 interface CreateMessageInput {
   quoteId: string | number;
-  userId: string;
+  senderRole: string;
+  senderEmail: string;
+  senderName: string;
+  senderId?: number;
   message: string;
-  messageType?: string;
 }
 
 interface UpdateMessageInput {
@@ -28,34 +33,35 @@ export class QuoteMessageService {
     // Validate input
     this.validateMessageInput(input);
 
-    return quoteMessageRepository.create({
-      quoteId: Number(input.quoteId),
-      userId: input.userId,
+    return (await quoteMessageRepository.create({
+      quoteId: String(input.quoteId),
+      senderRole: input.senderRole,
+      senderEmail: input.senderEmail,
+      senderName: input.senderName,
+      senderId: input.senderId,
       message: input.message,
-      messageType: input.messageType || 'comment',
-      isRead: false,
-    });
+    })) as unknown as QuoteMessage;
   }
 
   /**
    * Get all messages for a quote
    */
   async getQuoteMessages(quoteId: string | number): Promise<QuoteMessage[]> {
-    return quoteMessageRepository.findByQuoteId(Number(quoteId));
+    return (await quoteMessageRepository.findByQuoteId(String(quoteId))) as unknown as QuoteMessage[];
   }
 
   /**
    * Get a specific message
    */
   async getMessageById(id: string | number): Promise<QuoteMessage | null> {
-    return quoteMessageRepository.findById(id);
+    return (await quoteMessageRepository.findById(id)) as unknown as QuoteMessage | null;
   }
 
   /**
    * Mark message as read
    */
   async markAsRead(id: string | number): Promise<QuoteMessage> {
-    return quoteMessageRepository.markAsRead(id);
+    return (await quoteMessageRepository.update(String(id), { isRead: true })) as unknown as QuoteMessage;
   }
 
   /**
@@ -63,43 +69,48 @@ export class QuoteMessageService {
    */
   async markQuoteMessagesAsRead(quoteId: string | number): Promise<number> {
     const messages = await this.getQuoteMessages(quoteId);
-    await Promise.all(messages.filter(m => !m.isRead).map(m => this.markAsRead(m.id)));
-    return messages.filter(m => !m.isRead).length;
+    const unreadMessages = messages.filter(m => !m.isRead);
+    
+    await Promise.all(
+      unreadMessages.map(m => this.markAsRead(m.id))
+    );
+    
+    return unreadMessages.length;
   }
 
   /**
    * Get unread message count for a quote
    */
   async getUnreadCount(quoteId: string | number): Promise<number> {
-    return quoteMessageRepository.countUnread(Number(quoteId));
+    return await quoteMessageRepository.countUnread(String(quoteId));
   }
 
   /**
    * Update a message
    */
   async updateMessage(id: string | number, input: UpdateMessageInput): Promise<QuoteMessage> {
-    return quoteMessageRepository.update(id, input);
+    return (await quoteMessageRepository.update(String(id), input)) as unknown as QuoteMessage;
   }
 
   /**
    * Delete a message
    */
   async deleteMessage(id: string | number): Promise<boolean> {
-    return quoteMessageRepository.delete(id);
+    return await quoteMessageRepository.delete(id);
   }
 
   /**
    * Get all messages (admin view)
    */
   async getAllMessages(limit?: number, skip?: number): Promise<QuoteMessage[]> {
-    return quoteMessageRepository.findAll(limit, skip);
+    return (await quoteMessageRepository.findAll(limit, skip)) as unknown as QuoteMessage[];
   }
 
   /**
    * Get message count
    */
   async getMessageCount(): Promise<number> {
-    return quoteMessageRepository.count();
+    return (await quoteMessageRepository.count()) || 0;
   }
 
   /**
@@ -110,15 +121,15 @@ export class QuoteMessageService {
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     const all = await quoteMessageRepository.findAll(limit);
-    return all.filter(m => new Date(m.createdAt) >= cutoffDate);
+    return (all?.filter(m => new Date(m.createdAt) >= cutoffDate) || []) as unknown as QuoteMessage[];
   }
 
   /**
-   * Get messages by user
+   * Get messages by sender email
    */
-  async getMessagesByUser(userId: string): Promise<QuoteMessage[]> {
+  async getMessagesBySender(senderEmail: string): Promise<QuoteMessage[]> {
     const all = await quoteMessageRepository.findAll();
-    return all.filter(m => m.userId === userId);
+    return (all?.filter(m => m.senderEmail === senderEmail) || []) as unknown as QuoteMessage[];
   }
 
   /**
@@ -144,8 +155,8 @@ export class QuoteMessageService {
     if (!input.quoteId) {
       throw new Error('Quote ID is required');
     }
-    if (!input.userId?.trim()) {
-      throw new Error('User ID is required');
+    if (!input.senderEmail?.trim()) {
+      throw new Error('Sender email is required');
     }
     if (!input.message?.trim()) {
       throw new Error('Message content is required');

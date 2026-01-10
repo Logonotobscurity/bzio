@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuoteStore } from '@/stores/quoteStore';
 import { useRouter } from 'next/navigation';
 import { type Product } from '@/lib/schema';
+import styles from './bulk-packages-carousel.module.css';
 
 interface BulkPackage {
   id: number;
@@ -66,16 +67,18 @@ const BulkPackageFlyer = ({ pkg }: { pkg: BulkPackage }) => {
       <div className="flex-none w-full md:w-1/3 flex items-center justify-center">
         <div className="relative w-full h-40 sm:h-48 md:h-60 rounded-lg overflow-hidden bg-white/50 flex items-center justify-center">
           <div className="flex items-center justify-center -space-x-4 sm:-space-x-6">
-            {pkg.images.slice(0, 3).map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`${pkg.name} ${i + 1}`}
-                loading="lazy"
-                className="max-h-32 sm:max-h-44 object-contain drop-shadow-md"
-                style={{ transform: `translateX(${i * 4}px)`, zIndex: 30 - i } as React.CSSProperties}
-              />
-            ))}
+            {pkg.images.slice(0, 3).map((src, i) => {
+              const imageClass = i === 0 ? styles.imageTransform0 : i === 1 ? styles.imageTransform1 : styles.imageTransform2;
+              return (
+                <img
+                  key={i}
+                  src={src}
+                  alt={`${pkg.name} ${i + 1}`}
+                  loading="lazy"
+                  className={`max-h-32 sm:max-h-44 object-contain drop-shadow-md ${imageClass}`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>

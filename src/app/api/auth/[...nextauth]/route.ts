@@ -1,7 +1,5 @@
-import { handlers } from '~/auth';
+import { GET, POST } from '@/lib/auth/config';
 
-// Prevent this route from being statically exported during build
 export const dynamic = 'force-dynamic';
 
-// Export handlers from NextAuth configuration
-export const { GET, POST } = handlers;
+export { GET, POST };

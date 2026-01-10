@@ -259,14 +259,14 @@ export default function ProfileEditComponent() {
 
   return (
     <div className="w-full space-y-4 sm:space-y-6">
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs defaultValue="account" className="w-full">
         <TabsList className="grid w-full grid-cols-2 text-xs sm:text-sm">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="account">Account Details</TabsTrigger>
           <TabsTrigger value="addresses">Addresses</TabsTrigger>
         </TabsList>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+        {/* Account Details Tab */}
+        <TabsContent value="account" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
           <Card className="rounded-lg sm:rounded-2xl border-0 sm:border">
             <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
               <CardTitle className="text-base sm:text-lg">Personal Information</CardTitle>

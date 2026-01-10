@@ -5,7 +5,7 @@
  */
 
 import { prisma } from '@/lib/db';
-import { logActivity } from '@/lib/activity-service';
+import { logActivity, type ActivityType } from '@/lib/activity-service';
 import { broadcastAdminNotification } from '../_actions/notifications';
 
 export interface FormSubmissionData {
@@ -37,17 +37,17 @@ export async function trackFormSubmission(data: FormSubmissionData): Promise<voi
       }
     );
 
-    await broadcastAdminNotification({
-      title: `New ${data.formType} Submission`,
-      message: `${displayName} submitted a ${data.formType} form`,
-      type: 'form_submission',
-      data: {
+    await broadcastAdminNotification(
+      'new_form',
+      `New ${data.formType} Submission`,
+      `${displayName} submitted a ${data.formType} form`,
+      {
         formType: data.formType,
         email: data.email,
-        name: data.name,
-        companyName: data.companyName,
-      },
-    });
+        name: data.name || null,
+        companyName: data.companyName || null,
+      }
+    );
 
     console.log(`[Form Tracking] ${data.formType} from ${data.email} tracked successfully`);
   } catch (error) {

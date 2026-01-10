@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
+import { logActivity } from '@/lib/activity-service';
 
 export async function POST(req: Request) {
   try {
@@ -35,12 +36,19 @@ export async function POST(req: Request) {
       });
     }
 
+    // Get product details for activity logging
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, name: true, price: true },
+    });
+
     // Check if product already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
       where: { cartId: cart.id, productId },
     });
 
     let cartItem;
+    const isNewItem = !existingItem;
 
     if (existingItem) {
       // Update quantity
@@ -81,6 +89,25 @@ export async function POST(req: Request) {
           },
         },
       });
+    }
+
+    // Log activity
+    if (product) {
+      await logActivity(
+        userId,
+        'cart_add',
+        {
+          title: `Added: ${product.name}`,
+          message: `Added ${quantity} × ${product.name} to cart`,
+          referenceId: cartItem.id,
+          referenceType: 'CartItem',
+          productId: product.id,
+          productName: product.name,
+          quantity,
+          price: product.price,
+          isNewItem,
+        }
+      );
     }
 
     return NextResponse.json(cartItem, { status: 201 });

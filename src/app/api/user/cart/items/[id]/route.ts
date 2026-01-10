@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
+import { logActivity } from '@/lib/activity-service';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,6 +23,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     // Verify the item belongs to the user
     const existingItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
+      include: { product: { select: { id: true, name: true } } },
     });
 
     if (!existingItem || existingItem.userId !== userId) {
@@ -34,6 +36,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (quantity !== undefined && quantity <= 0) {
       // Delete if quantity is 0 or negative
       await prisma.cartItem.delete({ where: { id: itemId } });
+      
+      // Log removal activity
+      await logActivity(
+        userId,
+        'cart_remove',
+        {
+          title: `Removed: ${existingItem.product.name}`,
+          message: `Removed ${existingItem.product.name} from cart`,
+          referenceId: itemId,
+          referenceType: 'CartItem',
+          productId: existingItem.product.id,
+          productName: existingItem.product.name,
+          quantity: existingItem.quantity,
+        }
+      );
+      
       return NextResponse.json({ success: true, deleted: true });
     }
 
@@ -80,9 +98,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
 
-    // Verify the item belongs to the user
+    // Verify the item belongs to the user and get product details
     const existingItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
+      include: { product: { select: { id: true, name: true } } },
     });
 
     if (!existingItem || existingItem.userId !== userId) {
@@ -95,6 +114,21 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     await prisma.cartItem.delete({
       where: { id: itemId },
     });
+
+    // Log removal activity
+    await logActivity(
+      userId,
+      'cart_remove',
+      {
+        title: `Removed: ${existingItem.product.name}`,
+        message: `Removed ${existingItem.product.name} from cart`,
+        referenceId: itemId,
+        referenceType: 'CartItem',
+        productId: existingItem.product.id,
+        productName: existingItem.product.name,
+        quantity: existingItem.quantity,
+      }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
