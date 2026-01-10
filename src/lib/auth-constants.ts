@@ -31,6 +31,8 @@ export const REDIRECT_PATHS = {
   
   // Authentication pages
   LOGIN: '/login',
+  ADMIN_LOGIN: '/admin/login',
+  CUSTOMER_LOGIN: '/login/customer',
   REGISTER: '/register',
   
   // Error pages

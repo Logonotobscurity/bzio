@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import type { NextRequestWithAuth } from "next-auth/middleware";
 import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth-constants";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 /**
  * Enhanced middleware for sophisticated role-based routing
  * Single source of truth for redirect logic and access control
@@ -14,6 +16,11 @@ import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth-constants";
  * 3. Administrative authentication routes: /admin/login
  * 4. Protected customer routes: /account/*
  * 5. Protected administrative routes: /admin/* (excluding /admin/login)
+ * 
+ * COMPATIBILITY NOTES:
+ * - basePath: Compatible (Next.js strips basePath before middleware)
+ * - Locales: NOT supported (add locale stripping if i18n is enabled)
+ * - Trailing slashes: Normalized automatically
  */
 export default withAuth(
   function middleware(req: NextRequestWithAuth) {
@@ -22,127 +29,78 @@ export default withAuth(
     const isAuth = !!token;
     const isAdmin = token?.role === USER_ROLES.ADMIN;
 
-    /**
-     * PHASE 1: Categorize route type
-     */
-    const isCustomerAuthRoute = pathname === REDIRECT_PATHS.LOGIN || pathname === '/login/customer';
-    const isAdminAuthRoute = pathname === "/admin/login";
-    const isProtectedCustomerRoute = pathname.startsWith(REDIRECT_PATHS.USER_DASHBOARD);
+    // Normalize pathname (remove trailing slash, preserve root)
+    const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+
+    const isCustomerAuthRoute = normalizedPath === REDIRECT_PATHS.LOGIN || normalizedPath === REDIRECT_PATHS.CUSTOMER_LOGIN;
+    const isAdminAuthRoute = normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN;
+    const isProtectedCustomerRoute = normalizedPath.startsWith(REDIRECT_PATHS.USER_DASHBOARD);
     const isProtectedAdminRoute = 
-      pathname.startsWith(REDIRECT_PATHS.ADMIN_DASHBOARD) && 
-      pathname !== "/admin/login";
+      normalizedPath.startsWith(REDIRECT_PATHS.ADMIN_DASHBOARD) && 
+      normalizedPath !== "/admin/login";
 
-    /**
-     * PHASE 2: Redirection for authenticated users accessing auth pages
-     * Prevent authenticated users from seeing login interfaces
-     * Redirect them to role-appropriate dashboards
-     */
     if (isAuth && isCustomerAuthRoute) {
-      // Authenticated user accessing customer login
       if (isAdmin) {
-        // Admin user -> redirect to admin dashboard
-        console.log('[MIDDLEWARE] Admin redirected from /login to /admin', {
-          userId: token?.id,
-          role: token?.role,
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
+        if (isDev) {
+          console.log('[MIDDLEWARE] Admin redirected from customer login', { pathname });
+        }
         return NextResponse.redirect(new URL(REDIRECT_PATHS.ADMIN_DASHBOARD, req.url));
-      } else {
-        // Customer user -> allow to proceed (they're already logged in but may want to re-auth)
-        // Let the component handle the redirect
-        return NextResponse.next();
       }
-    }
-
-    if (isAuth && isAdminAuthRoute) {
-      // Authenticated user accessing admin login
-      if (isAdmin) {
-        // Admin user -> redirect to admin dashboard
-        console.log('[MIDDLEWARE] Admin redirected from /admin/login to /admin', {
-          userId: token?.id,
-          role: token?.role,
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
-        return NextResponse.redirect(new URL(REDIRECT_PATHS.ADMIN_DASHBOARD, req.url));
-      } else {
-        // Customer user -> redirect to customer dashboard
-        console.log('[MIDDLEWARE] Customer redirected from /admin/login to /account', {
-          userId: token?.id,
-          role: token?.role,
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
-        return NextResponse.redirect(new URL(REDIRECT_PATHS.USER_DASHBOARD, req.url));
-      }
-    }
-
-    /**
-     * PHASE 3: Protection logic for protected admin routes
-     * Two-stage validation: authentication status + role verification
-     * Use rewrite instead of redirect to prevent redirect loops
-     */
-    if (isProtectedAdminRoute) {
-      if (!isAuth) {
-        // Not authenticated -> redirect to admin login
-        console.log('[MIDDLEWARE] Unauthenticated access to admin route', {
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
-        return NextResponse.redirect(new URL("/admin/login", req.url));
-      }
-
-      if (!isAdmin) {
-        // Authenticated but not admin -> rewrite to unauthorized page
-        // Use rewrite instead of redirect to prevent redirect loops
-        console.log('[MIDDLEWARE] Non-admin access attempt to admin route', {
-          userId: token?.id,
-          role: token?.role,
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
-        return NextResponse.rewrite(new URL(REDIRECT_PATHS.UNAUTHORIZED, req.url));
-      }
-
-      // Authenticated and admin -> allow access
       return NextResponse.next();
     }
 
-    /**
-     * PHASE 4: Protection logic for protected customer routes
-     * Allow only authenticated customers (non-admins)
-     * Redirect admins to admin dashboard
-     */
+    if (isAuth && isAdminAuthRoute) {
+      if (isAdmin) {
+        if (isDev) {
+          console.log('[MIDDLEWARE] Admin redirected from admin login', { pathname });
+        }
+        return NextResponse.redirect(new URL(REDIRECT_PATHS.ADMIN_DASHBOARD, req.url));
+      }
+      if (isDev) {
+        console.log('[MIDDLEWARE] Non-admin redirected from admin login', { pathname });
+      }
+      return NextResponse.redirect(new URL(REDIRECT_PATHS.USER_DASHBOARD, req.url));
+    }
+
+    if (isProtectedAdminRoute) {
+      if (!isAuth) {
+        if (isDev) {
+          console.log('[MIDDLEWARE] Unauthenticated admin access', { pathname });
+        }
+        return NextResponse.redirect(new URL(REDIRECT_PATHS.ADMIN_LOGIN, req.url));
+      }
+
+      if (!isAdmin) {
+        if (isDev) {
+          console.log('[MIDDLEWARE] Non-admin blocked', { pathname });
+        }
+        return NextResponse.redirect(new URL(REDIRECT_PATHS.UNAUTHORIZED, req.url));
+      }
+
+      return NextResponse.next();
+    }
+
     if (isProtectedCustomerRoute) {
       if (!isAuth) {
-        // Not authenticated -> redirect to login with callback URL
-        const callbackUrl = encodeURIComponent(pathname);
-        console.log('[MIDDLEWARE] Unauthenticated access to customer route', {
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
+        const callbackUrl = encodeURIComponent(pathname + req.nextUrl.search);
+        if (isDev) {
+          console.log('[MIDDLEWARE] Unauthenticated customer access', { pathname });
+        }
         return NextResponse.redirect(
           new URL(`${REDIRECT_PATHS.LOGIN}?callbackUrl=${callbackUrl}`, req.url)
         );
       }
 
       if (isAdmin) {
-        // Authenticated but admin -> redirect to admin dashboard
-        console.log('[MIDDLEWARE] Admin attempting to access customer route', {
-          userId: token?.id,
-          role: token?.role,
-          pathname,
-          timestamp: new Date().toISOString(),
-        });
+        if (isDev) {
+          console.log('[MIDDLEWARE] Admin blocked from customer route', { pathname });
+        }
         return NextResponse.redirect(new URL(REDIRECT_PATHS.ADMIN_DASHBOARD, req.url));
       }
 
-      // Authenticated and customer -> allow access
       return NextResponse.next();
     }
 
-    // Allow all other routes
     return NextResponse.next();
   },
   {
@@ -154,24 +112,25 @@ export default withAuth(
        */
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
+        const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
 
         // Authentication pages - allow all access, middleware handles redirects
         if (
-          pathname === REDIRECT_PATHS.LOGIN ||
-          pathname === '/login/customer' ||
-          pathname === "/admin/login"
+          normalizedPath === REDIRECT_PATHS.LOGIN ||
+          normalizedPath === REDIRECT_PATHS.CUSTOMER_LOGIN ||
+          normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN
         ) {
           return true;
         }
 
         // Protected customer routes - require authentication
-        if (pathname.startsWith(REDIRECT_PATHS.USER_DASHBOARD)) {
+        if (normalizedPath.startsWith(REDIRECT_PATHS.USER_DASHBOARD)) {
           return !!token;
         }
 
-        // Protected admin routes - require authentication
-        if (pathname.startsWith(REDIRECT_PATHS.ADMIN_DASHBOARD)) {
-          return !!token;
+        // Protected admin routes - require authentication AND admin role
+        if (normalizedPath.startsWith(REDIRECT_PATHS.ADMIN_DASHBOARD)) {
+          return !!token && token.role === USER_ROLES.ADMIN;
         }
 
         // Default - allow
@@ -189,10 +148,12 @@ export default withAuth(
  */
 export const config = {
   matcher: [
-    "/admin/:path*", // All administrative routes
-    "/account/:path*", // All customer routes
-    "/login", // Login selection page
-    "/login/customer", // Customer authentication
-    "/admin/login", // Administrative authentication
+    "/admin",
+    "/admin/:path*",
+    "/account",
+    "/account/:path*",
+    "/login",
+    "/login/customer",
+    "/admin/login",
   ],
 };
