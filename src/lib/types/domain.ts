@@ -89,9 +89,9 @@ export interface User {
   lastName?: string;
   phone?: string;
   companyName?: string;
-  role: 'ADMIN' | 'USER';
+  role: string;
   isActive: boolean;
-  emailVerified?: boolean;
+  emailVerified?: Date;
   lastLogin?: Date;
   isNewUser?: boolean;
   createdAt?: Date;
@@ -124,9 +124,10 @@ export interface QuoteLine {
 export interface Notification {
   id: number;
   userId: number;
-  title: string;
+  type: string;
   message: string;
-  read: boolean;
+  isRead: boolean;
+  link?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -175,11 +176,11 @@ export interface AnalyticsEvent {
 export interface FormSubmission {
   id: string;
   formType: string;
-  email: string;
   data: Record<string, any>;
   status: string;
   submittedAt: Date;
   ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface NewsletterSubscriber {
@@ -194,12 +195,19 @@ export interface NewsletterSubscriber {
 export interface Address {
   id: number;
   userId: number;
-  street: string;
+  type: string;
+  isDefault: boolean;
+  label?: string;
+  contactPerson?: string;
+  phone?: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
   state: string;
-  postalCode: string;
+  postalCode?: string;
   country: string;
-  isDefault: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface NegotiationMessage {
@@ -210,4 +218,51 @@ export interface NegotiationMessage {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Lead {
+  id: string;
+  email: string;
+  name?: string;
+  companyName?: string;
+  phone?: string;
+  type: string;
+  source: string;
+  status: string;
+  leadScore: number;
+  assignedTo?: string;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+  convertedAt?: Date;
+}
+
+export interface QuoteMessage {
+  id: string;
+  quoteId: string;
+  senderRole: string;
+  senderEmail: string;
+  senderName: string;
+  senderId?: number;
+  message: string;
+  isRead: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ErrorLog {
+  id: string;
+  message: string;
+  stack?: string;
+  context?: Record<string, any>;
+  severity: string;
+  url: string;
+  userAgent?: string;
+  sessionId: string;
+  userId?: string;
+  breadcrumbs?: Record<string, any>;
+  sourceMap?: Record<string, any>;
+  environment: string;
+  version: string;
+  timestamp: Date;
 }

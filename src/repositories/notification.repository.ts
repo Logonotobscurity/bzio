@@ -10,15 +10,17 @@ import type { Notification } from '@/lib/types/domain';
 
 interface CreateNotificationInput {
   userId: number;
-  title: string;
+  type: string;
   message: string;
-  read?: boolean;
+  isRead?: boolean;
+  link?: string;
 }
 
 interface UpdateNotificationInput {
-  title?: string;
+  type?: string;
   message?: string;
-  read?: boolean;
+  isRead?: boolean;
+  link?: string;
 }
 
 export class NotificationRepository extends BaseRepository<Notification, CreateNotificationInput, UpdateNotificationInput> {
@@ -60,7 +62,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
   async findUnreadByUserId(userId: number, limit?: number): Promise<Notification[]> {
     try {
       return await prisma.notification.findMany({
-        where: { userId, read: false },
+        where: { userId, isRead: false },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -74,9 +76,10 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
       return await prisma.notification.create({
         data: {
           userId: data.userId,
-          title: data.title,
+          type: data.type,
           message: data.message,
-          read: data.read || false,
+          isRead: data.isRead || false,
+          link: data.link,
         },
       });
     } catch (error) {
@@ -120,7 +123,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
   async countUnreadForUser(userId: number): Promise<number> {
     try {
       return await prisma.notification.count({
-        where: { userId, read: false },
+        where: { userId, isRead: false },
       });
     } catch (error) {
       this.handleError(error, 'countUnreadForUser');
@@ -133,8 +136,8 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
   async markAllAsReadForUser(userId: number): Promise<number> {
     try {
       const result = await prisma.notification.updateMany({
-        where: { userId, read: false },
-        data: { read: true },
+        where: { userId, isRead: false },
+        data: { isRead: true },
       });
       return result.count;
     } catch (error) {

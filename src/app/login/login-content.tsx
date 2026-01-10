@@ -21,7 +21,7 @@ export default function LoginPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [roleMismatchError, setRoleMismatchError] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,6 +33,8 @@ export default function LoginPageContent() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
       const isAdmin = session.user.role === USER_ROLES.ADMIN;
+      
+      setIsRedirecting(true);
       
       if (isAdmin) {
         // Admin user - redirect to admin dashboard
@@ -58,7 +60,6 @@ export default function LoginPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setRoleMismatchError('');
 
     try {
       const result = await signIn('credentials', {
@@ -79,24 +80,30 @@ export default function LoginPageContent() {
         const newSession = await sessionResponse.json();
 
         if (newSession?.user?.role === USER_ROLES.ADMIN) {
-          // Role mismatch - admin account attempting customer login
-          setRoleMismatchError(
-            'Your account has administrator privileges. ' +
-            'Please use the administrator login interface to access the admin dashboard.'
-          );
-          // Clear password field for security
-          setPassword('');
-          console.log('[CUSTOMER_LOGIN] Admin attempted customer login', {
+          // Admin account detected - auto-redirect to admin dashboard
+          console.log('[CUSTOMER_LOGIN] Admin detected, redirecting to admin dashboard', {
             email,
             role: newSession.user?.role,
             timestamp: new Date().toISOString(),
           });
+          
+          toast({
+            title: 'Admin Account Detected',
+            description: 'Redirecting to admin dashboard...',
+          });
+          
+          router.replace(REDIRECT_PATHS.ADMIN_DASHBOARD);
         } else {
           // Correct role - redirect to customer dashboard
           console.log('[CUSTOMER_LOGIN] Customer authentication successful', {
             userId: newSession.user?.id,
             email: newSession.user?.email,
             timestamp: new Date().toISOString(),
+          });
+          
+          toast({
+            title: 'Welcome!',
+            description: 'Successfully logged in.',
           });
           
           router.replace(REDIRECT_PATHS.USER_DASHBOARD);
@@ -124,7 +131,6 @@ export default function LoginPageContent() {
       return;
     }
     setIsLoading(true);
-    setRoleMismatchError('');
     try {
       await signIn('email', { email, redirect: false });
       toast({
@@ -143,11 +149,16 @@ export default function LoginPageContent() {
     }
   };
 
-  // If loading session, show a loading state to prevent flickering
-  if (status === 'loading' || status === 'authenticated') {
+  // If loading session or redirecting, show loading state
+  if (status === 'loading' || status === 'authenticated' || isRedirecting) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-700 dark:text-gray-300">
+            {isRedirecting ? 'Redirecting to dashboard...' : 'Loading...'}
+          </p>
+        </div>
       </div>
     );
   }
@@ -160,21 +171,11 @@ export default function LoginPageContent() {
           <div className="flex justify-center mb-3">
             <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Login</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customer Login</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             Sign in to your customer account
           </p>
         </div>
-
-        {/* Role mismatch error */}
-        {roleMismatchError && (
-          <Alert className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
-            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-500" />
-            <AlertDescription className="text-red-800 dark:text-red-200">
-              {roleMismatchError}
-            </AlertDescription>
-          </Alert>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -248,8 +249,8 @@ export default function LoginPageContent() {
 
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
             Are you an administrator?{' '}
-            <Link href="/admin/login" className="font-medium text-purple-600 hover:underline dark:text-purple-500">
-              Login here
+            <Link href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-500">
+              Back to login selection
             </Link>
           </p>
         </div>

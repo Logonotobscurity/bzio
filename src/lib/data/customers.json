@@ -1,0 +1,122 @@
+[
+  {
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "companyName": "Doe Industries",
+    "phone": "+234-801-234-5678",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Food Processing",
+      "estimatedMonthlyVolume": 5000,
+      "preferredPaymentTerm": "30 days"
+    }
+  },
+  {
+    "email": "jane.smith@example.com",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "companyName": "Smith & Co.",
+    "phone": "+234-802-345-6789",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Retail Distribution",
+      "estimatedMonthlyVolume": 3000,
+      "preferredPaymentTerm": "60 days"
+    }
+  },
+  {
+    "email": "test@example.com",
+    "firstName": "Test",
+    "lastName": "User",
+    "companyName": "Test Corporation",
+    "phone": "+234-803-456-7890",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Hospitality",
+      "estimatedMonthlyVolume": 2000,
+      "preferredPaymentTerm": "Monthly"
+    }
+  },
+  {
+    "email": "supplier@tradingcorp.com",
+    "firstName": "Supply",
+    "lastName": "Manager",
+    "companyName": "Trading Corporation Ltd",
+    "phone": "+234-804-567-8901",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Wholesale Trading",
+      "estimatedMonthlyVolume": 8000,
+      "preferredPaymentTerm": "COD"
+    }
+  },
+  {
+    "email": "procurement@foodservice.com",
+    "firstName": "Procurement",
+    "lastName": "Officer",
+    "companyName": "Food Service Solutions",
+    "phone": "+234-805-678-9012",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Food Service",
+      "estimatedMonthlyVolume": 4000,
+      "preferredPaymentTerm": "30 days"
+    }
+  },
+  {
+    "email": "buyer@mixedgoods.com",
+    "firstName": "Buyer",
+    "lastName": "Manager",
+    "companyName": "Mixed Goods Distributors",
+    "phone": "+234-806-789-0123",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "General Distribution",
+      "estimatedMonthlyVolume": 2500,
+      "preferredPaymentTerm": "45 days"
+    }
+  },
+  {
+    "email": "logistics@importexport.ng",
+    "firstName": "Logistics",
+    "lastName": "Coordinator",
+    "companyName": "Import/Export Limited",
+    "phone": "+234-807-890-1234",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Import/Export",
+      "estimatedMonthlyVolume": 6000,
+      "preferredPaymentTerm": "60 days"
+    }
+  },
+  {
+    "email": "catering@eventmanagement.com",
+    "firstName": "Event",
+    "lastName": "Caterer",
+    "companyName": "Event Management Pro",
+    "phone": "+234-808-901-2345",
+    "customerType": "B2B",
+    "source": "QUOTE_REQUEST_FORM",
+    "status": "ACTIVE",
+    "metadata": {
+      "industry": "Event Catering",
+      "estimatedMonthlyVolume": 1500,
+      "preferredPaymentTerm": "On Delivery"
+    }
+  }
+]

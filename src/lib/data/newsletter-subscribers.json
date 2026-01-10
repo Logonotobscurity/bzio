@@ -1,0 +1,62 @@
+[
+  {
+    "email": "john.doe@example.com",
+    "source": "SIGNUP",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-01T08:00:00Z"
+  },
+  {
+    "email": "jane.smith@example.com",
+    "source": "SIGNUP",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-02T10:30:00Z"
+  },
+  {
+    "email": "subscriber1@example.com",
+    "source": "WEBSITE",
+    "status": "ACTIVE",
+    "subscribedAt": "2023-12-28T14:15:00Z"
+  },
+  {
+    "email": "subscriber2@example.com",
+    "source": "MANUAL",
+    "status": "ACTIVE",
+    "subscribedAt": "2023-12-25T09:45:00Z"
+  },
+  {
+    "email": "test@example.com",
+    "source": "SIGNUP",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-03T11:20:00Z"
+  },
+  {
+    "email": "supplier@tradingcorp.com",
+    "source": "WEBSITE",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-02T16:30:00Z"
+  },
+  {
+    "email": "procurement@foodservice.com",
+    "source": "SIGNUP",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-04T13:00:00Z"
+  },
+  {
+    "email": "buyer@mixedgoods.com",
+    "source": "WEBSITE",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-03T15:45:00Z"
+  },
+  {
+    "email": "newsletter@example.com",
+    "source": "MANUAL",
+    "status": "ACTIVE",
+    "subscribedAt": "2023-12-20T10:00:00Z"
+  },
+  {
+    "email": "business@company.ng",
+    "source": "SIGNUP",
+    "status": "ACTIVE",
+    "subscribedAt": "2024-01-04T09:30:00Z"
+  }
+]

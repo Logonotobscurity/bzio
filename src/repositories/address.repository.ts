@@ -10,21 +10,31 @@ import type { Address } from '@/lib/types/domain';
 
 interface CreateAddressInput {
   userId: number;
-  street: string;
+  type: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
   state: string;
-  postalCode: string;
+  postalCode?: string;
   country: string;
   isDefault?: boolean;
+  label?: string;
+  contactPerson?: string;
+  phone?: string;
 }
 
 interface UpdateAddressInput {
-  street?: string;
+  type?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   city?: string;
   state?: string;
   postalCode?: string;
   country?: string;
   isDefault?: boolean;
+  label?: string;
+  contactPerson?: string;
+  phone?: string;
 }
 
 export class AddressRepository extends BaseRepository<Address, CreateAddressInput, UpdateAddressInput> {
@@ -82,15 +92,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
       }
 
       return await prisma.address.create({
-        data: {
-          userId: data.userId,
-          street: data.street,
-          city: data.city,
-          state: data.state,
-          postalCode: data.postalCode,
-          country: data.country,
-          isDefault: data.isDefault || false,
-        },
+        data,
       });
     } catch (error) {
       this.handleError(error, 'create');

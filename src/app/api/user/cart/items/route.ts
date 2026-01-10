@@ -1,0 +1,153 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import prisma from '@/lib/prisma';
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
+    const body = await req.json();
+    const { productId, quantity = 1, unitPrice } = body;
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get or create active cart
+    let cart = await prisma.cart.findFirst({
+      where: { userId, status: 'active' },
+    });
+
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId },
+      });
+    }
+
+    // Check if product already exists in cart
+    const existingItem = await prisma.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
+    });
+
+    let cartItem;
+
+    if (existingItem) {
+      // Update quantity
+      cartItem = await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: existingItem.quantity + quantity },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              price: true,
+              images: { take: 1 },
+            },
+          },
+        },
+      });
+    } else {
+      // Create new cart item
+      cartItem = await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          userId,
+          productId,
+          quantity,
+          unitPrice: unitPrice || undefined,
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              price: true,
+              images: { take: 1 },
+            },
+          },
+        },
+      });
+    }
+
+    return NextResponse.json(cartItem, { status: 201 });
+  } catch (error) {
+    console.error('[CART_ITEMS_POST]', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
+
+    // Get active cart with items
+    const cart = await prisma.cart.findFirst({
+      where: { userId, status: 'active' },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                price: true,
+                images: { take: 1 },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!cart) {
+      return NextResponse.json({
+        items: [],
+        itemCount: 0,
+        total: 0,
+      });
+    }
+
+    const total = cart.items.reduce((sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0);
+
+    return NextResponse.json({
+      cartId: cart.id,
+      items: cart.items,
+      itemCount: cart.items.length,
+      total,
+    });
+  } catch (error) {
+    console.error('[CART_ITEMS_GET]', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

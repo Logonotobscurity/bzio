@@ -1,0 +1,140 @@
+[
+  {
+    "email": "john.doe@example.com",
+    "name": "John Doe",
+    "companyName": "Doe Industries",
+    "phone": "+234-801-234-5678",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "CONVERTED",
+    "leadScore": 85,
+    "assignedTo": "sales_team",
+    "metadata": {
+      "quoteReference": "QR-1704528000001",
+      "itemCount": 2,
+      "estimatedValue": 31.50,
+      "industry": "Food Processing"
+    }
+  },
+  {
+    "email": "jane.smith@example.com",
+    "name": "Jane Smith",
+    "companyName": "Smith & Co.",
+    "phone": "+234-802-345-6789",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "CONTACTED",
+    "leadScore": 80,
+    "assignedTo": "sales_rep_1",
+    "metadata": {
+      "quoteReference": "QR-1704528000002",
+      "itemCount": 1,
+      "estimatedValue": 6200,
+      "industry": "Retail Distribution"
+    }
+  },
+  {
+    "email": "test@example.com",
+    "name": "Test User",
+    "companyName": "Test Corporation",
+    "phone": "+234-803-456-7890",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "CONVERTED",
+    "leadScore": 90,
+    "assignedTo": "sales_rep_2",
+    "metadata": {
+      "quoteReference": "QR-1704528000003",
+      "itemCount": 2,
+      "estimatedValue": 28000,
+      "industry": "Hospitality",
+      "conversionDate": "2024-01-03"
+    }
+  },
+  {
+    "email": "supplier@tradingcorp.com",
+    "name": "Supply Manager",
+    "companyName": "Trading Corporation Ltd",
+    "phone": "+234-804-567-8901",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "NEW",
+    "leadScore": 85,
+    "assignedTo": "sales_team",
+    "metadata": {
+      "quoteReference": "QR-1704528000004",
+      "itemCount": 1,
+      "estimatedValue": 37500,
+      "industry": "Wholesale Trading"
+    }
+  },
+  {
+    "email": "procurement@foodservice.com",
+    "name": "Procurement Officer",
+    "companyName": "Food Service Solutions",
+    "phone": "+234-805-678-9012",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "NEW",
+    "leadScore": 80,
+    "assignedTo": "sales_team",
+    "metadata": {
+      "quoteReference": "QR-1704528000005",
+      "itemCount": 1,
+      "estimatedValue": 18600,
+      "industry": "Food Service"
+    }
+  },
+  {
+    "email": "buyer@mixedgoods.com",
+    "name": "Buyer Manager",
+    "companyName": "Mixed Goods Distributors",
+    "phone": "+234-806-789-0123",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "CONTACTED",
+    "leadScore": 75,
+    "assignedTo": "sales_rep_1",
+    "metadata": {
+      "quoteReference": "QR-1704528000006",
+      "itemCount": 2,
+      "estimatedValue": 15950,
+      "industry": "General Distribution"
+    }
+  },
+  {
+    "email": "logistics@importexport.ng",
+    "name": "Logistics Coordinator",
+    "companyName": "Import/Export Limited",
+    "phone": "+234-807-890-1234",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "NEW",
+    "leadScore": 88,
+    "assignedTo": "sales_team",
+    "metadata": {
+      "quoteReference": "QR-1704528000007",
+      "itemCount": 2,
+      "estimatedValue": 62000,
+      "industry": "Import/Export"
+    }
+  },
+  {
+    "email": "catering@eventmanagement.com",
+    "name": "Event Caterer",
+    "companyName": "Event Management Pro",
+    "phone": "+234-808-901-2345",
+    "type": "Website Quote Request",
+    "source": "Quote Form",
+    "status": "CONVERTED",
+    "leadScore": 92,
+    "assignedTo": "sales_rep_2",
+    "metadata": {
+      "quoteReference": "QR-1704528000008",
+      "itemCount": 1,
+      "estimatedValue": 12500,
+      "industry": "Event Catering",
+      "conversionDate": "2024-01-03"
+    }
+  }
+]

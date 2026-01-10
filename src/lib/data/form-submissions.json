@@ -1,0 +1,138 @@
+[
+  {
+    "formType": "CONTACT_US",
+    "data": {
+      "name": "John Smith",
+      "email": "john@example.com",
+      "phone": "+234-801-111-1111",
+      "subject": "Product Inquiry",
+      "message": "I would like to inquire about your cooking oil products and pricing for bulk orders."
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+  },
+  {
+    "formType": "REQUEST_QUOTE",
+    "data": {
+      "companyName": "ABC Foods Ltd",
+      "contactName": "Mary Johnson",
+      "email": "mary@abc.com",
+      "phone": "+234-802-222-2222",
+      "products": ["ACTIVA-01-2L", "ACTIVA-02-3L"],
+      "quantity": 100,
+      "deadline": "2024-02-15",
+      "budget": "150000",
+      "message": "Urgent quote needed for restaurant expansion"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.101",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2)"
+  },
+  {
+    "formType": "REQUEST_QUOTE",
+    "data": {
+      "companyName": "XYZ Foods",
+      "contactName": "Ahmed Hassan",
+      "email": "ahmed@xyz.com",
+      "phone": "+234-803-333-3333",
+      "products": ["ACTIVA-03-5L"],
+      "quantity": 50,
+      "deadline": "2024-02-20",
+      "budget": "300000",
+      "message": "Bulk supply for commercial kitchen"
+    },
+    "status": "PROCESSED",
+    "ipAddress": "192.168.1.102",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+  },
+  {
+    "formType": "CONTACT_US",
+    "data": {
+      "name": "Sarah Williams",
+      "email": "sarah@company.ng",
+      "phone": "+234-804-444-4444",
+      "subject": "Bulk Order Discount",
+      "message": "What discounts do you offer for monthly orders of 500+ units?"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.103",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64)"
+  },
+  {
+    "formType": "REQUEST_QUOTE",
+    "data": {
+      "companyName": "Premium Catering Services",
+      "contactName": "David Brown",
+      "email": "david@catering.ng",
+      "phone": "+234-805-555-5555",
+      "products": ["ACTIVA-01-2L", "ACTIVA-03-5L"],
+      "quantity": 75,
+      "deadline": "2024-02-10",
+      "budget": "200000",
+      "message": "Long-term supply agreement negotiation"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.104",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/121.0"
+  },
+  {
+    "formType": "GENERAL_INQUIRY",
+    "data": {
+      "name": "Linda Davis",
+      "email": "linda@supply.com",
+      "message": "Do you offer customized packaging solutions for bulk orders?",
+      "category": "Packaging"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.105",
+    "userAgent": "Mozilla/5.0 (iPad; CPU OS 17_2)"
+  },
+  {
+    "formType": "REQUEST_QUOTE",
+    "data": {
+      "companyName": "Foods Unlimited",
+      "contactName": "Michael Chen",
+      "email": "michael@foods.ng",
+      "phone": "+234-806-666-6666",
+      "products": ["ACTIVA-02-3L"],
+      "quantity": 200,
+      "deadline": "2024-01-30",
+      "budget": "750000",
+      "message": "Wholesale distributor looking for regular supply"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.106",
+    "userAgent": "Mozilla/5.0 (Android 13; Mobile)"
+  },
+  {
+    "formType": "CONTACT_US",
+    "data": {
+      "name": "Patricia Martinez",
+      "email": "patricia@retail.com",
+      "phone": "+234-807-777-7777",
+      "subject": "Partnership Opportunity",
+      "message": "Interested in becoming an official distributor in our region"
+    },
+    "status": "PROCESSED",
+    "ipAddress": "192.168.1.107",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Firefox/121.0"
+  },
+  {
+    "formType": "REQUEST_QUOTE",
+    "data": {
+      "companyName": "Gourmet Kitchen Pro",
+      "contactName": "James Wilson",
+      "email": "james@gourmet.ng",
+      "phone": "+234-808-888-8888",
+      "products": ["ACTIVA-01-2L", "ACTIVA-02-3L", "ACTIVA-03-5L"],
+      "quantity": 150,
+      "deadline": "2024-02-05",
+      "budget": "500000",
+      "message": "Complete product line trial order"
+    },
+    "status": "NEW",
+    "ipAddress": "192.168.1.108",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15"
+  }
+]

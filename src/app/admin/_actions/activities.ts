@@ -353,6 +353,7 @@ export async function getQuotes(
                 total: true,
                 createdAt: true,
                 updatedAt: true,
+                userId: true,
                 user: {
                   select: {
                     email: true,
@@ -366,16 +367,24 @@ export async function getQuotes(
                 },
               },
             }),
-            10000
+            15000
           ),
           withTimeout(
             prisma.quote.count({ where: status ? { status } : undefined }),
-            10000
+            15000
           ),
         ]);
 
+        const mappedQuotes = quotes.map(q => ({
+          ...q,
+          userId: q.userId?.toString() ?? null,
+          email: q.user?.email ?? null,
+          firstName: q.user?.firstName ?? null,
+          lastName: q.user?.lastName ?? null,
+        }));
+
         return {
-          data: quotes,
+          data: mappedQuotes,
           total,
           offset,
           limit,

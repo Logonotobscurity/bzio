@@ -2,364 +2,401 @@
 
 ## Code Quality Standards
 
-### File Structure and Organization
-- **Client Components**: Mark with `'use client'` directive at the top of files requiring browser APIs or React hooks
-- **Import Order**: External packages → Next.js imports → Local components → Hooks → Services/Utils → Types → Constants
-- **File Naming**: kebab-case for files (e.g., `use-form.ts`, `success-notification.tsx`, `product-service.ts`)
-- **Component Files**: Use `.tsx` extension for React components, `.ts` for utilities and services
+### File Organization
+- Use clear, descriptive file headers with purpose documentation
+- Group related functionality in dedicated directories
+- Separate concerns: actions, components, services, repositories
+- Place test files adjacent to source files with `__tests__` directories
 
 ### TypeScript Standards
-- **Strict Mode**: All strict TypeScript flags enabled (strictNullChecks, noUnusedLocals, noUnusedParameters, noImplicitReturns)
-- **Type Definitions**: Explicit interfaces for all props, function parameters, and return types
-- **Type Exports**: Export interfaces and types alongside implementation for reusability
-- **Generic Types**: Use generics for reusable hooks and utilities (e.g., `useForm<T extends FormValues>`)
-- **Avoid Any**: Never use `any` type; use `unknown` or proper type definitions
-
-### Code Formatting
-- **Indentation**: 2 spaces (consistent across all files)
-- **Semicolons**: Required at end of statements
-- **Quotes**: Single quotes for strings, double quotes for JSX attributes
-- **Line Length**: Keep lines under 120 characters where practical
-- **Trailing Commas**: Use in multi-line objects and arrays
+- Strict type safety enabled across the codebase
+- Explicit interface definitions for all data structures
+- Use type aliases for complex types (e.g., `type CarouselApi = UseEmblaCarouselType[1]`)
+- Avoid `any` types - use proper type definitions or `unknown`
+- Export types alongside implementations for reusability
 
 ### Naming Conventions
-- **Components**: PascalCase (e.g., `SuccessNotification`, `LoginPage`)
-- **Functions/Variables**: camelCase (e.g., `handleSubmit`, `isLoading`)
-- **Constants**: UPPER_SNAKE_CASE for true constants (e.g., `MAX_RETRIES`)
-- **Interfaces**: PascalCase with descriptive names (e.g., `FormErrors`, `ValidationRules`)
-- **Boolean Variables**: Prefix with `is`, `has`, `should` (e.g., `isVisible`, `hasError`, `shouldValidate`)
-- **Event Handlers**: Prefix with `handle` (e.g., `handleChange`, `handleSubmit`, `handleBlur`)
+- **Files**: kebab-case for files (`activities.ts`, `enrichment-service.ts`)
+- **Components**: PascalCase with descriptive names (`CarouselContent`, `MenubarTrigger`)
+- **Functions**: camelCase with verb prefixes (`getRecentActivities`, `enrichCategories`)
+- **Interfaces**: PascalCase with descriptive names (`PaginatedResult`, `ActivityEvent`)
+- **Constants**: UPPER_SNAKE_CASE for true constants (`TOAST_LIMIT`, `CACHE_TTL`)
+- **Private functions**: camelCase, no underscore prefix
 
-## Semantic Patterns
+### Code Formatting
+- Use double quotes for strings in TypeScript/JSX
+- 2-space indentation
+- Trailing commas in multi-line objects/arrays
+- Spread operators for object composition (`{ ...props }`)
+- Destructuring for cleaner parameter handling
+- Line breaks between logical sections
 
-### React Component Patterns
+## Architectural Patterns
 
-#### State Management
+### Server Actions Pattern
 ```typescript
-// Local state with useState
-const [isLoading, setIsLoading] = useState(false);
-const [showPassword, setShowPassword] = useState(false);
-
-// Global state with Zustand stores
-const { login } = useAuthStore();
-const { toast } = useToast();
-```
-
-#### Effect Patterns
-```typescript
-// Client-side hydration check
-const [isClient, setIsClient] = useState(false);
-useEffect(() => {
-  setIsClient(true);
-}, []);
-
-// Cleanup with timers
-useEffect(() => {
-  if (isVisible && duration > 0) {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      onClose?.();
-    }, duration);
-    return () => clearTimeout(timer);
-  }
-}, [isVisible, duration, onClose]);
-```
-
-#### Event Handler Patterns
-```typescript
-// Form submission with async/await
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  
-  try {
-    await login(email, password);
-    toast({ title: 'Success', description: 'Welcome back!' });
-    router.push('/account');
-  } catch (error) {
-    toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'An error occurred',
-      variant: 'destructive',
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
-```
-
-### Custom Hooks Architecture
-
-#### Hook Documentation
-- **JSDoc Comments**: Every custom hook includes comprehensive JSDoc with description, parameters, return values, and examples
-- **Type Safety**: Hooks use generics for flexibility while maintaining type safety
-- **Return Objects**: Return objects with descriptive property names, not arrays
-
-#### Hook Pattern Example
-```typescript
-/**
- * useForm Hook
- * Provides comprehensive form state management, validation, and error handling
- * 
- * @example
- * const { values, errors, handleChange, handleSubmit, isSubmitting } = useForm({
- *   initialValues: { email: '', password: '' },
- *   validationRules: { email: { required: true, email: true } },
- *   onSubmit: async (values) => { ... }
- * })
- */
-export function useForm<T extends FormValues>({ initialValues, onSubmit, validate }: UseFormOptions<T>) {
-  // Implementation
-  return { values, errors, handleChange, handleSubmit, isSubmitting };
+// Admin actions in /app/admin/_actions/
+export async function getRecentActivities(
+  offset: number = 0,
+  limit: number = 20
+): Promise<PaginatedResult<ActivityEvent>> {
+  // Implementation with caching
 }
 ```
+- Server actions in `_actions` directories
+- Return typed results with pagination support
+- Include error handling with fallback values
+- Use caching for expensive operations
 
-### Service Layer Patterns
+### Repository Pattern
+- Dedicated repository files for each entity
+- Centralized database access logic
+- Type-safe query results
+- Consistent error handling
 
-#### Service Function Structure
-```typescript
-// Async functions with Promise return types
-export const getAllProducts = async (): Promise<Product[]> => {
-  return repo.all();
-};
-
-// Complex data aggregation
-export const getCompanies = async (): Promise<CompanyDirectoryData[]> => {
-  const [companies, allProducts, allBrands, allCategories] = await Promise.all([
-    companyRepo.all(),
-    staticRepo.all(),
-    brandRepo.all(),
-    categoryRepo.all()
-  ]);
-  
-  // Data transformation logic
-  return companies.map(company => {
-    // Enrichment logic
-  });
-};
-```
-
-#### Repository Pattern
-- Services call repositories, never direct database access
-- Repositories abstract data source (static files, database, API)
-- Services handle business logic and data enrichment
-
-### Error Handling Standards
-
-#### Try-Catch Blocks
-```typescript
-try {
-  await operation();
-  // Success handling
-} catch (error) {
-  // Type-safe error handling
-  const errorMessage = error instanceof Error ? error.message : 'Default message';
-  // Error reporting
-} finally {
-  // Cleanup
-  setIsLoading(false);
-}
-```
-
-#### Optional Chaining and Nullish Coalescing
-```typescript
-// Safe property access
-onClose?.();
-user?.name ?? 'Guest';
-
-// Array operations
-const prices = products.map(p => p.price ?? 0).filter(p => p > 0);
-```
-
-### Validation Patterns
-
-#### Built-in Validation Rules
-```typescript
-validationRules: {
-  email: { 
-    required: 'Email is required', 
-    email: 'Invalid email format' 
-  },
-  password: { 
-    required: true, 
-    minLength: { value: 8, message: 'Min 8 characters' } 
-  }
-}
-```
-
-#### Custom Validators
-```typescript
-validate: (value) => {
-  if (!condition) return 'Error message';
-  return true;
-},
-custom: (value, allValues) => {
-  // Cross-field validation
-  return allValues.password === allValues.confirmPassword || 'Passwords must match';
-}
-```
-
-## UI/UX Patterns
-
-### Styling Approach
-- **Tailwind CSS**: Primary styling method with utility classes
-- **CSS-in-JS**: Use `<style jsx>` for component-specific complex styles
-- **Class Composition**: Use `clsx` or `cn` utility for conditional classes
-- **Responsive Design**: Mobile-first with Tailwind breakpoints (sm:, md:, lg:, xl:)
+### Service Layer Pattern
+- Business logic separated from data access
+- Services orchestrate multiple repositories
+- Enrichment services for data transformation
+- Validation at service boundaries
 
 ### Component Composition
 ```typescript
-// Shadcn/ui component usage
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// Compound component pattern
+<Carousel>
+  <CarouselContent>
+    <CarouselItem />
+  </CarouselContent>
+  <CarouselPrevious />
+  <CarouselNext />
+</Carousel>
+```
+- Use compound components for complex UI
+- Context API for internal state sharing
+- forwardRef for ref forwarding
+- displayName for debugging
 
-// Lucide icons
-import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+### Custom Hooks Pattern
+```typescript
+function useCarousel() {
+  const context = React.useContext(CarouselContext)
+  if (!context) {
+    throw new Error("useCarousel must be used within a <Carousel />")
+  }
+  return context
+}
+```
+- Custom hooks for reusable logic
+- Context validation with helpful error messages
+- Return stable references with useCallback
+- Clean up effects properly
+
+## Performance Optimizations
+
+### Database Query Optimization
+```typescript
+// Parallel execution instead of sequential
+const [data1, data2, data3] = await Promise.all([
+  query1(),
+  query2(),
+  query3(),
+]);
+```
+- Use `Promise.all()` for parallel queries
+- Implement query timeouts with `withTimeout` wrapper
+- Select only required fields in Prisma queries
+- Add database indexes for frequently queried fields
+
+### Caching Strategy
+```typescript
+return getCachedQuery(
+  cacheKey,
+  async () => { /* query */ },
+  CACHE_TTL.dashboard.realtime
+);
+```
+- Redis caching for expensive operations
+- Structured cache keys with namespaces
+- TTL-based cache expiration
+- Cache invalidation on mutations
+
+### React Performance
+- Use `React.memo` for expensive components
+- `useCallback` for stable function references
+- `useMemo` for expensive computations
+- Lazy loading with dynamic imports
+
+## Error Handling
+
+### Try-Catch Pattern
+```typescript
+try {
+  const result = await withTimeout(operation(), 10000);
+  return result;
+} catch (error) {
+  console.error('Error description:', error);
+  return fallbackValue;
+}
+```
+- Always wrap async operations in try-catch
+- Log errors with descriptive context
+- Return safe fallback values
+- Use timeout wrappers for database queries
+
+### Validation
+- Zod schemas for runtime validation
+- Type guards for type narrowing
+- Null checks before accessing properties
+- Optional chaining for nested properties
+
+## Testing Standards
+
+### Test Structure
+```typescript
+describe('serviceName', () => {
+  describe('functionName', () => {
+    it('should do specific thing', async () => {
+      // Arrange
+      const input = createMockData();
+      
+      // Act
+      const result = await function(input);
+      
+      // Assert
+      expect(result).toBe(expected);
+    });
+  });
+});
+```
+- Nested describe blocks for organization
+- Clear test descriptions with "should"
+- Arrange-Act-Assert pattern
+- Mock data factories for test data
+
+### Test Coverage
+- Unit tests for services and utilities
+- Integration tests for API routes
+- Component tests for UI components
+- Mock external dependencies
+
+## API Design
+
+### Pagination Pattern
+```typescript
+interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
+```
+- Consistent pagination interface
+- Include total count and hasMore flag
+- Default values for offset/limit
+- Type-safe generic results
+
+### Response Structure
+- Consistent error responses
+- Include metadata in responses
+- Use HTTP status codes correctly
+- Return typed JSON responses
+
+## State Management
+
+### Zustand Stores
+- Separate stores by domain (cart, auth, activity)
+- Minimal store state
+- Derived values via selectors
+- Actions co-located with state
+
+### Server State
+- TanStack Query for server data
+- Automatic refetching and caching
+- Optimistic updates for mutations
+- Error and loading states
+
+## Security Practices
+
+### Authentication
+- NextAuth.js for authentication
+- Role-based access control
+- Protected API routes
+- Session validation in middleware
+
+### Data Sanitization
+- Sanitize HTML input with sanitize-html
+- Validate all user input with Zod
+- Parameterized database queries
+- Rate limiting on API routes
+
+### Environment Variables
+- Never commit secrets
+- Use .env.example for documentation
+- Validate required env vars at startup
+- Type-safe env var access
+
+## Documentation Standards
+
+### Code Comments
+```typescript
+/**
+ * Get recent activities with pagination
+ * Combines data from multiple sources in optimized parallel queries
+ * 
+ * @param offset - Pagination offset (default: 0)
+ * @param limit - Number of activities to return (default: 20)
+ * @returns Paginated activity list
+ */
+```
+- JSDoc comments for public functions
+- Explain "why" not "what"
+- Document complex algorithms
+- Include parameter descriptions
+
+### Inline Comments
+- Use for complex logic explanation
+- Mark TODOs with context
+- Explain non-obvious decisions
+- Keep comments up-to-date
+
+## Common Code Idioms
+
+### Null Coalescing
+```typescript
+const value = user?.firstName ?? 'Unknown';
 ```
 
-### Loading States
+### Optional Chaining
 ```typescript
-// Button loading state
-<button disabled={isLoading}>
-  {isLoading ? (
-    <span className="flex items-center gap-2">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      Loading...
-    </span>
-  ) : (
-    'Submit'
-  )}
-</button>
+const email = quote.user?.email ?? null;
 ```
 
-### Accessibility
-- **Form Labels**: Always associate labels with inputs using `htmlFor` and `id`
-- **ARIA Attributes**: Use when semantic HTML is insufficient
-- **Keyboard Navigation**: Ensure all interactive elements are keyboard accessible
-- **Focus States**: Visible focus indicators on all interactive elements
-
-## Data Flow Patterns
-
-### State Management Hierarchy
-1. **Local State**: Component-specific state with `useState`
-2. **Zustand Stores**: Global state (auth, cart, quotes, UI)
-3. **Server State**: Data fetching with async/await in services
-4. **URL State**: Search params and route parameters
-
-### Data Fetching Pattern
+### Array Methods
 ```typescript
-// Service layer handles data fetching
-const products = await productService.getAllProducts();
+const sorted = items
+  .filter(item => item.isActive)
+  .map(item => transform(item))
+  .sort((a, b) => b.timestamp - a.timestamp);
+```
 
-// Parallel data fetching
-const [products, brands, categories] = await Promise.all([
-  productService.getAllProducts(),
-  productService.getBrands(),
-  productService.getCategories()
+### Object Spreading
+```typescript
+const updated = {
+  ...existing,
+  ...overrides,
+  timestamp: new Date(),
+};
+```
+
+### Async/Await
+```typescript
+const result = await Promise.all([
+  operation1(),
+  operation2(),
 ]);
 ```
 
-### Data Transformation
-- Services enrich raw data before returning to components
-- Use `.map()`, `.filter()`, `.reduce()` for transformations
-- Sort data in services, not components
-- Calculate derived data in services (e.g., price ranges, counts)
+## UI Component Patterns
 
-## Performance Patterns
-
-### Memoization
+### Client Components
 ```typescript
-// useCallback for event handlers
-const handleChange = useCallback((e) => {
-  // Handler logic
-}, [dependencies]);
+"use client"
 
-// useMemo for expensive calculations (when needed)
-const sortedProducts = useMemo(() => 
-  products.sort((a, b) => b.price - a.price),
-  [products]
-);
-```
-
-### Conditional Rendering
-```typescript
-// Early returns for loading/error states
-if (!isClient || !isAuthenticated) {
-  return null;
-}
-
-// Conditional rendering with &&
-{isVisible && <Component />}
-
-// Ternary for either/or
-{showPassword ? <EyeOff /> : <Eye />}
-```
-
-## Testing Considerations
-
-### Test Setup
-- Jest with React Testing Library
-- jsdom environment for component tests
-- Test files in `__tests__` directories or `.test.ts(x)` suffix
-
-### Testable Code Patterns
-- Pure functions in utilities
-- Separated business logic in services
-- Props-based components (avoid tight coupling)
-- Dependency injection for services
-
-## Common Idioms
-
-### Array Operations
-```typescript
-// Unique values
-const uniqueCategories = [...new Set(products.map(p => p.category))];
-
-// Filtering and mapping
-const prices = products.map(p => p.price ?? 0).filter(p => p > 0);
-
-// Sorting
-products.sort((a, b) => b.rating - a.rating);
-```
-
-### Object Operations
-```typescript
-// Spread for immutable updates
-setValues(prev => ({ ...prev, [name]: value }));
-
-// Object.entries for iteration
-Object.entries(brandCounts).map(([name, count]) => ({ name, count }));
-
-// Record types for dictionaries
-const categoryCounts: Record<string, number> = {};
-```
-
-### Async Patterns
-```typescript
-// Promise.all for parallel operations
-const [data1, data2] = await Promise.all([fetch1(), fetch2()]);
-
-// Async/await with error handling
-try {
-  const result = await asyncOperation();
-} catch (error) {
-  handleError(error);
+export function Component() {
+  // Client-side interactivity
 }
 ```
+- Mark with "use client" directive
+- Use for interactive components
+- Access browser APIs
+- Handle user events
 
-## Path Aliases
-- Use `@/` prefix for all imports from `src/` directory
-- Examples: `@/components/ui/button`, `@/lib/utils`, `@/hooks/use-form`
+### Accessibility
+```typescript
+<div
+  role="region"
+  aria-roledescription="carousel"
+  aria-label="Product carousel"
+>
+```
+- Include ARIA attributes
+- Keyboard navigation support
+- Screen reader text with sr-only
+- Focus management
 
-## Environment and Configuration
-- Environment variables in `.env` file
-- Type-safe config in `@/lib/config`
-- Never commit secrets or API keys
-- Use placeholder values in examples
+### Styling with Tailwind
+```typescript
+className={cn(
+  "base-classes",
+  condition && "conditional-classes",
+  className
+)}
+```
+- Use `cn()` utility for class merging
+- Conditional classes with logical operators
+- Accept className prop for extensibility
+- Responsive classes (sm:, md:, lg:)
 
-## Documentation Standards
-- JSDoc comments for all exported functions and hooks
-- Inline comments for complex logic only
-- README files for major features
-- Type definitions serve as documentation
+## Database Patterns
+
+### Prisma Queries
+```typescript
+await prisma.user.findMany({
+  where: { role: 'customer' },
+  select: {
+    id: true,
+    email: true,
+    firstName: true,
+  },
+  orderBy: { createdAt: 'desc' },
+  take: limit,
+  skip: offset,
+});
+```
+- Use `select` to limit fields
+- Include relations only when needed
+- Add indexes for where/orderBy fields
+- Use transactions for multi-step operations
+
+### Raw SQL
+```typescript
+await prisma.$queryRaw<ResultType[]>`
+  SELECT * FROM "Table"
+  WHERE condition = ${value}
+  LIMIT ${limit}
+`;
+```
+- Use for complex queries
+- Type the result with generics
+- Parameterize all user input
+- Escape table/column names with quotes
+
+## Import Organization
+
+### Import Order
+```typescript
+// 1. React and framework imports
+import * as React from "react"
+import { useRouter } from "next/navigation"
+
+// 2. Third-party libraries
+import { useSession } from "next-auth/react"
+import { formatDistanceToNow } from "date-fns"
+
+// 3. Internal utilities and types
+import { cn } from "@/lib/utils"
+import type { ActivityEvent } from "@/types"
+
+// 4. Components
+import { Button } from "@/components/ui/button"
+import { Section } from "@/components/ui/section"
+
+// 5. Icons
+import { LogOut, Mail } from "lucide-react"
+```
+
+### Path Aliases
+- Use `@/` for src directory imports
+- Absolute imports over relative
+- Consistent import style across codebase

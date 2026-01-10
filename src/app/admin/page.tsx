@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
+import { auth } from '@/lib/auth/config';
 import {
   getRecentActivities,
   getActivityStats,
@@ -9,15 +9,16 @@ import {
   getFormSubmissions,
 } from './_actions/activities';
 import AdminDashboardClient from './_components/AdminDashboardClient';
+import type { ActivityEvent } from './_types/activity';
 
 export default async function AdminPage() {
-  // ✅ CRITICAL: Verify user is admin before loading dashboard data
-  const session = await getServerSession();
-  if (!session || session.user?.role !== 'admin') {
-    redirect('/');
+  const session = await auth();
+  
+  if (!session?.user || session.user.role !== 'admin') {
+    redirect('/admin/login');
   }
 
-  console.log('[ADMIN_PAGE] Loading dashboard for admin:', session.user?.email);
+  console.log('[ADMIN_PAGE] Loading dashboard for admin:', session.user.email);
   
   // Fetch all data in parallel with individual error handling
   // Use Promise.allSettled so one slow query doesn't block all others
@@ -41,7 +42,7 @@ export default async function AdminPage() {
   });
 
   // Extract results with fallbacks
-  const activities = results[0].status === 'fulfilled' ? results[0].value : [];
+  const activities: ActivityEvent[] = results[0].status === 'fulfilled' ? (Array.isArray(results[0].value) ? results[0].value : results[0].value.data || []) : [];
   if (results[0].status === 'rejected') {
     console.error('[ADMIN_PAGE] Activities error:', results[0].reason);
   }
@@ -55,10 +56,10 @@ export default async function AdminPage() {
     totalFormSubmissions: 0,
     totalCheckouts: 0,
   };
-  const quotes = results[2].status === 'fulfilled' ? results[2].value : [];
-  const newUsers = results[3].status === 'fulfilled' ? results[3].value : [];
-  const newsletterSubscribers = results[4].status === 'fulfilled' ? results[4].value : [];
-  const formSubmissions = results[5].status === 'fulfilled' ? results[5].value : [];
+  const quotes: any[] = results[2].status === 'fulfilled' ? (Array.isArray(results[2].value) ? results[2].value : results[2].value.data || []) : [];
+  const newUsers: any[] = results[3].status === 'fulfilled' ? (Array.isArray(results[3].value) ? results[3].value : results[3].value.data || []) : [];
+  const newsletterSubscribers: any[] = results[4].status === 'fulfilled' ? (Array.isArray(results[4].value) ? results[4].value : results[4].value.data || []) : [];
+  const formSubmissions: any[] = results[5].status === 'fulfilled' ? (Array.isArray(results[5].value) ? results[5].value : results[5].value.data || []) : [];
 
   return (
     <AdminDashboardClient

@@ -1,0 +1,170 @@
+# Phase A Audit - Repository Inventory
+# Generated: 2026-01-09
+# Repository: bzionu (main branch)
+
+project:
+  name: BZION B2B E-Commerce Platform
+  type: Next.js 15 + React 19 + TypeScript
+  framework: Next.js App Router
+  database: PostgreSQL + Prisma ORM
+  authentication: NextAuth.js with JWT
+
+structure:
+  root:
+    - "middleware.ts": Next.js middleware for role-based routing
+    - "next.config.js": Next.js configuration
+    - "tsconfig.json": TypeScript configuration
+    - "package.json": Dependencies and scripts
+    - "auth.ts": NextAuth.js configuration file
+
+  src_directories:
+    - "app/": Next.js App Router pages and routes
+    - "components/": Reusable React components
+    - "hooks/": Custom React hooks
+    - "lib/": Utility functions and libraries
+    - "services/": Business logic services
+    - "stores/": Zustand state management stores
+    - "repositories/": Data access layer
+    - "api/": API route handlers
+
+authentication_modules:
+  constants:
+    - "src/lib/auth-constants.ts": Primary role constants (USER_ROLES, REDIRECT_PATHS)
+    - "src/lib/auth/constants.ts": Alternative role constants with ROLE_METADATA
+    - "src/lib/constants.ts": Re-exports from config/constants
+  
+  utilities:
+    - "src/lib/auth-constants.ts": Type guards (isAdmin, isUser, isValidRole, getUserDashboardPath)
+    - "src/lib/auth-role-utils.ts": Role metadata and routing functions (ROLE_METADATA, getRoleInfo, getRoleProtectedRoutes)
+    - "src/lib/auth/roles.ts": Alternative role utilities from auth/ subdirectory
+    - "src/lib/login-utils.ts": Login flow helpers (LOGIN_ROLE_CONFIG, getRoleConfigByRoute, validateRoleForRoute)
+    - "src/lib/auth-utils.ts": Server-side auth utilities (requireAdmin, requireAuth)
+  
+  core_auth:
+    - "auth.ts": NextAuth.js configuration (JWT callbacks, providers)
+    - "middleware.ts": Request-level role-based routing enforcement
+    - "src/proxy.ts": Alternative middleware implementation (same logic as middleware.ts)
+
+routing_components:
+  pages:
+    - "src/app/admin/login/page.tsx": Admin login page wrapper
+    - "src/app/admin/login/admin-login-content.tsx": Admin login component
+    - "src/app/admin/page.tsx": Admin dashboard with role protection
+    - "src/app/login/login-content.tsx": Customer login component with role validation
+    - "src/app/account/page.tsx": Customer dashboard with admin redirect
+
+api_routes:
+  admin:
+    - "src/app/api/admin/setup/route.ts": Setup endpoint for creating first admin
+    - "src/app/api/admin/customers/data/route.ts": Customer data endpoint
+
+state_management:
+  stores:
+    - "src/stores/authStore.ts": Authentication state (Zustand)
+    - "src/stores/cartStore.ts": Shopping cart state
+    - "src/stores/quoteStore.ts": Quote management state
+    - "src/stores/preferencesStore.ts": User preferences state
+    - "src/stores/menuStore.ts": UI menu state
+    - "src/stores/activity.ts": Activity tracking state
+    - "src/stores/uiStore.ts": General UI state
+
+services:
+  analytics:
+    - "src/services/analytics.service.ts": Class-based analytics (120 LOC)
+    - "src/services/analyticsService.ts": Function-based analytics (28 LOC)
+    - "src/lib/analytics.ts": Fire-and-forget analytics utility (180 LOC)
+  
+  error_logging:
+    - "src/services/error-logging.service.ts": Class-based error logging (200 LOC)
+    - "src/services/errorLoggingService.ts": Function-based error logging (95 LOC)
+
+database_client:
+  - "src/lib/prisma.ts": Primary Prisma singleton (18 LOC)
+  - "src/lib/db/index.ts": Alternative Prisma with PG adapter (45 LOC)
+
+critical_issues:
+  variable_shadowing:
+    file: "src/app/api/user/cart/items/[id]/route.ts"
+    lines: [70, 81]
+    severity: "CRITICAL"
+    description: "itemId is destructured at line 70, then redeclared at line 81"
+    impact: "DELETE handler may use wrong value"
+    status: "REQUIRES IMMEDIATE FIX"
+
+duplicate_categories:
+  authentication_constants: 3 files with different structures
+  role_utilities: 3 files with 80%+ overlap
+  analytics_services: 3 files with 80%+ functional overlap
+  error_logging_services: 2 files with 85%+ functional overlap
+  prisma_clients: 2 files with different configurations
+
+import_conflicts:
+  prisma:
+    - "import prisma from '@/lib/prisma'" (45 usages)
+    - "import { prisma } from '@/lib/db'" (38 usages)
+    - "import { prisma } from '@/lib/db/index'" (12 usages)
+
+  analytics:
+    - "import { analyticsService } from '@/services/analytics.service'" (15 usages)
+    - "import { trackEvent } from '@/services/analyticsService'" (8 usages)
+    - "import { trackEvent } from '@/lib/analytics'" (12 usages)
+
+  auth_constants:
+    - "import { USER_ROLES } from '@/lib/auth-constants'" (95+ usages)
+    - "import { USER_ROLES } from '@/lib/auth/constants'" (5 usages)
+
+test_infrastructure:
+  setup:
+    - "src/__tests__/setup.ts": Mock factories and test utilities
+  
+  coverage:
+    - "src/services/__tests__/": Service unit tests
+    - "src/app/api/__tests__/": API route tests
+  
+  configuration:
+    - "jest.config.js": Jest configuration
+    - "jest.setup.js": Jest global setup
+
+build_and_lint:
+  - "eslint.config.js": ESLint configuration
+  - "tsconfig.json": TypeScript strict mode enabled
+  - "tsconfig.scripts.json": Scripts TypeScript config
+
+documentation:
+  audit_docs:
+    - "AUDIT_duplicates.md": Existing duplicate analysis
+    - "AUDIT_routing-map.md": Routing structure analysis
+  
+  implementation_docs:
+    - "docs/ADMIN_AUTHENTICATION_COMPLETE.md": Final auth implementation
+    - "docs/ADMIN_ROUTING_AUDIT_FINAL.md": Routing verification
+    - "docs/CYBERSECURITY_ROUTING_ANALYSIS.md": Security analysis
+  
+  setup_guides:
+    - "docs/ADMIN_SETUP_FINAL.md": Admin setup documentation
+    - "docs/ADMIN_QUICK_REFERENCE.md": Quick reference guide
+
+database:
+  - "prisma/schema.prisma": Prisma schema
+  - "prisma/migrations/": Migration files
+  - "migration.sql": Raw SQL migrations
+  - "data.sql": Test data
+
+deployment:
+  - "Dockerfile": Docker configuration
+  - "vercel.json": Vercel deployment config
+  - "apphosting.yaml": App hosting configuration
+  - "k8s/": Kubernetes manifests (if present)
+
+scripts:
+  - "scripts/setup-admin-via-api.mjs": Admin setup script
+  - "scripts/": Additional utility scripts
+
+summary_metrics:
+  total_files_in_project: "~250+ source files"
+  typescript_files: "~180+ .ts/.tsx files"
+  duplicate_function_pairs: 8
+  conflicting_import_paths: 6
+  critical_bugs: 1
+  major_refactor_candidates: 5
+  estimated_refactor_loc: "~400-500 lines across 95+ files"

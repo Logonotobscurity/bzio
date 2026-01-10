@@ -292,10 +292,10 @@ export default function AdminLoginPageContent() {
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
             Not an administrator?{' '}
             <Link
-              href={REDIRECT_PATHS.LOGIN}
+              href="/login"
               className="font-medium text-blue-600 hover:underline dark:text-blue-500"
             >
-              Login as customer
+              Back to login selection
             </Link>
           </p>
         </div>

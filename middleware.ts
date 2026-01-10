@@ -25,7 +25,7 @@ export default withAuth(
     /**
      * PHASE 1: Categorize route type
      */
-    const isCustomerAuthRoute = pathname === REDIRECT_PATHS.LOGIN;
+    const isCustomerAuthRoute = pathname === REDIRECT_PATHS.LOGIN || pathname === '/login/customer';
     const isAdminAuthRoute = pathname === "/admin/login";
     const isProtectedCustomerRoute = pathname.startsWith(REDIRECT_PATHS.USER_DASHBOARD);
     const isProtectedAdminRoute = 
@@ -158,6 +158,7 @@ export default withAuth(
         // Authentication pages - allow all access, middleware handles redirects
         if (
           pathname === REDIRECT_PATHS.LOGIN ||
+          pathname === '/login/customer' ||
           pathname === "/admin/login"
         ) {
           return true;
@@ -190,7 +191,8 @@ export const config = {
   matcher: [
     "/admin/:path*", // All administrative routes
     "/account/:path*", // All customer routes
-    "/login", // Customer authentication
+    "/login", // Login selection page
+    "/login/customer", // Customer authentication
     "/admin/login", // Administrative authentication
   ],
 };

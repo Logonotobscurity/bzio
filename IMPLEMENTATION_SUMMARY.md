@@ -1,223 +1,235 @@
-# Implementation Summary: Auth, Rate Limiting & Caching
+# User Dashboard Cart & Profile Management Implementation
 
-## ✅ All Implementations Complete
+## Summary
+Successfully implemented comprehensive user cart, profile management, and address management features. Admin users can now view and manage all customer data including quotes, carts, and addresses.
 
-### 1. Authentication (NextAuth.js v5)
-- **Status:** ✅ Complete
-- **Time:** ~2 hours
-- **Files:** 5 created
+## Features Implemented
 
-**Implementation:**
-- NextAuth v5 with Prisma adapter
-- Credentials provider (email/password)
-- JWT session strategy
-- bcrypt password hashing (10 rounds)
-- Route protection middleware
-- Registration endpoint with validation
+### 1. Database Schema Updates (`prisma/schema.prisma`)
+- **Extended User Model** with business information fields:
+  - `companyPhone`: Company phone number
+  - `businessType`: Type of business (retailer, wholesaler, distributor, etc.)
+  - `businessRegistration`: Business registration/license number
+  
+- **New Cart Model**: Manages shopping carts for users
+  - `id`: Unique cart identifier
+  - `userId`: Reference to user
+  - `status`: Cart status (active, converted_to_quote, abandoned)
+  - `items`: Relationship to CartItem
+  
+- **New CartItem Model**: Individual items in a cart
+  - `id`: Unique item identifier
+  - `cartId`: Reference to cart
+  - `productId`: Reference to product
+  - `userId`: Reference to user
+  - `quantity`: Item quantity
+  - `unitPrice`: Custom unit price (if different from product price)
+  - Includes relationships to Cart, User, and Product
 
-**Protected Routes:**
-- `/account` - User dashboard
-- `/checkout` - Quote checkout
+- **Enhanced Address Model**: Already present, used for delivery addresses
+  - Supports shipping and billing addresses
+  - Default address marking
+  - Contact person and phone for delivery
 
-**API Endpoints:**
-- `POST /api/auth/[...nextauth]` - Auth handlers
-- `POST /api/auth/register` - User registration
+### 2. API Endpoints
 
-### 2. Rate Limiting (Upstash Redis)
-- **Status:** ✅ Complete
-- **Time:** ~1 hour
-- **Files:** 1 created, 1 modified
+#### User Profile Management
+- **GET `/api/user/profile`**: Fetch user profile with personal and business info
+- **PUT `/api/user/profile`**: Update user profile information
 
-**Implementation:**
-- Upstash Redis with sliding window algorithm
-- Three rate limit tiers:
-  - API: 10 req/10s
-  - Auth: 5 req/15m
-  - RFQ: 3 req/1h
-- Rate limit headers in responses
-- IP-based identification
+#### Address Management
+- **GET `/api/user/addresses`**: Fetch all user addresses
+- **POST `/api/user/addresses`**: Add a new address
+- **PUT `/api/user/addresses/[id]`**: Update an existing address
+- **DELETE `/api/user/addresses/[id]`**: Delete an address
 
-**Protected Endpoints:**
-- `POST /api/v1/rfq/submit` - RFQ submission
-- `POST /api/auth/register` - Registration
+#### Shopping Cart Management
+- **GET `/api/user/cart`**: Get user's cart history
+- **GET `/api/user/cart/items`**: Get active cart with all items
+- **POST `/api/user/cart/items`**: Add product to cart
+- **PUT `/api/user/cart/items/[id]`**: Update cart item quantity or price
+- **DELETE `/api/user/cart/items/[id]`**: Remove item from cart
 
-### 3. Caching Strategy (Upstash Redis)
-- **Status:** ✅ Complete
-- **Time:** ~1 hour
-- **Files:** 1 created, 1 modified
+#### Admin Customer Management
+- **GET `/api/admin/customers`**: List all customers with pagination and search
+- **GET `/api/admin/customers/[id]`**: Get detailed customer information
+- **GET `/api/admin/customers/[id]/quotes`**: Get customer's quotes with pagination
 
-**Implementation:**
-- Redis-based caching with TTL
-- Cache utilities with get/set/del/invalidate
-- Four TTL tiers:
-  - Short: 1 minute
-  - Medium: 5 minutes
-  - Long: 1 hour
-  - Day: 24 hours
+### 3. Frontend Components
 
-**Cached Data:**
-- Products (5 min TTL)
-- Brands (1 hour TTL)
-- Categories (1 hour TTL)
-- Companies (1 hour TTL)
+#### ProfileEditComponent (`src/components/profile-edit-component.tsx`)
+- **Two-tab interface**:
+  - **Profile Tab**: Edit personal and business information
+    - First name, last name, email (read-only), phone
+    - Company name, company phone
+    - Business type and business registration number
+  - **Addresses Tab**: Manage delivery and billing addresses
+    - Add new addresses
+    - Edit existing addresses
+    - Delete addresses
+    - Mark default address
+    - Support for multiple address types (shipping, billing, other)
+    - Contact person and phone for each address
 
-**Performance Gains:**
-- 95-97% faster response times
-- Reduced database load
-- Better scalability
+#### CartDisplayComponent (`src/components/cart-display-component.tsx`)
+- Display all items in user's active quote cart
+- **Features**:
+  - View product images, names, SKUs, and prices
+  - Adjust quantity using +/- buttons or direct input
+  - Remove items from cart
+  - Real-time subtotal calculation
+  - Cart summary with total
+  - Proceed to checkout button
+  - Empty state message
 
-## 📦 Dependencies Added
+#### AdminCustomerDataComponent (`src/components/admin-customer-data-component.tsx`)
+- **Admin-only interface** for viewing customer data
+- **Three-tab interface**:
+  - **Addresses Tab**: View all customer addresses with type and default status
+  - **Cart Items Tab**: View items in customer carts with quantities and prices
+  - **Quotes Tab**: View customer's quote history with status and totals
+- **Features**:
+  - Search customers by name, email, or company
+  - Pagination support
+  - Quick stats (total quotes, active carts, last login)
+  - Detailed customer information cards
+  - Member since date and last login tracking
 
+### 4. Updated Pages
+
+#### Account Page (`src/app/account/page.tsx`)
+- Added tabbed interface with three sections:
+  - **Overview**: Existing activity dashboard
+  - **Profile & Addresses**: New ProfileEditComponent
+  - **Quote Cart**: New CartDisplayComponent
+- Maintains existing welcome alert and activity feed
+- Seamless integration with existing UI
+
+#### Admin Customers Page (`src/app/admin/customers/page.tsx`)
+- Replaced static server-rendered page with client-side AdminCustomerDataComponent
+- Enhanced UX with search, filtering, and detailed views
+- Real-time data fetching and interaction
+
+## Technical Details
+
+### Authentication & Authorization
+- All endpoints require user authentication via NextAuth
+- Admin-only endpoints verify `session.user.role === 'admin'`
+- User data is scoped to authenticated user (cannot access other users' data)
+
+### Database Operations
+- Uses Prisma ORM for all database queries
+- Includes proper relationships and cascading deletes
+- Optimized queries with selective field selection
+- Pagination support for large datasets
+
+### Error Handling
+- Comprehensive try-catch blocks in all API routes
+- User-friendly error messages via toast notifications
+- Proper HTTP status codes (400, 401, 404, 500)
+- Console logging for debugging
+
+### UI/UX Features
+- Loading states with skeleton screens
+- Toast notifications for success/error messages
+- Form validation before submission
+- Responsive design for mobile and desktop
+- Consistent styling with existing UI components
+
+## Usage Examples
+
+### Adding to Cart (Frontend)
+```typescript
+const response = await fetch('/api/user/cart/items', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    productId: 123, 
+    quantity: 5,
+    unitPrice: 999.99 // optional
+  })
+});
+```
+
+### Viewing Customer Data (Admin)
+```typescript
+// Get all customers
+const response = await fetch('/api/admin/customers?limit=10&offset=0&search=john');
+
+// Get specific customer
+const response = await fetch('/api/admin/customers/5');
+
+// Get customer quotes
+const response = await fetch('/api/admin/customers/5/quotes?limit=10');
+```
+
+### Managing Addresses (User)
+```typescript
+// Add address
+const response = await fetch('/api/user/addresses', {
+  method: 'POST',
+  body: JSON.stringify({
+    type: 'shipping',
+    label: 'Office',
+    addressLine1: '123 Main St',
+    city: 'Lagos',
+    state: 'Lagos State',
+    country: 'Nigeria',
+    isDefault: true
+  })
+});
+```
+
+## Data Flow
+
+1. **User Profile Update**:
+   - User edits profile → API updates database → Toast notification
+   - Address changes automatically saved to database
+   - Admin can view all customer addresses
+
+2. **Cart Management**:
+   - User adds product → Stored in Cart/CartItem tables
+   - Quantities and prices tracked per item
+   - Admin can view cart contents for any customer
+
+3. **Admin Viewing Customer Data**:
+   - Admin searches for customer
+   - Admin clicks "View Details"
+   - System fetches customer info, addresses, cart items, and quotes
+   - Admin sees comprehensive customer profile
+
+## Next Steps (Optional Enhancements)
+
+1. Cart persistence to database (instead of just localStorage)
+2. Bulk quote creation from cart items
+3. Address validation using postal code API
+4. Email notifications when cart abandoned
+5. Customer activity history
+6. Address book templates
+7. Export customer data to CSV/PDF
+8. Advanced analytics for admin dashboard
+
+## Migration Required
+
+Run Prisma migration to update database schema:
 ```bash
-npm install next-auth@beta @auth/prisma-adapter bcryptjs @upstash/redis @upstash/ratelimit
-npm install -D @types/bcryptjs
+npx prisma migrate dev --name add_cart_and_profile_fields
+npx prisma generate
 ```
 
-## 🔧 Configuration Required
+## Testing Checklist
 
-### Environment Variables
-
-```env
-# NextAuth v5
-AUTH_SECRET=<generate-with-openssl-rand-base64-32>
-AUTH_URL=http://localhost:9003
-
-# Upstash Redis
-UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your-token-here
-```
-
-### Setup Steps
-
-1. **Generate Auth Secret:**
-   ```bash
-   openssl rand -base64 32
-   ```
-
-2. **Create Upstash Account:**
-   - Visit https://upstash.com
-   - Create free Redis database
-   - Copy REST URL and token
-
-3. **Update .env:**
-   - Add AUTH_SECRET
-   - Add AUTH_URL
-   - Add UPSTASH credentials
-
-4. **Run Migrations:**
-   ```bash
-   npx prisma migrate deploy
-   ```
-
-5. **Test:**
-   ```bash
-   npm run dev
-   ```
-
-## 📁 Files Created
-
-```
-src/lib/auth/
-├── config.ts          # NextAuth configuration
-└── utils.ts           # Password hashing utilities
-
-src/lib/
-├── ratelimit.ts       # Rate limiting config
-└── cache.ts           # Caching utilities
-
-src/app/api/auth/
-├── [...nextauth]/
-│   └── route.ts       # Auth API handlers
-└── register/
-    └── route.ts       # Registration endpoint
-
-src/middleware.ts      # Route protection
-
-AUTH_IMPLEMENTATION.md # Complete documentation
-```
-
-## 📁 Files Modified
-
-```
-src/app/api/v1/rfq/submit/route.ts  # Added rate limiting
-src/services/productService.ts       # Added caching
-.env.example                         # Added new env vars
-FIXES_APPLIED.md                     # Updated status
-```
-
-## 🎯 Results
-
-### Security Improvements
-- ✅ Password hashing with bcrypt
-- ✅ JWT session tokens
-- ✅ Protected routes
-- ✅ Rate limiting prevents brute force
-- ✅ CSRF protection
-
-### Performance Improvements
-- ✅ 95-97% faster cached responses
-- ✅ Reduced database queries
-- ✅ Better scalability
-- ✅ Lower server costs
-
-### Developer Experience
-- ✅ Simple auth API
-- ✅ Easy cache utilities
-- ✅ Automatic rate limiting
-- ✅ Type-safe implementations
-
-## 🚀 Next Steps
-
-### Immediate
-1. Set environment variables
-2. Test authentication flow
-3. Monitor rate limits
-4. Verify cache performance
-
-### Short Term
-1. Add OAuth providers (Google, GitHub)
-2. Implement refresh tokens
-3. Add cache warming
-4. Setup monitoring
-
-### Medium Term
-1. Add 2FA support
-2. Implement session management UI
-3. Add cache analytics
-4. Optimize cache keys
-
-## 📊 Metrics
-
-**Before:**
-- No authentication
-- No rate limiting
-- No caching
-- Slow API responses
-
-**After:**
-- ✅ Secure authentication
-- ✅ Rate limiting active
-- ✅ Redis caching
-- ✅ 95%+ faster responses
-
-**Technical Debt Resolved:**
-- High Priority: 7/7 (100%)
-- Total Fixed: 16/30 (53%)
-
-## 🔗 Documentation
-
-See `AUTH_IMPLEMENTATION.md` for:
-- Detailed usage examples
-- API reference
-- Troubleshooting guide
-- Security best practices
-- Performance benchmarks
-
-## ✅ Build Status
-
-```bash
-npm run build
-# ✅ Compiled successfully with warnings (unrelated to auth/cache)
-```
-
-All implementations tested and working.
+- [ ] User can edit profile information
+- [ ] User can add/edit/delete addresses
+- [ ] User can set default address
+- [ ] User can add products to cart
+- [ ] User can update cart quantities
+- [ ] User can remove items from cart
+- [ ] Cart totals calculate correctly
+- [ ] Admin can search for customers
+- [ ] Admin can view customer details
+- [ ] Admin can see customer addresses
+- [ ] Admin can see customer cart items
+- [ ] Admin can see customer quote history
+- [ ] All API endpoints return proper errors for unauthorized access
+- [ ] All forms validate input correctly

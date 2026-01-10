@@ -2,138 +2,138 @@
 
 ## Directory Organization
 
-### `/src/app` - Next.js App Router Pages
-Application routes using Next.js 15 App Router with server and client components:
-- `about/` - Company information and mission
-- `account/` - User dashboard with activity tracking
-- `api/` - API routes for backend operations
-- `careers/` - Job listings and applications
+### `/src/app` - Next.js App Router
+Application routes using Next.js 16 App Router with nested layouts:
+- `about/` - Company information pages
+- `account/` - Customer account dashboard
+- `admin/` - Admin panel with sub-routes (_actions, _components, customers, dashboard, quotes)
+- `api/` - API routes (auth, user, admin, products, quotes, forms, analytics)
+- `auth/` - Authentication pages (login, register, verify-email)
 - `checkout/` - Quote checkout flow
-- `companies/` - Supplier directory
-- `compliance/` - Legal and compliance information
-- `contact/` - Contact forms and support
-- `customers/` - Customer success stories
-- `dashboard/` - Admin dashboard (future)
-- `faq/` - Frequently asked questions
-- `login/` - Authentication pages
-- `news/` - News and updates
-- `products/` - Product catalog with categories and brands
-- `resources/` - Educational content and guides
-- `suppliers/` - Supplier management (redirects to companies)
+- `companies/` - Supplier/company listings
+- `contact/` - Contact forms
+- `products/` - Product catalog with brand/category filtering
+- `guest-quote/` - Guest quote request flow
 
 ### `/src/components` - React Components
-Reusable UI components organized by feature:
-- `ui/` - Base UI components (buttons, cards, dialogs, forms)
-- `layout/` - Header, footer, navigation components
+Organized by feature and UI type:
+- `auth/` - Authentication components (WelcomeAlert, login forms)
+- `banner/` - Marketing banners
+- `emails/` - Email templates
+- `forms/` - Form components
+- `layout/` - Header, Footer, Navigation
 - `products/` - Product cards, grids, filters
-- `sections/` - Page sections (hero, CTA, testimonials)
-- `emails/` - Email templates for notifications
-- Feature-specific components (quote forms, search bars, carousels)
+- `sections/` - Page sections (testimonials, CTAs)
+- `ui/` - Shadcn/UI components (button, dialog, tabs, etc.)
 
-### `/src/hooks` - Custom React Hooks
-Reusable logic hooks:
-- `use-form.ts` - Form state management with validation
-- `use-intersection-observer.ts` - Viewport intersection detection
-- `use-media-query.ts` - Responsive breakpoint detection
-- `use-monitoring.ts` - Performance and error monitoring
-- `use-scroll-lock.ts` - Body scroll control for modals
-- `use-scroll-position.ts` - Scroll position tracking
-- `use-toast.ts` - Toast notification management
-
-### `/src/lib` - Core Libraries and Utilities
-Business logic and shared utilities:
-- `api/` - API client functions
-- `cache/` - Caching strategies and utilities
+### `/src/lib` - Core Libraries
+Business logic and utilities:
+- `auth/` - Authentication logic and NextAuth configuration
+- `cache/` - Redis caching layer
 - `config/` - Application configuration
-- `data/` - Static data and mock data
-- `db/` - Database client and connection
-- `domain/` - Domain models and business logic
-- `monitoring/` - Error tracking and analytics
-- `store/` - Zustand state management stores
+- `constants/` - Shared constants
+- `database/` - Database utilities
+- `email/` - Email service (Resend integration)
+- `monitoring/` - Performance monitoring
+- `security/` - Security utilities
 - `types/` - TypeScript type definitions
-- `utils/` - Helper functions and utilities
-- `validations/` - Zod schemas for data validation
-
-### `/src/services` - Service Layer
-Business logic services for data operations:
-- `productService.ts` - Product CRUD and queries
-- `authService.ts` - Authentication and authorization
-- `quoteService.ts` - Quote management
-- `searchService.ts` - Search functionality
-- `analyticsService.ts` - Analytics tracking
-- `notificationService.ts` - User notifications
-- Additional services for brands, categories, news, resources
+- `utils/` - Helper functions
+- `validations/` - Zod schemas
 
 ### `/src/repositories` - Data Access Layer
-Database abstraction layer:
-- `db/` - Prisma-based database repositories
-- `static/` - Static data repositories
-- `interfaces/` - Repository interface definitions
+Repository pattern for database operations:
+- `address.repository.ts` - Address CRUD
+- `admin-notification.repository.ts` - Admin notifications
+- `analytics-event.repository.ts` - Analytics tracking
+- `quote.repository.ts` - Quote management
+- `user.repository.ts` - User operations
+
+### `/src/services` - Business Logic Layer
+Service layer for complex operations:
+- `productService.ts` - Product operations
+- `quoteService.ts` - Quote processing
+- `enrichmentService.ts` - Data enrichment
+- `analytics.service.ts` - Analytics processing
+- `notification.service.ts` - Notification handling
 
 ### `/src/stores` - State Management
-Zustand stores for global state:
-- `authStore.ts` - User authentication state
-- `cartStore.ts` - Shopping cart (quote items)
-- `quoteStore.ts` - Quote management state
+Zustand stores for client state:
 - `activity.ts` - User activity tracking
-- `menuStore.ts` - Navigation menu state
+- `authStore.ts` - Authentication state
+- `cartStore.ts` - Shopping cart
+- `quoteStore.ts` - Quote state
 - `preferencesStore.ts` - User preferences
-- `uiStore.ts` - UI state (modals, toasts)
+
+### `/src/hooks` - Custom React Hooks
+Reusable hooks:
+- `use-toast.ts` - Toast notifications
+- `use-media-query.ts` - Responsive breakpoints
+- `use-monitoring.ts` - Performance monitoring
+- `useRealtime.ts` - WebSocket connections
 
 ### `/prisma` - Database Schema
-- `schema.prisma` - Database models and relations
-- `migrations/` - Database migration history
-- `seeds/` - Seed data for development
-- `seed.ts` - Seed script
+- `schema.prisma` - Prisma schema with 30+ models
+- `migrations/` - Database migrations
+- `seeds/` - Seed data
 
-### `/public` - Static Assets
-- `images/products/` - Product images
-- `favicon.svg`, `logo.svg` - Brand assets
-- `manifest.json` - PWA manifest
+### `/docs` - Documentation
+Extensive documentation organized by phase:
+- `01-getting-started/` - Setup guides
+- `02-authentication/` - Auth documentation
+- `03-admin-panel/` - Admin features
+- `04-features/` - Feature documentation
+- `05-deployment/` - Deployment guides
 
-### `/k8s` - Kubernetes Configuration
-- `deployment.yaml` - Kubernetes deployment config
-- `service.yaml` - Service definitions
-- `ingress.yaml` - Ingress rules
+### `/scripts` - Utility Scripts
+Admin and database management scripts:
+- `create-admin-account.mjs` - Admin creation
+- `seed-admin.ts` - Admin seeding
+- `db-diagnostic.js` - Database diagnostics
 
-## Core Components and Relationships
+## Core Components & Relationships
 
 ### Authentication Flow
-`login/page.tsx` → `authService.ts` → `authStore.ts` → Protected routes
+```
+middleware.ts → proxy.ts → auth.ts (NextAuth) → User model
+```
 
-### Product Browsing Flow
-`products/page.tsx` → `productService.ts` → `repositories/db/` → Prisma → PostgreSQL
+### Data Flow Architecture
+```
+API Route → Service Layer → Repository Layer → Prisma → PostgreSQL
+```
 
-### Quote Request Flow
-`product-card.tsx` → `quoteStore.ts` → `checkout/page.tsx` → `quoteService.ts` → Database
+### Admin Dashboard
+```
+/admin/dashboard → AdminDashboard component → API routes → Services → Repositories
+```
 
-### State Management Flow
-Components → Zustand Stores → Services → Repositories → Database
+### Quote System
+```
+Cart → Quote Request → Admin Review → Negotiation → Conversion
+```
 
 ## Architectural Patterns
 
-### Layered Architecture
-1. **Presentation Layer**: React components in `/src/components` and `/src/app`
-2. **Service Layer**: Business logic in `/src/services`
-3. **Data Access Layer**: Repositories in `/src/repositories`
-4. **Database Layer**: Prisma ORM with PostgreSQL
+### Repository Pattern
+Abstracts database operations with dedicated repository classes for each entity.
 
-### Design Patterns
-- **Repository Pattern**: Abstraction over data access
-- **Service Pattern**: Business logic encapsulation
-- **Store Pattern**: Centralized state management with Zustand
-- **Hook Pattern**: Reusable component logic
-- **Component Composition**: Atomic design with shadcn/ui
+### Service Layer
+Business logic separated from API routes and repositories.
 
-### Data Flow
-```
-User Interaction → Component → Hook → Store → Service → Repository → Database
-                                  ↓
-                              Local State
-```
+### Component Composition
+Atomic design with UI components, feature components, and page layouts.
 
-### Key Relationships
-- Products belong to Brands and Categories (many-to-many)
-- Users have Addresses, Quotes, and Activity tracking
-- Quotes contain QuoteLines and NegotiationMessages
-- Products track Views, Favorites, and SearchQueries
+### Server/Client Separation
+- Server Components for data fetching
+- Client Components for interactivity
+- API routes for mutations
+
+### State Management Strategy
+- Server state: React Query (TanStack Query)
+- Client state: Zustand stores
+- Form state: React Hook Form
+
+### Caching Strategy
+- Redis for session and data caching
+- Next.js cache for static content
+- Prisma Accelerate for query caching

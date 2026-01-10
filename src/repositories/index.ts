@@ -20,6 +20,13 @@ export { userRepository, UserRepository } from './user.repository';
 export { quoteRepository, QuoteRepository } from './quote.repository';
 export { addressRepository, AddressRepository } from './address.repository';
 export { notificationRepository, NotificationRepository } from './notification.repository';
+export { adminNotificationRepository, AdminNotificationRepository } from './admin-notification.repository';
+export { analyticsEventRepository, AnalyticsEventRepository } from './analytics-event.repository';
+export { errorLogRepository, ErrorLogRepository } from './error-log.repository';
+export { formSubmissionRepository, FormSubmissionRepository } from './form-submission.repository';
+export { leadRepository, LeadRepository } from './lead.repository';
+export { newsletterSubscriberRepository, NewsletterSubscriberRepository } from './newsletter-subscriber.repository';
+export { quoteMessageRepository, QuoteMessageRepository } from './quote-message.repository';
 
 // Base Repository
 export { BaseRepository, prisma } from './base.repository';

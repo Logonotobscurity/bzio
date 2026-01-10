@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, FileText, Mail, ShoppingCart } from 'lucide-react';
+import type { ActivityEvent } from '../_actions/activities';
 import {
   LineChart,
   Line,
@@ -17,14 +18,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-interface ActivityData {
-  type: string;
-  timestamp: Date | string;
-  [key: string]: unknown;
-}
-
 interface EventsAnalyticsProps {
-  activities: ActivityData[];
+  activities: ActivityEvent[];
 }
 
 export function EventsAnalytics({ activities }: EventsAnalyticsProps) {
@@ -42,7 +37,7 @@ export function EventsAnalytics({ activities }: EventsAnalyticsProps) {
     const eventsByDay: Record<string, number> = {};
     const eventsByHour: Record<string, number> = {};
 
-    activities.forEach((activity: ActivityData) => {
+    activities.forEach((activity: ActivityEvent) => {
       const eventType = activity.type || 'unknown';
       if (eventType in eventCounts) {
         eventCounts[eventType as keyof typeof eventCounts]++;

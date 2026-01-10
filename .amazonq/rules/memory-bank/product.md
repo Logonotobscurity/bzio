@@ -1,59 +1,75 @@
 # Product Overview
 
 ## Project Purpose
-Bzion is a B2B  platform for bulk FMCG (Fast-Moving Consumer Goods) procurement, connecting buyers with suppliers for wholesale food products, spices, and consumer goods. The platform facilitates quote-based negotiations, bulk ordering, and supplier discovery.
+B2B e-commerce platform for bulk product distribution, connecting suppliers with retailers, wholesalers, and distributors in the FMCG sector.
 
 ## Value Proposition
-- Streamlined bulk procurement process for FMCG products
-- Quote request and negotiation system for custom pricing
+- Streamlined quote request and negotiation system
+- Multi-role authentication (customers, admins)
+- Real-time inventory management
 - Comprehensive product catalog with brands and categories
-- User account management with activity tracking
-- Real-time search and filtering capabilities
-- Mobile-responsive design for on-the-go procurement
+- CRM integration for lead management
+- Analytics and activity tracking
 
 ## Key Features
 
-### Product Discovery
-- Browse products by category (spices, food items, consumer goods)
-- Filter by brand, price range, and availability
-- Featured products and best sellers showcase
-- Advanced search with real-time results
-- Product detail pages with specifications and images
+### Customer Features
+- Product browsing with advanced filtering (brand, category, search)
+- Shopping cart and quote request system
+- User account management with company profiles
+- Address management for shipping/billing
+- Product favorites and view history
+- Real-time notifications
+- Guest quote requests
 
-### Quote Management
-- Request quotes for bulk orders with custom quantities
-- Multi-line quote requests for multiple products
-- Quote negotiation via messaging system
-- Quote status tracking (draft, pending, approved)
-- Reference number generation for tracking
+### Admin Features
+- Admin dashboard with analytics
+- Quote management and negotiation
+- Customer data management
+- Product and inventory management
+- Stock movement tracking
+- Admin notifications system
+- Form submission management
+- Newsletter subscriber management
 
-### User Management
-- User registration and authentication
-- Role-based access (customer, admin)
-- Profile management with company information
-- Multiple shipping and billing addresses
-- Activity tracking and analytics
+### Authentication & Authorization
+- NextAuth.js integration with role-based access
+- Email/password authentication
+- Session management
+- Protected routes with middleware
+- Admin-only areas with verification
 
-### Analytics & Tracking
-- Product view tracking
-- Search query analytics
-- User activity monitoring
-- Favorite products management
-- Notification system for updates
+### E-commerce Capabilities
+- Product catalog with images and specifications
+- Brand and category organization
+- Stock management with movement tracking
+- Quote-based pricing (no direct checkout)
+- Multi-item cart functionality
+- MOQ (Minimum Order Quantity) support
+
+### CRM & Analytics
+- Lead capture and scoring
+- Customer segmentation
+- Form submission tracking
+- Analytics event logging
+- Newsletter subscription management
+- Activity tracking (views, searches, quotes)
 
 ## Target Users
 
 ### Primary Users
-- **Procurement Managers**: Bulk buyers for retail chains, restaurants, hotels
-- **Small Business Owners**: Shop owners, restaurant operators needing wholesale supplies
-- **Distributors**: Regional distributors sourcing products for resale
+- **Retailers**: Small to medium businesses purchasing bulk products
+- **Wholesalers**: Large-scale distributors
+- **Distributors**: Regional product distributors
 
 ### Secondary Users
-- **Administrators**: Platform managers overseeing operations
+- **Admins**: Platform managers handling quotes and customer relations
+- **Suppliers**: Companies providing products (managed via admin panel)
 
 ## Use Cases
-
-1. **Bulk Product Sourcing**: Browse catalog, add products to quote request, negotiate pricing
-3. **Order Management**: Track quotes, manage addresses, view order history
-4. **Market Research**: Search products, compare prices, analyze product specifications
-5. **Account Management**: Update profile, manage preferences, track activity
+- Bulk product ordering for retail stores
+- Quote negotiation for large orders
+- Supplier relationship management
+- Inventory tracking and stock management
+- Lead generation and customer acquisition
+- Business analytics and reporting

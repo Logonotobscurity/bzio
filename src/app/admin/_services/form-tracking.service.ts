@@ -25,17 +25,17 @@ export async function trackFormSubmission(data: FormSubmissionData): Promise<voi
   try {
     const displayName = data.name || data.email;
 
-    await logActivity({
-      type: 'form_submission',
-      userId: undefined,
-      message: `New ${data.formType} submission from ${displayName}`,
-      metadata: {
+    await logActivity(
+      undefined as unknown as number,
+      'form_submission' as ActivityType,
+      {
         formType: data.formType,
         email: data.email,
         name: data.name,
         companyName: data.companyName,
-      },
-    });
+        message: `New ${data.formType} submission from ${displayName}`,
+      }
+    );
 
     await broadcastAdminNotification({
       title: `New ${data.formType} Submission`,

@@ -124,7 +124,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (refreshedUser) {
-          token.id = refreshedUser.id;
+          token.id = refreshedUser.id.toString();
           token.role = refreshedUser.role;
           token.firstName = refreshedUser.firstName;
           token.lastName = refreshedUser.lastName;

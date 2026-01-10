@@ -83,103 +83,107 @@ export default function OrderDashboard() {
   };
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-4 sm:space-y-6 w-full">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-blue-500" />
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="rounded-lg sm:rounded-xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 py-3 sm:py-4">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-blue-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">quotes in system</p>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalOrders}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">quotes in system</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-yellow-500" />
+        <Card className="rounded-lg sm:rounded-xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 py-3 sm:py-4">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pending Orders</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-yellow-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingOrders}</div>
-            <p className="text-xs text-muted-foreground">awaiting action</p>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl font-bold">{stats.pendingOrders}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">awaiting action</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+        <Card className="rounded-lg sm:rounded-xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 py-3 sm:py-4">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
-            <p className="text-xs text-muted-foreground">completed orders</p>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">completed orders</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-purple-500" />
+        <Card className="rounded-lg sm:rounded-xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 py-3 sm:py-4">
+            <CardTitle className="text-xs sm:text-sm font-medium">Completion Rate</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-purple-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl font-bold">
               {stats.totalOrders > 0 
                 ? Math.round(((stats.totalOrders - stats.pendingOrders) / stats.totalOrders) * 100)
                 : 0}%
             </div>
-            <p className="text-xs text-muted-foreground">orders completed</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">orders completed</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Orders Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
+      <Card className="rounded-lg sm:rounded-xl overflow-hidden">
+        <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+          <CardTitle className="text-base sm:text-lg">Recent Orders</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 sm:px-6 pb-3 sm:pb-6">
           {loading ? (
-            <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
               Loading orders...
             </div>
           ) : orders.length === 0 ? (
-            <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
               No orders found
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer Email</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.reference}</TableCell>
-                    <TableCell className="text-sm">{order.buyerContactEmail}</TableCell>
-                    <TableCell>{order.itemCount}</TableCell>
-                    <TableCell className="text-sm">{formatDate(order.createdAt)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(order.total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <div className="inline-block min-w-full px-3 sm:px-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="text-xs sm:text-sm">
+                      <TableHead className="font-semibold">Order ID</TableHead>
+                      <TableHead className="font-semibold hidden sm:table-cell">Customer</TableHead>
+                      <TableHead className="font-semibold">Items</TableHead>
+                      <TableHead className="font-semibold hidden md:table-cell">Date</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id} className="text-xs sm:text-sm hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium text-[11px] sm:text-sm whitespace-nowrap">{order.reference}</TableCell>
+                        <TableCell className="text-[10px] sm:text-sm hidden sm:table-cell truncate max-w-xs">{order.buyerContactEmail}</TableCell>
+                        <TableCell className="text-center">{order.itemCount}</TableCell>
+                        <TableCell className="text-[10px] sm:text-sm hidden md:table-cell whitespace-nowrap">{formatDate(order.createdAt)}</TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(order.status)} text-[10px] sm:text-xs py-1`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold whitespace-nowrap text-[11px] sm:text-sm">
+                          {formatCurrency(order.total)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

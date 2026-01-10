@@ -15,9 +15,11 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL!,
-  // Add connection timeout to fail fast
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 15000,
   idleTimeoutMillis: 30000,
+  max: 20,
+  min: 2,
+  ssl: { rejectUnauthorized: false },
 })
 
 // Handle pool errors
@@ -30,7 +32,7 @@ export const prisma =
   global.prisma ||
   new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma

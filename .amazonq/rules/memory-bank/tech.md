@@ -3,146 +3,179 @@
 ## Core Technologies
 
 ### Frontend Framework
-- **Next.js 15.5.7**: React framework with App Router, server components, and streaming SSR
-- **React 18.3.1**: UI library with concurrent features
-- **TypeScript 5**: Strict type checking enabled
+- **Next.js 16.0.8** - React framework with App Router
+- **React 19.2.1** - UI library
+- **TypeScript 5.9.3** - Type safety
 
-### Styling
-- **Tailwind CSS 3.4.1**: Utility-first CSS framework
-- **tailwindcss-animate**: Animation utilities
-- **tailwind-merge**: Class name merging utility
-- **Framer Motion 11.5.7**: Animation library for complex interactions
-
-### UI Components
-- **Radix UI**: Headless accessible component primitives
-  - Dialog, Dropdown, Select, Accordion, Tabs, Toast, etc.
-- **shadcn/ui**: Pre-built component library built on Radix
-- **Lucide React 0.475.0**: Icon library
-- **class-variance-authority**: Component variant management
-
-### State Management
-- **Zustand 4.5.4**: Lightweight state management
-- **React Hook Form 7.54.2**: Form state and validation
-- **@hookform/resolvers 3.9.0**: Validation schema integration
-
-### Data & Validation
-- **Zod 3.24.2**: TypeScript-first schema validation
-- **date-fns 3.6.0**: Date manipulation and formatting
+### Backend & API
+- **Next.js API Routes** - Serverless API endpoints
+- **NextAuth.js 4.24.7** - Authentication
+- **Prisma 7.1.0** - ORM and database toolkit
 
 ### Database
-- **PostgreSQL**: Primary database
-- **Prisma 7.1.0**: ORM and database toolkit
-- **@prisma/adapter-pg 7.1.0**: PostgreSQL adapter
-- **pg 8.16.3**: PostgreSQL client
+- **PostgreSQL** - Primary database
+- **Prisma Client** - Type-safe database client
+- **Prisma Accelerate** - Query caching and connection pooling
+
+### Styling & UI
+- **Tailwind CSS 3.4.1** - Utility-first CSS
+- **Shadcn/UI** - Component library built on Radix UI
+- **Radix UI** - Headless UI primitives
+- **Framer Motion 11.5.7** - Animation library
+- **Lucide React** - Icon library
+
+### State Management
+- **Zustand 4.5.4** - Client state management
+- **TanStack Query 5.45.0** - Server state management
+- **React Hook Form 7.54.2** - Form state
+
+### Validation & Schema
+- **Zod 3.24.2** - Schema validation
+- **@hookform/resolvers** - Form validation integration
+
+### Email Services
+- **Resend 6.6.0** - Email delivery
+- **Nodemailer 7.0.11** - Email sending
+- **React Email** - Email templates
+
+### Caching & Performance
+- **Redis 5.10.0** - In-memory caching
+- **Upstash Redis** - Serverless Redis
+- **Upstash Ratelimit** - API rate limiting
+
+### Real-time Features
+- **Socket.io 4.7.2** - WebSocket server
+- **Socket.io Client 4.7.2** - WebSocket client
 
 ### AI Integration
-- **Genkit 1.20.0**: AI framework for generative AI features
-- **@genkit-ai/google-genai 1.20.0**: Google Generative AI integration
-
-### Data Visualization
-- **Recharts 2.15.1**: Chart library for analytics dashboards
-- **@tanstack/react-table 8.21.3**: Table component with sorting/filtering
-
-### Carousel
-- **embla-carousel-react 8.6.0**: Carousel component
-- **embla-carousel-autoplay 8.1.7**: Autoplay plugin
-
-### Email
-- **Resend 6.5.2**: Email API for transactional emails
-
-### SEO
-- **schema-dts 1.1.5**: TypeScript definitions for Schema.org structured data
-
-## Development Tools
-
-### Build & Development
-- **Turbopack**: Next.js bundler (via `--turbopack` flag)
-- **tsx 4.7.1**: TypeScript execution for scripts
-- **cross-env 7.0.3**: Cross-platform environment variables
-
-### Code Quality
-- **ESLint 9.39.1**: Linting with TypeScript ESLint 8.49.0
-- **@next/eslint-plugin-next 16.0.7**: Next.js specific rules
-- **Husky**: Git hooks for pre-commit checks
+- **Genkit 1.20.0** - AI framework
+- **@genkit-ai/google-genai** - Google AI integration
 
 ### Testing
-- **Jest 30.2.0**: Testing framework
-- **@testing-library/react 16.3.0**: React component testing
-- **@testing-library/jest-dom 6.9.1**: DOM matchers
-- **jest-environment-jsdom 30.2.0**: Browser environment simulation
+- **Jest 30.2.0** - Testing framework
+- **Testing Library** - React component testing
+- **@testing-library/jest-dom** - DOM matchers
 
-### Environment
-- **dotenv 16.6.1**: Environment variable management
+### Development Tools
+- **ESLint** - Code linting
+- **TypeScript ESLint** - TypeScript linting
+- **Husky** - Git hooks
+- **tsx** - TypeScript execution
+- **ts-node** - TypeScript runtime
 
-## TypeScript Configuration
+### Security
+- **bcryptjs 3.0.3** - Password hashing
+- **sanitize-html 2.17.0** - HTML sanitization
+- **Rate limiting** - API protection
 
-### Compiler Options (tsconfig.json)
-- **Target**: ES2020
-- **Module**: ESNext with bundler resolution
-- **Strict Mode**: Enabled with all strict flags
-- **Path Aliases**: `@/*` maps to `src/*`
-- **Additional Checks**:
-  - noUnusedLocals
-  - noUnusedParameters
-  - noImplicitReturns
-  - noFallthroughCasesInSwitch
+### Utilities
+- **date-fns 3.6.0** - Date manipulation
+- **axios 1.13.2** - HTTP client
+- **clsx** - Conditional classnames
+- **class-variance-authority** - Component variants
+
+### Carousel & Media
+- **embla-carousel-react 8.6.0** - Carousel component
+- **embla-carousel-autoplay** - Autoplay plugin
+
+### Charts & Visualization
+- **Recharts 2.15.1** - Chart library
 
 ## Build Configuration
 
-### Next.js Config (next.config.js)
-- **Security Headers**: X-Frame-Options, CSP, XSS Protection
-- **Image Optimization**: Remote patterns for external images
-- **Redirects**: Legacy route redirects configured
-- **Image Qualities**: [75, 80, 85]
+### Next.js Configuration
+```javascript
+// next.config.js
+- Image optimization with multiple remote patterns
+- Security headers (X-Frame-Options, CSP, etc.)
+- Redirects for legacy routes
+- AVIF/WebP image formats
+- Experimental: authInterrupts
+```
+
+### TypeScript Configuration
+```json
+// tsconfig.json
+- Strict mode enabled
+- Path aliases (@/ for src/)
+- ES2022 target
+- Module: ESNext
+```
 
 ### Prisma Configuration
-- **Provider**: PostgreSQL
-- **Client Generation**: Automatic on build
-- **Seed Script**: `tsx prisma/seed.ts`
+```prisma
+// schema.prisma
+- Provider: PostgreSQL
+- Preview features: fullTextSearchPostgres
+- 30+ models with relations
+```
+
+### Tailwind Configuration
+```typescript
+// tailwind.config.ts
+- Custom color scheme
+- Extended animations
+- Custom utilities
+- Dark mode support
+```
 
 ## Development Commands
 
-### Primary Commands
+### Core Commands
 ```bash
-npm run dev              # Start dev server on port 9003 with Turbopack
-npm run build            # Production build with Prisma generation
-npm run start            # Start production server
-npm run lint             # Run ESLint
-npm run typecheck        # TypeScript type checking
-npm run test             # Run Jest tests
-npm run seed             # Seed database with initial data
+npm run dev          # Start development server (port 3000)
+npm run build        # Production build with Prisma generation
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run typecheck    # TypeScript type checking
+npm run test         # Run Jest tests
+npm run seed         # Seed database
 ```
 
 ### AI Development
 ```bash
-npm run genkit:dev       # Start Genkit development server
-npm run genkit:watch     # Start Genkit with file watching
+npm run genkit:dev   # Start Genkit development
+npm run genkit:watch # Start Genkit with watch mode
 ```
 
-## Deployment
-
-### Platforms
-- **Netlify**: Primary deployment target (netlify.toml configured)
-- **Firebase App Hosting**: Alternative deployment (apphosting.yaml)
-- **Kubernetes**: Container orchestration (k8s/ configs)
-- **Docker**: Containerization (Dockerfile included)
-
-### CI/CD
-GitHub Actions workflows configured:
-- `ci.yml` - Continuous integration
-- `deploy.yml` - Deployment automation
-- `deploy-netlify.yml` - Netlify-specific deployment
-- `lint.yml` - Code quality checks
-- `lint-and-type-check.yml` - Combined linting and type checking
-
 ## Environment Variables
-Required environment variables (see .env.example):
-- Database connection strings
-- API keys for external services
-- Authentication secrets
-- AI service credentials
 
-## Browser Support
-- Modern browsers with ES2020 support
-- Progressive enhancement for older browsers
-- Mobile-first responsive design
+### Required Variables
+- `DATABASE_URL` - PostgreSQL connection string
+- `NEXTAUTH_SECRET` - NextAuth secret key
+- `NEXTAUTH_URL` - Application URL
+- `RESEND_API_KEY` - Email service API key
+- `UPSTASH_REDIS_REST_URL` - Redis URL
+- `UPSTASH_REDIS_REST_TOKEN` - Redis token
+
+### Optional Variables
+- `GOOGLE_GENAI_API_KEY` - Google AI API key
+- `NODE_ENV` - Environment (development/production)
+
+## Deployment Targets
+
+### Supported Platforms
+- **Vercel** - Primary deployment platform
+- **Netlify** - Alternative deployment
+- **Docker** - Containerized deployment (Dockerfile included)
+- **Kubernetes** - K8s manifests in /k8s directory
+
+## Database Schema
+
+### Key Models (30+ total)
+- User, Account, Session - Authentication
+- Product, Brand, Category - Catalog
+- Cart, CartItem - Shopping
+- Quote, QuoteLine, QuoteMessage - Quotes
+- Lead, Customer, FormSubmission - CRM
+- AnalyticsEvent, ProductView - Analytics
+- Notification, AdminNotification - Notifications
+- StockMovement - Inventory
+
+## Performance Optimizations
+- Image optimization with Next.js Image
+- Code splitting with dynamic imports
+- Redis caching for sessions and data
+- Prisma query optimization
+- Rate limiting on API routes
+- Static page generation where possible
