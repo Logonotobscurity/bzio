@@ -26,11 +26,11 @@ interface UpdateNotificationInput {
 export class NotificationRepository extends BaseRepository<Notification, CreateNotificationInput, UpdateNotificationInput> {
   async findAll(limit?: number, skip?: number): Promise<Notification[]> {
     try {
-      return await prisma.notification.findMany({
+      return (await prisma.notifications.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-      });
+      })) as unknown as Notification[];
     } catch (error) {
       this.handleError(error, 'findAll');
     }
@@ -38,9 +38,9 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async findById(id: string | number): Promise<Notification | null> {
     try {
-      return await prisma.notification.findUnique({
+      return (await prisma.notifications.findUnique({
         where: { id: Number(id) },
-      });
+      })) as unknown as Notification | null;
     } catch (error) {
       this.handleError(error, 'findById');
     }
@@ -48,12 +48,12 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async findByUserId(userId: number, limit?: number, skip?: number): Promise<Notification[]> {
     try {
-      return await prisma.notification.findMany({
+      return (await prisma.notifications.findMany({
         where: { userId },
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-      });
+      })) as unknown as Notification[];
     } catch (error) {
       this.handleError(error, 'findByUserId');
     }
@@ -61,11 +61,11 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async findUnreadByUserId(userId: number, limit?: number): Promise<Notification[]> {
     try {
-      return await prisma.notification.findMany({
+      return (await prisma.notifications.findMany({
         where: { userId, isRead: false },
         take: limit,
         orderBy: { createdAt: 'desc' },
-      });
+      })) as unknown as Notification[];
     } catch (error) {
       this.handleError(error, 'findUnreadByUserId');
     }
@@ -73,15 +73,17 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async create(data: CreateNotificationInput): Promise<Notification> {
     try {
-      return await prisma.notification.create({
+      return (await prisma.notifications.create({
         data: {
           userId: data.userId,
-          type: data.type,
+          // ensure Prisma enum compatibility and set updatedAt
+          type: (data.type || 'INFO').toString().toUpperCase() as any,
           message: data.message,
           isRead: data.isRead || false,
-          link: data.link,
+          ...(data.link ? { link: data.link } : {}),
+          updatedAt: new Date(),
         },
-      });
+      })) as unknown as Notification;
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -89,10 +91,9 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async update(id: string | number, data: UpdateNotificationInput): Promise<Notification> {
     try {
-      return await prisma.notification.update({
-        where: { id: Number(id) },
-        data,
-      });
+      const updateData: any = { ...data };
+      if (data.type) updateData.type = (data.type as string).toUpperCase() as any;
+      return (await prisma.notifications.update({ where: { id: Number(id) }, data: updateData })) as unknown as Notification;
     } catch (error) {
       this.handleError(error, 'update');
     }
@@ -100,9 +101,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async delete(id: string | number): Promise<boolean> {
     try {
-      await prisma.notification.delete({
-        where: { id: Number(id) },
-      });
+      await prisma.notifications.delete({ where: { id: Number(id) } });
       return true;
     } catch (error) {
       this.handleError(error, 'delete');
@@ -111,7 +110,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
 
   async count(where?: Record<string, unknown>): Promise<number> {
     try {
-      return await prisma.notification.count({ where });
+      return await prisma.notifications.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -122,7 +121,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
    */
   async countUnreadForUser(userId: number): Promise<number> {
     try {
-      return await prisma.notification.count({
+      return await prisma.notifications.count({
         where: { userId, isRead: false },
       });
     } catch (error) {
@@ -135,7 +134,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
    */
   async markAllAsReadForUser(userId: number): Promise<number> {
     try {
-      const result = await prisma.notification.updateMany({
+      const result = await prisma.notifications.updateMany({
         where: { userId, isRead: false },
         data: { isRead: true },
       });
@@ -153,7 +152,7 @@ export class NotificationRepository extends BaseRepository<Notification, CreateN
       const date = new Date();
       date.setDate(date.getDate() - daysOld);
 
-      const result = await prisma.notification.deleteMany({
+      const result = await prisma.notifications.deleteMany({
         where: {
           createdAt: {
             lt: date,

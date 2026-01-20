@@ -12,7 +12,7 @@ export async function approveQuote(quoteId: string, notes?: string) {
   try {
     // Verify admin session
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -25,12 +25,11 @@ export async function approveQuote(quoteId: string, notes?: string) {
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'quote_approved',
-        data: JSON.stringify({ quoteId, notes }),
-        source: 'admin-dashboard',
+        eventData: { quoteId, notes },
       },
     });
 
@@ -49,7 +48,7 @@ export async function approveQuote(quoteId: string, notes?: string) {
 export async function rejectQuote(quoteId: string, reason: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -62,12 +61,11 @@ export async function rejectQuote(quoteId: string, reason: string) {
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'quote_rejected',
-        data: JSON.stringify({ quoteId, reason }),
-        source: 'admin-dashboard',
+        eventData: { quoteId, reason },
       },
     });
 
@@ -86,7 +84,7 @@ export async function rejectQuote(quoteId: string, reason: string) {
 export async function updateQuoteStatus(quoteId: string, status: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -117,7 +115,7 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
 export async function sendQuote(quoteId: string, customerEmail: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -131,7 +129,7 @@ export async function sendQuote(quoteId: string, customerEmail: string) {
     }
 
     // Log email activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'quote_sent',
@@ -161,7 +159,7 @@ export async function sendQuote(quoteId: string, customerEmail: string) {
 export async function deleteQuote(quoteId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -170,7 +168,7 @@ export async function deleteQuote(quoteId: string) {
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'quote_deleted',

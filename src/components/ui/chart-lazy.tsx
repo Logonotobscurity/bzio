@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 // Import Recharts components directly - they're typically bundled in admin dashboards anyway
 // and their TypeScript types don't work well with dynamic() wrappers

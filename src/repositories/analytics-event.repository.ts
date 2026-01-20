@@ -8,37 +8,39 @@ import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
 
-type AnalyticsEvent = Prisma.AnalyticsEventGetPayload<{}>;
+type AnalyticsEvent = Prisma.analytics_eventsGetPayload<{}>;
 
 interface CreateAnalyticsEventInput {
   eventType: string;
   userId?: number;
-  sessionId?: string;
-  data?: Prisma.InputJsonValue;
-  source?: string;
+  eventData?: Prisma.InputJsonValue;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 interface UpdateAnalyticsEventInput {
-  data?: Prisma.InputJsonValue;
+  eventData?: Prisma.InputJsonValue;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, CreateAnalyticsEventInput, UpdateAnalyticsEventInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.analyticsEvent.findMany({
+      return await prisma.analytics_events.findMany({
         take: limit,
         skip,
-        orderBy: { timestamp: 'desc' },
+        orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
       this.handleError(error, 'findAll');
     }
   }
 
-  async findById(id: string | number) {
+  async findById(id: number) {
     try {
-      return await prisma.analyticsEvent.findUnique({
-        where: { id: String(id) },
+      return await prisma.analytics_events.findUnique({
+        where: { id },
       });
     } catch (error) {
       this.handleError(error, 'findById');
@@ -47,13 +49,13 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
 
   async create(data: CreateAnalyticsEventInput) {
     try {
-      return await prisma.analyticsEvent.create({
+      return await prisma.analytics_events.create({
         data: {
           eventType: data.eventType,
           userId: data.userId,
-          sessionId: data.sessionId,
-          data: data.data || {},
-          source: data.source || 'B2B_PLATFORM',
+          eventData: data.eventData || {},
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
         },
       });
     } catch (error) {
@@ -61,10 +63,10 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
     }
   }
 
-  async update(id: string | number, data: UpdateAnalyticsEventInput) {
+  async update(id: number, data: UpdateAnalyticsEventInput) {
     try {
-      return await prisma.analyticsEvent.update({
-        where: { id: String(id) },
+      return await prisma.analytics_events.update({
+        where: { id },
         data,
       });
     } catch (error) {
@@ -72,10 +74,10 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
     }
   }
 
-  async delete(id: string | number) {
+  async delete(id: number) {
     try {
-      await prisma.analyticsEvent.delete({
-        where: { id: String(id) },
+      await prisma.analytics_events.delete({
+        where: { id },
       });
       return true;
     } catch (error) {
@@ -85,7 +87,7 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
 
   async count(where?: Record<string, unknown>) {
     try {
-      return await prisma.analyticsEvent.count({ where });
+      return await prisma.analytics_events.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -96,10 +98,10 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
    */
   async findByEventType(eventType: string, limit?: number) {
     try {
-      return await prisma.analyticsEvent.findMany({
+      return await prisma.analytics_events.findMany({
         where: { eventType },
         take: limit,
-        orderBy: { timestamp: 'desc' },
+        orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
       this.handleError(error, 'findByEventType');
@@ -111,10 +113,10 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
    */
   async findByUserId(userId: number, limit?: number) {
     try {
-      return await prisma.analyticsEvent.findMany({
+      return await prisma.analytics_events.findMany({
         where: { userId },
         take: limit,
-        orderBy: { timestamp: 'desc' },
+        orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
       this.handleError(error, 'findByUserId');
@@ -126,7 +128,7 @@ export class AnalyticsEventRepository extends BaseRepository<AnalyticsEvent, Cre
    */
   async countByEventType(eventType: string) {
     try {
-      return await prisma.analyticsEvent.count({
+      return await prisma.analytics_events.count({
         where: { eventType },
       });
     } catch (error) {

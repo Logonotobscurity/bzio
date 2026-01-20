@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         firstName: finalFirstName || null,
         lastName: finalLastName || null,
         email,
-        hashedPassword,
+        password,
         companyName: companyName?.trim() || null,
       },
     });

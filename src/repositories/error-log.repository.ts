@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
 
-type ErrorLog = Prisma.ErrorLogGetPayload<{}>;
+type ErrorLog = Prisma.error_logsGetPayload<{}>;
 
 interface CreateErrorLogInput {
   message: string;
@@ -33,7 +33,7 @@ interface UpdateErrorLogInput {
 export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogInput, UpdateErrorLogInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.errorLog.findMany({
+      return await prisma.error_logs.findMany({
         take: limit,
         skip,
         orderBy: { timestamp: 'desc' },
@@ -45,7 +45,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async findById(id: string | number) {
     try {
-      return await prisma.errorLog.findUnique({
+      return await prisma.error_logs.findUnique({
         where: { id: String(id) },
       });
     } catch (error) {
@@ -55,7 +55,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async create(data: CreateErrorLogInput) {
     try {
-      return await prisma.errorLog.create({
+      return await prisma.error_logs.create({
         data: {
           message: data.message,
           stack: data.stack,
@@ -78,7 +78,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async update(id: string | number, data: UpdateErrorLogInput) {
     try {
-      return await prisma.errorLog.update({
+      return await prisma.error_logs.update({
         where: { id: String(id) },
         data,
       });
@@ -89,7 +89,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async delete(id: string | number) {
     try {
-      await prisma.errorLog.delete({
+      await prisma.error_logs.delete({
         where: { id: String(id) },
       });
       return true;
@@ -100,7 +100,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async count() {
     try {
-      return await prisma.errorLog.count();
+      return await prisma.error_logs.count();
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -111,7 +111,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findBySeverity(severity: string, limit?: number) {
     try {
-      return await prisma.errorLog.findMany({
+      return await prisma.error_logs.findMany({
         where: { severity },
         take: limit,
         orderBy: { timestamp: 'desc' },
@@ -126,7 +126,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findRecent(limit: number = 10) {
     try {
-      return await prisma.errorLog.findMany({
+      return await prisma.error_logs.findMany({
         take: limit,
         orderBy: { timestamp: 'desc' },
       });
@@ -140,7 +140,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findByUserId(userId: string, limit?: number) {
     try {
-      return await prisma.errorLog.findMany({
+      return await prisma.error_logs.findMany({
         where: { userId },
         take: limit,
         orderBy: { timestamp: 'desc' },

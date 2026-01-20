@@ -26,7 +26,7 @@ export async function GET() {
   try {
     // Verify admin authentication
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

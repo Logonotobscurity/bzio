@@ -1,5 +1,13 @@
-import { GET, POST } from '@/lib/auth/config';
+import { handler } from '@/lib/auth/config';
 
 export const dynamic = 'force-dynamic';
 
-export { GET, POST };
+// Forwarding wrappers: ensure exported handlers match Next.js 16 route signatures.
+export const GET = async (request: Request) => {
+	// handler is the NextAuth request handler; cast to any to avoid type incompatibilities
+	return (handler as any)(request);
+};
+
+export const POST = async (request: Request) => {
+	return (handler as any)(request);
+};

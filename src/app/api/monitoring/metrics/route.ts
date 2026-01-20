@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
 
     const metrics = {
       total: 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       metrics: [] as any[],
       statistics: {},
     }

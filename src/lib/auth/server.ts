@@ -10,7 +10,7 @@
  * NOT for use in Client Components (use next-auth/react hooks instead)
  */
 
-import { getServerSession } from 'next-auth/next';
+import { auth } from "@/lib/auth";
 import { USER_ROLES, REDIRECT_PATHS, getUserDashboardPath } from './constants';
 import { redirect } from 'next/navigation';
 import type { Session } from 'next-auth';
@@ -20,7 +20,7 @@ import type { Session } from 'next-auth';
  * Safe to use in Server Components and API Routes
  */
 export async function getSession(): Promise<Session | null> {
-  return await getServerSession();
+  return await auth();
 }
 
 /**
@@ -39,7 +39,7 @@ export async function getSession(): Promise<Session | null> {
  * ```
  */
 export async function requireAuth(): Promise<Session> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect(REDIRECT_PATHS.LOGIN);
@@ -64,7 +64,7 @@ export async function requireAuth(): Promise<Session> {
  * ```
  */
 export async function requireAdmin(): Promise<Session> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect(REDIRECT_PATHS.LOGIN);
@@ -82,7 +82,7 @@ export async function requireAdmin(): Promise<Session> {
  * Automatically redirects non-users to unauthorized page
  */
 export async function requireUser(): Promise<Session> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect(REDIRECT_PATHS.LOGIN);
@@ -99,7 +99,7 @@ export async function requireUser(): Promise<Session> {
  * Require specific role in server context
  */
 export async function requireRole(requiredRole: string): Promise<Session> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect(REDIRECT_PATHS.LOGIN);
@@ -117,7 +117,7 @@ export async function requireRole(requiredRole: string): Promise<Session> {
  * Does not redirect, safe to use for conditional rendering
  */
 export async function isAdmin(): Promise<boolean> {
-  const session = await getServerSession();
+  const session = await auth();
   return session?.user?.role === USER_ROLES.ADMIN;
 }
 
@@ -126,7 +126,7 @@ export async function isAdmin(): Promise<boolean> {
  * Does not redirect, safe to use for conditional rendering
  */
 export async function isAuthenticated(): Promise<boolean> {
-  const session = await getServerSession();
+  const session = await auth();
   return !!session?.user;
 }
 
@@ -135,12 +135,13 @@ export async function isAuthenticated(): Promise<boolean> {
  * Useful for redirect logic
  */
 export async function getUserDashboard(): Promise<string> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user?.role) {
     return REDIRECT_PATHS.LOGIN;
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return getUserDashboardPath(session.user.role as any);
 }
 
@@ -149,7 +150,7 @@ export async function getUserDashboard(): Promise<string> {
  * Throws if user lacks permission
  */
 export async function verifyPermission(requiredRole: string): Promise<void> {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     throw new Error('Unauthorized: No session');

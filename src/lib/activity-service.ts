@@ -42,7 +42,7 @@ export async function logActivity(
         ) 
       : null;
 
-    await prisma.userActivity.create({
+    await prisma.user_activities.create({
       data: {
         userId,
         activityType,
@@ -50,6 +50,7 @@ export async function logActivity(
         description: (data.message as string) || activityType,
         referenceId: (data.referenceId as string) || null,
         referenceType: (data.referenceType as string) || null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         metadata: metadataObj as any,
       },
     });
@@ -63,7 +64,7 @@ export async function logActivity(
  */
 export async function getUserActivities(userId: number, limit: number = 10) {
   try {
-    const activities = await prisma.userActivity.findMany({
+    const activities = await prisma.user_activities.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -95,16 +96,16 @@ export async function getActivitySummary(userId: number) {
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
     const [totalActivities, viewActivities, quoteActivities, cartActivities] = await Promise.all([
-      prisma.userActivity.count({
+      prisma.user_activities.count({
         where: { userId },
       }),
-      prisma.userActivity.count({
+      prisma.user_activities.count({
         where: { userId, activityType: 'view', createdAt: { gte: thirtyDaysAgo } },
       }),
-      prisma.userActivity.count({
+      prisma.user_activities.count({
         where: { userId, activityType: { in: ['quote_create', 'quote_update', 'quote_submitted'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
-      prisma.userActivity.count({
+      prisma.user_activities.count({
         where: { userId, activityType: { in: ['cart_add', 'cart_remove'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
     ]);

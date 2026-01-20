@@ -1,13 +1,14 @@
+import { auth } from '@/lib/auth';
 /**
  * CSV Export Endpoint
  * Provides CSV exports for admin dashboard data
  * Protected by admin role check
  */
 
-import { getServerSession } from 'next-auth/next';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { auth } from '~/auth';
+
 
 interface AuthSession {
   user?: {
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
-    if (!session?.user?.id || session.user.role !== 'admin') {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 }
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
-    if (!session?.user?.id || session.user.role !== 'admin') {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 }

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Logo } from '@/components/logo';
 import { FOOTER_LINKS } from '@/lib/config/constants';
 import { FooterMobileAccordion } from './footer-mobile-accordion';
 import { FooterNewsletter } from './footer-newsletter';

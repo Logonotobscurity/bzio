@@ -14,7 +14,7 @@
  * - Session verification and validation
  * 
  * Access Flow:
- * Unauthenticated → Login form → Verify credentials → Check role === 'admin'
+ * Unauthenticated → Login form → Verify credentials → Check role === "ADMIN"
  * → Auto-redirect to /admin dashboard → Access admin features
  * 
  * Blocking Scenarios:

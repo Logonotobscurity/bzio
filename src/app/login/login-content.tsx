@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
-import { AlertCircle, User } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { User } from 'lucide-react';
 
 /**
  * Customer login page component
@@ -24,7 +23,8 @@ export default function LoginPageContent() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // Note: searchParams available for future use (e.g., redirect after login)
+  // const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
   // Handle redirects for already logged-in users

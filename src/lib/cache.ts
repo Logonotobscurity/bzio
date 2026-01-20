@@ -88,6 +88,10 @@ export const cache = {
   },
 };
 
+// Backwards-compatible aliases for commonly used keys elsewhere in the codebase
+// These map older constant names to the canonical keys above.
+/* (moved below after CACHE_KEYS definition) */
+
 export const CACHE_KEYS = {
   products: (id?: string) => id ? `products:${id}` : 'products:all',
   brands: 'brands:all',
@@ -105,6 +109,17 @@ export const CACHE_KEYS = {
   },
 };
 
+// Backwards-compatible aliases for commonly used keys elsewhere in the codebase
+// These map older constant names to the canonical keys above.
+Object.assign(CACHE_KEYS, {
+  PRODUCTS_LIST: CACHE_KEYS.products(),
+  RECENT_USERS: CACHE_KEYS.dashboard.users(),
+  RECENT_QUOTES: CACHE_KEYS.dashboard.quotes(),
+  NEWSLETTER_SUBSCRIBERS: 'newsletter:subscribers',
+});
+
+/* (moved below after CACHE_TTL definition) */
+
 export const CACHE_TTL = {
   short: 60, // 1 minute
   medium: 300, // 5 minutes
@@ -116,6 +131,12 @@ export const CACHE_TTL = {
     stats: 30, // 30 seconds - less critical
   },
 };
+
+// Backwards-compatible uppercase aliases (some modules use SHORT/MEDIUM etc.)
+Object.defineProperty(CACHE_TTL, 'SHORT', { get: () => CACHE_TTL.short, enumerable: true });
+Object.defineProperty(CACHE_TTL, 'MEDIUM', { get: () => CACHE_TTL.medium, enumerable: true });
+Object.defineProperty(CACHE_TTL, 'LONG', { get: () => CACHE_TTL.long, enumerable: true });
+Object.defineProperty(CACHE_TTL, 'DAY', { get: () => CACHE_TTL.day, enumerable: true });
 
 /**
  * Get or fetch query with automatic caching
@@ -159,3 +180,8 @@ export async function invalidateDashboardCache(pattern?: string): Promise<void> 
     await cache.invalidatePattern(pattern);
   }
 }
+
+// Backwards-compatible function aliases
+export const cachedQuery = getCachedQuery;
+export const invalidateCacheByPrefix = invalidateDashboardCache;
+export const invalidateCache = invalidateDashboardCache;

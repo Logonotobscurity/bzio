@@ -7,8 +7,8 @@
  * ADMIN-ONLY ENDPOINT
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { NextResponse } from 'next/server';
+import { auth } from "@/lib/auth";
 import { prisma } from '@/lib/db';
 
 interface DiagnosticResult {
@@ -31,10 +31,10 @@ interface DiagnosticResult {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // ✅ CRITICAL: Verify admin access
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'admin') {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json(
       { error: 'Unauthorized - Admin access required' },
       { status: 403 }

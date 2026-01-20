@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
 
@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth';
  * Returns CRM sync data for the admin dashboard
  * Requires admin role
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth();
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== "ADMIN") {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       // Last 50 form submissions
-      prisma.formSubmission.findMany({
+      prisma.form_submissions.findMany({
         take: 50,
         orderBy: { submittedAt: 'desc' },
         select: {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       // Last 50 newsletter subscribers
-      prisma.newsletterSubscriber.findMany({
+      prisma.newsletter_subscribers.findMany({
         take: 50,
         orderBy: { subscribedAt: 'desc' },
         select: {
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       // Unread notifications for BZION_HUB
-      prisma.crmNotification.findMany({
+      prisma.notifications.findMany({
         where: {
           read: false,
           targetSystem: 'BZION_HUB',
@@ -86,9 +86,9 @@ export async function GET(request: NextRequest) {
       // Count total leads
       prisma.lead.count(),
       // Count total form submissions
-      prisma.formSubmission.count(),
+      prisma.form_submissions.count(),
       // Count total newsletter subscribers
-      prisma.newsletterSubscriber.count(),
+      prisma.newsletter_subscribers.count(),
     ]);
 
     // Extract email from form submission data

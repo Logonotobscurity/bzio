@@ -54,7 +54,7 @@ export async function getOrderStats() {
     const [totalQuotes, pendingQuotes, completedQuotes, totalValue] = await Promise.all([
       prisma.quote.count(),
       prisma.quote.count({
-        where: { status: 'draft' },
+        where: { status: "DRAFT" },
       }),
       prisma.quote.count({
         where: { status: { in: ['accepted', 'completed'] } },

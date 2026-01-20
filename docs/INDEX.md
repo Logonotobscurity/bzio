@@ -4,7 +4,7 @@ This folder contains all project documentation organized by category.
 
 ## 📁 Documentation Structure
 
-### 01-getting-started
+### 01-getting-tarted
 Quick start guides and initial setup documentation
 
 ### 02-authentication  

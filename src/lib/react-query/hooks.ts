@@ -38,7 +38,7 @@ export interface QuoteRequest {
   companyName: string;
   email: string;
   phone: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "PENDING" | 'approved' | 'rejected';
   createdAt: string;
 }
 

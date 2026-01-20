@@ -9,7 +9,6 @@ import * as brandRepo from '@/repositories/static/brandRepository';
 import * as categoryRepo from '@/repositories/static/categoryRepository';
 import * as companyRepo from '@/repositories/static/companyRepository';
 import { Product, Brand, Category, Company } from '@/lib/schema';
-import { cache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
 
 // Types for enrichment
 export interface EnrichedBrandData {

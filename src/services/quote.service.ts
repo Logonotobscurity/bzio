@@ -110,6 +110,7 @@ export class QuoteService {
         throw new Error('No fields to update');
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const quote = await quoteRepository.update(id, updates as any);
       return quote;
     } catch (error) {

@@ -10,10 +10,10 @@
  * - Rate limiting per email address
  */
 
-// RFC 5322 simplified regex (practical validation)
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// RFC 5322 simplified regex (practical validation) - kept for reference
+// const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Stricter pattern for validation
+// Stricter pattern for validation (currently used)
 const STRICT_EMAIL_REGEX = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // Common disposable email domains (non-exhaustive list)

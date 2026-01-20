@@ -139,7 +139,7 @@ async function runDiagnostics() {
     await pool.end();
     
     // Check if migration is needed
-    const missingTables = Object.entries(results).filter(([_, info]) => !info.exists);
+    const missingTables = Object.entries(results).filter(([, info]) => !info.exists);
     if (missingTables.length > 0) {
       console.log('\n⚠️  Some tables are missing. Run database migration:');
       console.log('   npx prisma migrate dev');

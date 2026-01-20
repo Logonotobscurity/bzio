@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        hashedPassword,
+        password,
       },
       select: {
         id: true,

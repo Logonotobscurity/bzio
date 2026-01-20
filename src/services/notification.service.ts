@@ -5,7 +5,7 @@
  * Handles notification creation, management, and delivery.
  */
 
-import { adminNotificationRepository } from '@/repositories';
+import { adminNotificationRepository } from '@/repositories/admin-notification.repository';
 import type { AdminNotification } from '@/lib/types/domain';
 import type { Prisma } from '@prisma/client';
 
@@ -42,7 +42,7 @@ export class NotificationService {
   /**
    * Create bulk notifications for multiple admins
    */
-  async createBulkNotifications(g
+  async createBulkNotifications(
     adminIds: number[],
     input: Omit<CreateNotificationInput, 'adminId'>
   ): Promise<AdminNotification[]> {

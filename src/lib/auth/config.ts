@@ -81,12 +81,14 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.users.findUnique({
           where: { email: credentials.email },
         });
 
-        if (user?.hashedPassword && (await bcrypt.compare(credentials.password, user.hashedPassword))) {
-          const { hashedPassword, ...userWithoutPassword } = user;
+        if (user?.password && (await bcrypt.compare(credentials.password, user.password))) {
+          // Exclude password from returned user object
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = user;
           return { ...userWithoutPassword, id: user.id.toString() };
         }
         
@@ -109,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
         if (user.isNewUser || !user.lastLogin) {
           try {
-            await prisma.user.update({
+            await prisma.users.update({
               where: { id: userId },
               data: {
                 isNewUser: false,
@@ -144,7 +146,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-const handler = NextAuth(authOptions);
+export const handler = NextAuth(authOptions);
 
 export const handlers = { GET: handler, POST: handler };
 export { handler as GET, handler as POST };

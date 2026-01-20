@@ -37,7 +37,7 @@ describe('quoteService', () => {
         buyerContactEmail: 'buyer@example.com',
         buyerContactPhone: '1234567890',
         buyerCompanyId: 'company-1',
-        status: 'draft',
+        status: "DRAFT",
         createdAt: new Date(),
         updatedAt: new Date(),
         lines: [
@@ -96,7 +96,7 @@ describe('quoteService', () => {
     it('should create a quote without actor ID', async () => {
       const mockQuote = createMockQuote({
         reference: 'Q-1234567890-1234',
-        status: 'draft',
+        status: "DRAFT",
       });
 
       const payload = {

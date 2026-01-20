@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '~/auth';
+import { auth } from "@/lib/auth";
 import { prisma } from '@/lib/db';
+import { AdminNotificationType } from '@prisma/client';
 
 // GET /api/admin/notifications
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const adminId = session.user.id;
+    const adminId = parseInt(session.user.id);
 
     // Fetch notifications for this admin
     const [notifications, unreadCount] = await Promise.all([
-      prisma.adminNotification.findMany({
+      prisma.admin_notifications.findMany({
         where: { adminId },
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
-      prisma.adminNotification.count({
-        where: { adminId, read: false },
+      prisma.admin_notifications.count({
+        where: { adminId, isRead: false },
       }),
     ]);
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { adminId, type, title, message, data, actionUrl } = body;
+    const { adminId, type, title, message, data } = body;
 
     if (!adminId || !type || !title || !message) {
       return NextResponse.json(
@@ -58,15 +59,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const notification = await prisma.adminNotification.create({
+    const notification = await prisma.admin_notifications.create({
       data: {
         adminId,
-        type,
+        type: type as AdminNotificationType,
         title,
         message,
         data: data || {},
-        actionUrl: actionUrl || null,
-        read: false,
+        isRead: false,
       },
     });
 

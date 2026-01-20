@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Trash2, ShoppingCart, Loader, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 

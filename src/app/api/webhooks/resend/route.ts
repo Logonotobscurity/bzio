@@ -1,13 +1,8 @@
 
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
-import { prisma } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
-    // Initialize Resend inside the handler, not at module load time
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    
     const json = await req.json();
     const { type, data } = json;
 
@@ -19,7 +14,7 @@ export async function POST(req: Request) {
     // Example:
     // if (type === 'email.delivered') {
     //   const { email_id } = data;
-    //   await prisma.email.update({
+    //   await prisma.emails.update({
     //     where: { resendId: email_id },
     //     data: { status: 'delivered' },
     //   });

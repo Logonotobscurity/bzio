@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email, firstName, lastName, role, hashedPassword },
+      data: { email, firstName, lastName, role, password },
       select: { id: true, email: true, role: true }
     });
 
@@ -36,7 +36,7 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

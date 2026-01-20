@@ -24,7 +24,6 @@ import BaseLoginForm, {
 import {
   LOGIN_ROLE_CONFIG,
   validateRoleForRoute,
-  getRedirectPathByRole,
   shouldRedirectAuthenticatedUser,
   logAuthEvent,
   fetchAndVerifySession,

@@ -75,6 +75,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       merge: (persistedState: any, currentState) => {
         // Convert joinedDate string back to Date object when hydrating from storage
         if (persistedState?.user?.joinedDate && typeof persistedState.user.joinedDate === 'string') {

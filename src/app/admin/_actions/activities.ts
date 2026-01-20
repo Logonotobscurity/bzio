@@ -129,7 +129,7 @@ export async function getRecentActivities(
         const [userActivities, businessActivities, totalCount] = await Promise.all([
           // Query 1: User-related activities (registrations)
           withTimeout(
-            prisma.user.findMany({
+            prisma.users.findMany({
               take: limit,
               skip: offset,
               orderBy: { createdAt: 'desc' },
@@ -170,11 +170,11 @@ export async function getRecentActivities(
           // Query 3: Get total count for pagination
           withTimeout(
             Promise.all([
-              prisma.user.count(),
+              prisma.users.count(),
               prisma.quote.count(),
-              prisma.formSubmission.count(),
-              prisma.newsletterSubscriber.count(),
-              prisma.analyticsEvent.count({ where: { eventType: 'checkout_completed' } }),
+              prisma.form_submissions.count(),
+              prisma.newsletter_subscribers.count(),
+              prisma.analytics_events.count({ where: { eventType: 'checkout_completed' } }),
             ]),
             10000
           ),
@@ -274,8 +274,8 @@ export async function getActivityStats() {
           totalCheckouts,
         ] = await withTimeout(
           Promise.all([
-            prisma.user.count(),
-            prisma.user.count({
+            prisma.users.count(),
+            prisma.users.count({
               where: {
                 createdAt: {
                   gte: new Date(new Date().setDate(new Date().getDate() - 7)),
@@ -288,11 +288,11 @@ export async function getActivityStats() {
                 status: { in: ['draft', 'pending'] },
               },
             }),
-            prisma.newsletterSubscriber.count({
+            prisma.newsletter_subscribers.count({
               where: { status: 'active' },
             }),
-            prisma.formSubmission.count(),
-            prisma.analyticsEvent.count({
+            prisma.form_submissions.count(),
+            prisma.analytics_events.count({
               where: { eventType: 'checkout_completed' },
             }),
           ]),
@@ -420,7 +420,7 @@ export async function getNewUsers(
       try {
         const [users, total] = await Promise.all([
           withTimeout(
-            prisma.user.findMany({
+            prisma.users.findMany({
               where: { role: 'customer' },
               take: limit,
               skip: offset,
@@ -441,7 +441,7 @@ export async function getNewUsers(
             10000
           ),
           withTimeout(
-            prisma.user.count({ where: { role: 'customer' } }),
+            prisma.users.count({ where: { role: 'customer' } }),
             10000
           ),
         ]);
@@ -483,7 +483,7 @@ export async function getNewsletterSubscribers(
       try {
         const [subscribers, total] = await Promise.all([
           withTimeout(
-            prisma.newsletterSubscriber.findMany({
+            prisma.newsletter_subscribers.findMany({
               take: limit,
               skip: offset,
               orderBy: { subscribedAt: 'desc' },
@@ -498,7 +498,7 @@ export async function getNewsletterSubscribers(
             10000
           ),
           withTimeout(
-            prisma.newsletterSubscriber.count(),
+            prisma.newsletter_subscribers.count(),
             10000
           ),
         ]);
@@ -540,7 +540,7 @@ export async function getFormSubmissions(
       try {
         const [submissions, total] = await Promise.all([
           withTimeout(
-            prisma.formSubmission.findMany({
+            prisma.form_submissions.findMany({
               take: limit,
               skip: offset,
               orderBy: { submittedAt: 'desc' },
@@ -556,7 +556,7 @@ export async function getFormSubmissions(
             10000
           ),
           withTimeout(
-            prisma.formSubmission.count(),
+            prisma.form_submissions.count(),
             10000
           ),
         ]);
@@ -589,7 +589,7 @@ export async function getFormSubmissions(
 export async function updateFormSubmissionStatus(id: string, status: string) {
   try {
     const updated = await withTimeout(
-      prisma.formSubmission.update({
+      prisma.form_submissions.update({
         where: { id },
         data: { status },
       }),

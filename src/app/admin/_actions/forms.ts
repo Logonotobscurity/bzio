@@ -11,11 +11,11 @@ import { auth } from '@/lib/auth/config';
 export async function respondToFormSubmission(formId: string, response: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const submission = await prisma.formSubmission.update({
+    const submission = await prisma.form_submissions.update({
       where: { id: formId },
       data: {
         status: 'responded',
@@ -23,7 +23,7 @@ export async function respondToFormSubmission(formId: string, response: string) 
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'form_submission_responded',
@@ -47,11 +47,11 @@ export async function respondToFormSubmission(formId: string, response: string) 
 export async function markFormAsSpam(formId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const submission = await prisma.formSubmission.update({
+    const submission = await prisma.form_submissions.update({
       where: { id: formId },
       data: {
         status: 'spam',
@@ -73,16 +73,16 @@ export async function markFormAsSpam(formId: string) {
 export async function deleteFormSubmission(formId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    await prisma.formSubmission.delete({
+    await prisma.form_submissions.delete({
       where: { id: formId },
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'form_submission_deleted',
@@ -106,7 +106,7 @@ export async function deleteFormSubmission(formId: string) {
 export async function updateFormStatus(formId: string, status: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
@@ -115,7 +115,7 @@ export async function updateFormStatus(formId: string, status: string) {
       return { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
     }
 
-    const submission = await prisma.formSubmission.update({
+    const submission = await prisma.form_submissions.update({
       where: { id: formId },
       data: {
         status,
@@ -137,11 +137,11 @@ export async function updateFormStatus(formId: string, status: string) {
 export async function archiveFormSubmission(formId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const submission = await prisma.formSubmission.update({
+    const submission = await prisma.form_submissions.update({
       where: { id: formId },
       data: {
         status: 'archived',

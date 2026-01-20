@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, Building2, Send } from 'lucide-react';
+import { Mail, Building2, Send } from 'lucide-react';
 
 const guestQuoteSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required.' }),
@@ -82,7 +82,7 @@ export function GuestQuoteForm() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',

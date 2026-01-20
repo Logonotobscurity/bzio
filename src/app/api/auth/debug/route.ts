@@ -1,4 +1,4 @@
-import { auth } from '~/auth';
+import { auth } from "@/lib/auth";
 import { NextResponse } from 'next/server';
 
 /**
@@ -19,6 +19,7 @@ export async function GET() {
       session: session ? 'authenticated' : 'not authenticated',
       message: 'Auth is configured and responding',
     }, { status: 200 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({
       status: 'error',

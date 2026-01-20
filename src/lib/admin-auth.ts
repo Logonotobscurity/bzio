@@ -57,12 +57,12 @@ export async function checkAdminPermission(
   // requiredPermission: string // Not used in current implementation
 ) {
   try {
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.users.findUnique({
       where: { id: adminId },
       select: { isActive: true, role: true },
     });
 
-    if (!admin || !admin.isActive || admin.role !== 'admin') {
+    if (!admin || !admin.isActive || admin.role !== "ADMIN") {
       return false;
     }
 
@@ -80,7 +80,7 @@ export async function checkAdminPermission(
  */
 export async function getAdminDetails(adminId: number) {
   try {
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.users.findUnique({
       where: { id: adminId },
       select: {
         id: true,
@@ -210,11 +210,11 @@ export async function verifyPassword(
  */
 export async function getAdminByEmail(email: string) {
   try {
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.users.findUnique({
       where: { email: email.toLowerCase() },
     });
 
-    return admin?.role === 'admin' ? admin : null;
+    return admin?.role === "ADMIN" ? admin : null;
   } catch (error) {
     console.error('[ADMIN_AUTH] Error getting admin by email:', error);
     return null;

@@ -40,11 +40,11 @@ interface UpdateAddressInput {
 export class AddressRepository extends BaseRepository<Address, CreateAddressInput, UpdateAddressInput> {
   async findAll(limit?: number, skip?: number): Promise<Address[]> {
     try {
-      return await prisma.address.findMany({
+      return (await prisma.addresses.findMany({
         take: limit,
         skip,
         orderBy: { id: 'desc' },
-      });
+      })) as unknown as Address[];
     } catch (error) {
       this.handleError(error, 'findAll');
     }
@@ -52,9 +52,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
 
   async findById(id: string | number): Promise<Address | null> {
     try {
-      return await prisma.address.findUnique({
-        where: { id: Number(id) },
-      });
+      return (await prisma.addresses.findUnique({ where: { id: Number(id) } })) as unknown as Address | null;
     } catch (error) {
       this.handleError(error, 'findById');
     }
@@ -62,10 +60,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
 
   async findByUserId(userId: number): Promise<Address[]> {
     try {
-      return await prisma.address.findMany({
-        where: { userId },
-        orderBy: { isDefault: 'desc' },
-      });
+      return (await prisma.addresses.findMany({ where: { userId }, orderBy: { isDefault: 'desc' } })) as unknown as Address[];
     } catch (error) {
       this.handleError(error, 'findByUserId');
     }
@@ -73,9 +68,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
 
   async findDefaultForUser(userId: number): Promise<Address | null> {
     try {
-      return await prisma.address.findFirst({
-        where: { userId, isDefault: true },
-      });
+      return (await prisma.addresses.findFirst({ where: { userId, isDefault: true } })) as unknown as Address | null;
     } catch (error) {
       this.handleError(error, 'findDefaultForUser');
     }
@@ -85,15 +78,13 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
     try {
       // If setting as default, unset other defaults for this user
       if (data.isDefault) {
-        await prisma.address.updateMany({
+        await prisma.addresses.updateMany({
           where: { userId: data.userId, isDefault: true },
           data: { isDefault: false },
         });
       }
 
-      return await prisma.address.create({
-        data,
-      });
+      return (await prisma.addresses.create({ data: data as any })) as unknown as Address;
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -103,22 +94,19 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
     try {
       // If setting as default, unset other defaults for this user
       if (data.isDefault) {
-        const address = await prisma.address.findUnique({
+        const address = await prisma.addresses.findUnique({
           where: { id: Number(id) },
         });
 
         if (address) {
-          await prisma.address.updateMany({
+          await prisma.addresses.updateMany({
             where: { userId: address.userId, isDefault: true, id: { not: Number(id) } },
             data: { isDefault: false },
           });
         }
       }
 
-      return await prisma.address.update({
-        where: { id: Number(id) },
-        data,
-      });
+      return (await prisma.addresses.update({ where: { id: Number(id) }, data: data as any })) as unknown as Address;
     } catch (error) {
       this.handleError(error, 'update');
     }
@@ -126,7 +114,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
 
   async delete(id: string | number): Promise<boolean> {
     try {
-      await prisma.address.delete({
+      await prisma.addresses.delete({
         where: { id: Number(id) },
       });
       return true;
@@ -137,7 +125,7 @@ export class AddressRepository extends BaseRepository<Address, CreateAddressInpu
 
   async count(where?: Record<string, unknown>): Promise<number> {
     try {
-      return await prisma.address.count({ where });
+      return await prisma.addresses.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }

@@ -116,7 +116,7 @@ function BaseLoginForm({
               id="email"
               type="email"
               placeholder={
-                roleConfig.role === 'admin'
+                roleConfig.role === "ADMIN"
                   ? 'admin@example.com'
                   : 'you@example.com'
               }
@@ -211,7 +211,7 @@ function BaseLoginForm({
             </>
           )}
 
-          {roleConfig.role === 'admin' && (
+          {roleConfig.role === "ADMIN" && (
             <p className="text-sm text-center text-gray-600 dark:text-gray-400">
               {(roleConfig.switchRoleText as string)}{' '}
               <Link

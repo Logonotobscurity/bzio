@@ -9,6 +9,16 @@ import { analyticsEventRepository } from '@/repositories';
 import type { AnalyticsEvent } from '@/lib/types/domain';
 import { Prisma } from '@prisma/client';
 
+function mapEvent(row: any): AnalyticsEvent {
+  return {
+    id: String(row?.id ?? ''),
+    eventType: row?.eventType ?? row?.type ?? '',
+    userId: row?.userId ?? undefined,
+    data: (row?.eventData ?? row?.data) as Record<string, any> || {},
+    timestamp: row?.createdAt ?? row?.timestamp ?? new Date(),
+  } as AnalyticsEvent;
+}
+
 interface TrackEventInput {
   eventType: string;
   userId?: number;
@@ -27,27 +37,32 @@ export class AnalyticsService {
     const result = await analyticsEventRepository.track({
       eventType: input.eventType,
       userId: input.userId,
-      data: (input.metadata as Prisma.InputJsonValue) ?? {},
-      source: 'B2B_PLATFORM',
+      eventData: (input.metadata as Prisma.InputJsonValue) ?? {},
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
     });
 
-    return result as AnalyticsEvent;
+    return mapEvent(result);
   }
 
   async getEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findAll(limit, skip) as Promise<AnalyticsEvent[]>;
+    const rows = await analyticsEventRepository.findAll(limit, skip);
+    return (rows || []).map(mapEvent);
   }
 
   async getEventById(id: string | number): Promise<AnalyticsEvent | null> {
-    return analyticsEventRepository.findById(id) as Promise<AnalyticsEvent | null>;
+    const row = await analyticsEventRepository.findById(id);
+    return row ? mapEvent(row) : null;
   }
 
   async getEventsByType(eventType: string): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findByEventType(eventType) as Promise<AnalyticsEvent[]>;
+    const rows = await analyticsEventRepository.findByEventType(eventType);
+    return (rows || []).map(mapEvent);
   }
 
   async getEventsByUser(userId: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findByUserId(userId) as Promise<AnalyticsEvent[]>;
+    const rows = await analyticsEventRepository.findByUserId(userId);
+    return (rows || []).map(mapEvent);
   }
 
   async getEventTypeStats(eventType: string): Promise<number> {
@@ -59,7 +74,8 @@ export class AnalyticsService {
   }
 
   async getAllEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findAll(limit, skip) as Promise<AnalyticsEvent[]>;
+    const rows = await analyticsEventRepository.findAll(limit, skip);
+    return (rows || []).map(mapEvent);
   }
 
   async getEventCount(): Promise<number> {
@@ -71,18 +87,18 @@ export class AnalyticsService {
   }
 
   async getEventsByDateRange(startDate: Date, endDate: Date): Promise<AnalyticsEvent[]> {
-    const all = await analyticsEventRepository.findAll() as AnalyticsEvent[];
-    return all.filter(
-      e => new Date(e.timestamp) >= startDate && new Date(e.timestamp) <= endDate
-    );
+    const all = await analyticsEventRepository.findAll();
+    const mapped = (all || []).map(mapEvent);
+    return mapped.filter(e => new Date(e.timestamp) >= startDate && new Date(e.timestamp) <= endDate);
   }
 
   async getPopularEvents(limit: number = 10): Promise<Array<{ type: string; count: number }>> {
     const all = await analyticsEventRepository.findAll();
     const counts = new Map<string, number>();
 
-    all.forEach(event => {
-      counts.set(event.eventType, (counts.get(event.eventType) || 0) + 1);
+    (all || []).forEach(event => {
+      const ev = mapEvent(event);
+      counts.set(ev.eventType, (counts.get(ev.eventType) || 0) + 1);
     });
 
     return Array.from(counts.entries())
@@ -95,9 +111,10 @@ export class AnalyticsService {
     const all = await analyticsEventRepository.findAll();
     const userCounts = new Map<number, number>();
 
-    all.forEach(event => {
-      if (event.userId) {
-        userCounts.set(event.userId, (userCounts.get(event.userId) || 0) + 1);
+    (all || []).forEach(event => {
+      const ev = mapEvent(event);
+      if (ev.userId) {
+        userCounts.set(ev.userId, (userCounts.get(ev.userId) || 0) + 1);
       }
     });
 

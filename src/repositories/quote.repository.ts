@@ -34,11 +34,11 @@ interface UpdateQuoteInput {
 export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, UpdateQuoteInput> {
   async findAll(limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quote.findMany({
+      return await prisma.quotes.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-        include: { lines: true },
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'findAll');
@@ -47,9 +47,9 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findById(id: string | number): Promise<Quote | null> {
     try {
-      return await prisma.quote.findUnique({
-        where: { id: String(id) },
-        include: { lines: true },
+      return await prisma.quotes.findUnique({
+        where: { id: Number(id) },
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'findById');
@@ -58,9 +58,9 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findByReference(reference: string): Promise<Quote | null> {
     try {
-      return await prisma.quote.findUnique({
+      return await prisma.quotes.findUnique({
         where: { reference },
-        include: { lines: true },
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'findByReference');
@@ -69,12 +69,12 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findByUserId(userId: number, limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quote.findMany({
+      return await prisma.quotes.findMany({
         where: { userId },
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-        include: { lines: true },
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'findByUserId');
@@ -83,27 +83,27 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async create(data: CreateQuoteInput): Promise<Quote> {
     try {
-      return await prisma.quote.create({
-        data: {
-          reference: data.reference,
-          userId: data.userId,
-          buyerContactEmail: data.buyerContactEmail,
-          buyerContactPhone: data.buyerContactPhone,
-          buyerCompanyId: data.buyerCompanyId,
-          status: data.status || 'draft',
-          lines: {
-            create: data.lines.map((line) => ({
-              productId: line.productId,
-              productName: line.productName,
-              productSku: line.productSku,
-              qty: line.qty,
-              unitPrice: line.unitPrice,
-              description: line.description,
-            })),
-          },
+      // Map input to Prisma shape; coerce status to enum-like uppercase.
+      const payload: any = {
+        reference: data.reference,
+        userId: data.userId,
+        buyerContactEmail: data.buyerContactEmail,
+        buyerContactPhone: data.buyerContactPhone,
+        buyerCompanyId: data.buyerCompanyId,
+        status: data.status ? (data.status as string).toUpperCase() : 'DRAFT',
+        lines: {
+          create: data.lines.map((line) => ({
+            productId: line.productId,
+            productName: line.productName,
+            productSku: line.productSku,
+            qty: line.qty,
+            unitPrice: line.unitPrice,
+            description: line.description,
+          })),
         },
-        include: { lines: true },
-      });
+      };
+
+      return await prisma.quotes.create({ data: payload, include: { quote_lines: true } });
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -111,10 +111,10 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async update(id: string | number, data: UpdateQuoteInput): Promise<Quote> {
     try {
-      return await prisma.quote.update({
-        where: { id: String(id) },
-        data,
-        include: { lines: true },
+      return await prisma.quotes.update({
+        where: { id: Number(id) },
+        data: data as any,
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'update');
@@ -123,9 +123,7 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async delete(id: string | number): Promise<boolean> {
     try {
-      await prisma.quote.delete({
-        where: { id: String(id) },
-      });
+      await prisma.quotes.delete({ where: { id: Number(id) } });
       return true;
     } catch (error) {
       this.handleError(error, 'delete');
@@ -134,7 +132,7 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async count(where?: Record<string, unknown>): Promise<number> {
     try {
-      return await prisma.quote.count({ where });
+      return await prisma.quotes.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -145,12 +143,12 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
    */
   async findByStatus(status: string, limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quote.findMany({
-        where: { status },
+      return await prisma.quotes.findMany({
+        where: { status: (status as string).toUpperCase() },
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-        include: { lines: true },
+        include: { quote_lines: true },
       });
     } catch (error) {
       this.handleError(error, 'findByStatus');
@@ -162,9 +160,9 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
    */
   async countPending(): Promise<number> {
     try {
-      return await prisma.quote.count({
+      return await prisma.quotes.count({
         where: {
-          status: { in: ['draft', 'pending'] },
+          status: { in: ['DRAFT', 'PENDING'] },
         },
       });
     } catch (error) {

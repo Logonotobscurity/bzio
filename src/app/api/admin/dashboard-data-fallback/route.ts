@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { auth } from "@/lib/auth";
 import {
   getRecentActivities,
   getActivityStats,
@@ -19,8 +19,8 @@ export async function GET() {
 
   try {
     // ✅ CRITICAL: Use NextAuth session for proper role-based access control
-    const session = await getServerSession();
-    if (!session || session.user?.role !== 'admin') {
+    const session = await auth();
+    if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }

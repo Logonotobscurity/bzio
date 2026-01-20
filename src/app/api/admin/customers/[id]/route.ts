@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from "@/lib/auth";
 import prisma from '@/lib/prisma';
 import { USER_ROLES } from '@/lib/auth-constants';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
-    const session = await getServerSession();
+    const session = await auth();
     
     if (!session?.user?.id || session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(

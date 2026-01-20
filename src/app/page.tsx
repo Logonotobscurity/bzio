@@ -4,9 +4,6 @@ import dynamicComponent from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getBestSellers, getCategories } from '@/services/productService';
 import { BestSellersSection } from '@/components/best-sellers-section';
-import { getServerSession } from 'next-auth/next';
-import { redirect } from 'next/navigation';
-import { REDIRECT_PATHS } from '@/lib/auth-constants';
 
 export const revalidate = 3600; // Revalidate every hour
 export const dynamic = 'force-dynamic';

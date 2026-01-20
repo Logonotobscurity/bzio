@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { getUserActivities } from '@/lib/activity-service';
+import { auth } from "@/lib/auth";
 import prisma from '@/lib/prisma';
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -21,16 +20,17 @@ export async function GET(req: Request) {
     const activityType = url.searchParams.get('type');
 
     // Build where filter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId };
     if (activityType) {
       where.activityType = activityType;
     }
 
     // Get total count
-    const total = await prisma.userActivity.count({ where });
+    const total = await prisma.user_activities.count({ where });
 
     // Get paginated activities
-    const activities = await prisma.userActivity.findMany({
+    const activities = await prisma.user_activities.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const activity = await prisma.userActivity.create({
+    const activity = await prisma.user_activities.create({
       data: {
         userId,
         activityType,

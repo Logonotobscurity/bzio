@@ -55,7 +55,7 @@ export async function trackUserRegistration(data: UserRegistrationData): Promise
  */
 export async function trackUserLogin(userId: number, email: string): Promise<void> {
   try {
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: userId },
       data: { lastLogin: new Date() },
     });
@@ -86,15 +86,15 @@ export async function getUserMetrics(): Promise<{
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const [totalUsers, newUsersThisWeek, activeUsers] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({
+      prisma.users.count(),
+      prisma.users.count({
         where: {
           createdAt: {
             gte: sevenDaysAgo,
           },
         },
       }),
-      prisma.user.count({
+      prisma.users.count({
         where: {
           lastLogin: {
             gte: sevenDaysAgo,

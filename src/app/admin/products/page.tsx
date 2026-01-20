@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Prisma } from '@prisma/client';
@@ -32,7 +31,7 @@ interface ProductsPageProps {
 }
 
 async function getProducts(search: string | undefined) {
-  const where: Prisma.ProductWhereInput = search
+  const where: Prisma.productsWhereInput = search
     ? {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -41,14 +40,14 @@ async function getProducts(search: string | undefined) {
       }
     : {};
 
-  const products = await prisma.product.findMany({
+  const products = await prisma.products.findMany({
     where,
     select: {
       id: true,
       sku: true,
       name: true,
       price: true,
-      stock: true,
+      stockQuantity: true,
       createdAt: true,
     },
     orderBy: {
@@ -60,8 +59,8 @@ async function getProducts(search: string | undefined) {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   // ✅ CRITICAL: Verify user is admin before loading product data
-  const session = await getServerSession();
-  if (!session || session.user?.role !== 'admin') {
+  const session = await auth();
+  if (!session || session.user?.role !== "ADMIN") {
     redirect('/');
   }
 
@@ -99,8 +98,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 <TableRow key={product.id}>
                   <TableCell>{product.sku}</TableCell>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.price}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>${product.price.toString()}</TableCell>
+                  <TableCell>{product.stockQuantity}</TableCell>
                   <TableCell className="text-right">
                     <Link href={`/admin/products/${product.id}/edit`}>
                       <Button variant="outline" size="sm" className="mr-2">

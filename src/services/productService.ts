@@ -7,9 +7,6 @@ import { Product, Brand, Category, Company } from '@/lib/schema';
 import { bestSellers } from '@/lib/db/best-sellers';
 import { cache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
 import { 
-  EnrichedBrandData, 
-  CategorizedBrandGroup, 
-  EnrichedCategoryData,
   getCategoryPageData,
   getBrandsPageData
 } from '@/services/enrichmentService';

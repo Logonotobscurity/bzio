@@ -39,10 +39,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from "@/lib/auth";
 import {
   validateEmailFormat,
-  sanitizeEmail,
   sanitizeContent,
   checkEmailRateLimit,
   getEmailRateLimitStatus,
@@ -67,7 +66,7 @@ export async function POST(req: Request): Promise<NextResponse<SendEmailResponse
 
   try {
     // 1. Check authentication
-    const session = await getServerSession();
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(
         {
@@ -110,7 +109,9 @@ export async function POST(req: Request): Promise<NextResponse<SendEmailResponse
       );
     }
 
-    const { to, subject, message, html } = validation.data;
+    const { to, subject, message } = validation.data;
+    // Note: HTML email support prepared but not currently used
+    // const html = validation.data.html;
 
     // 4. Additional email format validation
     const emailValidation = validateEmailFormat(to);
@@ -147,7 +148,8 @@ export async function POST(req: Request): Promise<NextResponse<SendEmailResponse
     // 6. Sanitize content to prevent XSS
     const sanitizedSubject = sanitizeContent(subject, false);
     const sanitizedMessage = message ? sanitizeContent(message, false) : undefined;
-    const sanitizedHtml = html ? sanitizeContent(html, true) : undefined;
+    // Note: HTML sanitization is prepared but not currently used
+    // const sanitizedHtml = html ? sanitizeContent(html, true) : undefined;
 
     // 7. Prevent self-sending
     if (normalizedEmail === session.user.email.toLowerCase()) {
@@ -257,10 +259,10 @@ export async function POST(req: Request): Promise<NextResponse<SendEmailResponse
 /**
  * GET endpoint - returns email sending capabilities and limits
  */
-export async function GET(req: Request): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     // Check authentication
-    const session = await getServerSession();
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(
         {

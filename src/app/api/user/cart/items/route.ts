@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from "@/lib/auth";
 import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/activity-service';
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     });
 
     // Check if product already exists in cart
-    const existingItem = await prisma.cartItem.findFirst({
+    const existingItem = await prisma.cart_items.findFirst({
       where: { cartId: cart.id, productId },
     });
 
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     if (existingItem) {
       // Update quantity
-      cartItem = await prisma.cartItem.update({
+      cartItem = await prisma.cart_items.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + quantity },
         include: {
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       });
     } else {
       // Create new cart item
-      cartItem = await prisma.cartItem.create({
+      cartItem = await prisma.cart_items.create({
         data: {
           cartId: cart.id,
           userId,
@@ -120,9 +120,9 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const session = await getServerSession();
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(

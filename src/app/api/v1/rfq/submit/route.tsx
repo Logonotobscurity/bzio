@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
     // Create CRM notification for BZION_HUB
     try {
-      await (await import('@/lib/db')).prisma.crmNotification.create({
+      await (await import('@/lib/db')).prisma.notifications.create({
         data: {
           type: 'NEW_QUOTE_REQUEST',
           targetSystem: 'BZION_HUB',
@@ -66,9 +66,13 @@ export async function POST(request: Request) {
           data: {
             quoteId: quote.id,
             quoteReference: quote.reference,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             customerId: (quote as any).customerId,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             customerEmail: (quote as any).buyerContactEmail,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             companyName: (quote as any).buyerCompanyId,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             totalItems: (quote as any).lines.reduce((sum: number, line: any) => sum + line.qty, 0),
             submittedAt: new Date().toISOString(),
           },

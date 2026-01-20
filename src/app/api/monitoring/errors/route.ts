@@ -61,8 +61,9 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50', 10);
-    const severity = searchParams.get('severity') || undefined;
-    const sessionId = searchParams.get('sessionId') || undefined;
+    // Note: severity and sessionId filtering not yet implemented
+    // const severity = searchParams.get('severity') || undefined;
+    // const sessionId = searchParams.get('sessionId') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
 
     const errors = await errorLoggingService.getAllErrors(limit, cursor ? parseInt(cursor) : undefined);

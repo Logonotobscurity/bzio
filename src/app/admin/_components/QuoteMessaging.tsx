@@ -122,11 +122,11 @@ export function QuoteMessaging({
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex gap-3 ${msg.senderRole === 'admin' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-3 ${msg.senderRole === "ADMIN" ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
                     className={`max-w-xs px-4 py-2 rounded-lg ${
-                      msg.senderRole === 'admin'
+                      msg.senderRole === "ADMIN"
                         ? 'bg-blue-100 text-blue-900'
                         : 'bg-gray-200 text-gray-900'
                     }`}
@@ -136,7 +136,7 @@ export function QuoteMessaging({
                     <p className="text-xs mt-1 opacity-70">
                       {format(new Date(msg.createdAt), 'MMM dd, HH:mm')}
                     </p>
-                    {!msg.isRead && msg.senderRole === 'admin' && (
+                    {!msg.isRead && msg.senderRole === "ADMIN" && (
                       <Badge variant="secondary" className="mt-2 text-xs">
                         Unread
                       </Badge>

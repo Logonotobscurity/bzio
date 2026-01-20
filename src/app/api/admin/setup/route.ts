@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { USER_ROLES } from '@/lib/auth-constants';
@@ -114,7 +113,7 @@ export async function POST(request: NextRequest) {
     const newAdmin = await prisma.user.create({
       data: {
         email: email.toLowerCase(),
-        hashedPassword: hashedPassword,
+        password: hashedPassword,
         firstName: firstName.trim(),
         lastName: lastName?.trim() || null,
         role: USER_ROLES.ADMIN, // 'admin'
@@ -145,7 +144,7 @@ export async function POST(request: NextRequest) {
         },
         credentials: {
           email: newAdmin.email,
-          password: password, // Only returned on creation
+          password: hashedPassword, // Only returned on creation
           loginUrl: '/admin/login',
         },
         instructions: [
@@ -184,7 +183,7 @@ export async function POST(request: NextRequest) {
  * GET /api/admin/setup
  * Health check - verifies if admin setup is enabled
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const setupToken = process.env.ADMIN_SETUP_TOKEN;
 
   return NextResponse.json({

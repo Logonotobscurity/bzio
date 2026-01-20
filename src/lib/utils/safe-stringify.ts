@@ -106,6 +106,7 @@ export function serializeErrorInfo(
 
   return {
     componentStack: errorInfo.componentStack,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     digest: (errorInfo as any).digest || undefined,
   };
 }

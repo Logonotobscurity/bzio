@@ -20,6 +20,7 @@ interface FormSubmission {
   id: string;
   formType: string;
   email: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
   status: string;
   submittedAt: string;

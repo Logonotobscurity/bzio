@@ -6,21 +6,20 @@
 
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, AdminNotificationType } from '@prisma/client';
 
-type AdminNotification = Prisma.AdminNotificationGetPayload<{}>;
+type AdminNotification = Prisma.admin_notificationsGetPayload<{}>;
 
 interface CreateAdminNotificationInput {
   adminId: number;
   title: string;
   message: string;
-  type: string;
-  actionUrl?: string;
+  type: AdminNotificationType;
   data?: Prisma.InputJsonValue;
 }
 
 interface UpdateAdminNotificationInput {
-  read?: boolean;
+  isRead?: boolean;
   title?: string;
   message?: string;
   data?: Prisma.InputJsonValue;
@@ -29,7 +28,7 @@ interface UpdateAdminNotificationInput {
 export class AdminNotificationRepository extends BaseRepository<AdminNotification, CreateAdminNotificationInput, UpdateAdminNotificationInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.adminNotification.findMany({
+      return await prisma.admin_notifications.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
@@ -41,7 +40,7 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async count() {
     try {
-      return await prisma.adminNotification.count();
+      return await prisma.admin_notifications.count();
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -49,8 +48,8 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async findById(id: string | number) {
     try {
-      return await prisma.adminNotification.findUnique({
-        where: { id: String(id) },
+      return await prisma.admin_notifications.findUnique({
+        where: { id: Number(id) },
       });
     } catch (error) {
       this.handleError(error, 'findById');
@@ -59,7 +58,7 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async findByAdminId(adminId: number, limit?: number, skip?: number) {
     try {
-      return await prisma.adminNotification.findMany({
+      return await prisma.admin_notifications.findMany({
         where: { adminId },
         take: limit,
         skip,
@@ -72,13 +71,12 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async create(data: CreateAdminNotificationInput) {
     try {
-      return await prisma.adminNotification.create({
+      return await prisma.admin_notifications.create({
         data: {
           adminId: data.adminId,
           title: data.title,
           message: data.message,
           type: data.type,
-          actionUrl: data.actionUrl,
           data: data.data || {},
         },
       });
@@ -89,8 +87,8 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async update(id: string | number, data: UpdateAdminNotificationInput) {
     try {
-      return await prisma.adminNotification.update({
-        where: { id: String(id) },
+      return await prisma.admin_notifications.update({
+        where: { id: Number(id) },
         data,
       });
     } catch (error) {
@@ -100,8 +98,8 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
 
   async delete(id: string | number) {
     try {
-      await prisma.adminNotification.delete({
-        where: { id: String(id) },
+      await prisma.admin_notifications.delete({
+        where: { id: Number(id) },
       });
       return true;
     } catch (error) {
@@ -114,10 +112,10 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
    */
   async countUnread(adminId: number) {
     try {
-      return await prisma.adminNotification.count({
+      return await prisma.admin_notifications.count({
         where: {
           adminId,
-          read: false,
+          isRead: false,
         },
       });
     } catch (error) {
@@ -128,12 +126,12 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
   /**
    * Mark as read
    */
-  async markAsRead(id: string) {
+  async markAsRead(id: string | number) {
     try {
-      return await prisma.adminNotification.update({
-        where: { id },
+      return await prisma.admin_notifications.update({
+        where: { id: Number(id) },
         data: {
-          read: true,
+          isRead: true,
         },
       });
     } catch (error) {
@@ -146,13 +144,13 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
    */
   async markAllAsRead(adminId: number) {
     try {
-      return await prisma.adminNotification.updateMany({
+      return await prisma.admin_notifications.updateMany({
         where: {
           adminId,
-          read: false,
+          isRead: false,
         },
         data: {
-          read: true,
+          isRead: true,
         },
       });
     } catch (error) {
@@ -165,7 +163,7 @@ export class AdminNotificationRepository extends BaseRepository<AdminNotificatio
    */
   async deleteAll(adminId: number) {
     try {
-      return await prisma.adminNotification.deleteMany({
+      return await prisma.admin_notifications.deleteMany({
         where: { adminId },
       });
     } catch (error) {

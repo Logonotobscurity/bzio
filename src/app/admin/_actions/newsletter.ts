@@ -11,11 +11,11 @@ import { auth } from '@/lib/auth/config';
 export async function unsubscribeFromNewsletter(subscriberId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const subscriber = await prisma.newsletterSubscriber.update({
+    const subscriber = await prisma.newsletter_subscribers.update({
       where: { id: subscriberId },
       data: {
         status: 'unsubscribed',
@@ -24,7 +24,7 @@ export async function unsubscribeFromNewsletter(subscriberId: string) {
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'newsletter_unsubscribed',
@@ -48,11 +48,11 @@ export async function unsubscribeFromNewsletter(subscriberId: string) {
 export async function resubscribeToNewsletter(subscriberId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const subscriber = await prisma.newsletterSubscriber.update({
+    const subscriber = await prisma.newsletter_subscribers.update({
       where: { id: subscriberId },
       data: {
         status: 'active',
@@ -61,7 +61,7 @@ export async function resubscribeToNewsletter(subscriberId: string) {
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'newsletter_resubscribed',
@@ -85,20 +85,20 @@ export async function resubscribeToNewsletter(subscriberId: string) {
 export async function deleteNewsletterSubscriber(subscriberId: string) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const subscriber = await prisma.newsletterSubscriber.findUnique({
+    const subscriber = await prisma.newsletter_subscribers.findUnique({
       where: { id: subscriberId },
     });
 
-    await prisma.newsletterSubscriber.delete({
+    await prisma.newsletter_subscribers.delete({
       where: { id: subscriberId },
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'newsletter_deleted',
@@ -126,22 +126,22 @@ export async function sendNewsletterCampaign(
 ) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
     // Get recipients based on filter
     let subscribers;
     if (recipientFilter === 'active') {
-      subscribers = await prisma.newsletterSubscriber.findMany({
+      subscribers = await prisma.newsletter_subscribers.findMany({
         where: { status: 'active' },
       });
     } else {
-      subscribers = await prisma.newsletterSubscriber.findMany();
+      subscribers = await prisma.newsletter_subscribers.findMany();
     }
 
     // Log campaign
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'newsletter_campaign_sent',
@@ -176,11 +176,11 @@ export async function sendNewsletterCampaign(
 export async function exportNewsletterSubscribers(format: 'csv' | 'json' = 'csv') {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const subscribers = await prisma.newsletterSubscriber.findMany({
+    const subscribers = await prisma.newsletter_subscribers.findMany({
       select: {
         id: true,
         email: true,
@@ -191,7 +191,7 @@ export async function exportNewsletterSubscribers(format: 'csv' | 'json' = 'csv'
     });
 
     // Log activity
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         userId: parseInt(session.user.id, 10),
         eventType: 'newsletter_exported',

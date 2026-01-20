@@ -13,7 +13,7 @@
  * NOT for use in Client Components (use next-auth/react hooks instead)
  */
 
-import { getServerSession } from 'next-auth/next';
+import { auth } from "@/lib/auth";
 import { USER_ROLES, REDIRECT_PATHS, getUserDashboardPath } from './auth-constants';
 import { redirect } from 'next/navigation';
 
@@ -42,7 +42,7 @@ import { redirect } from 'next/navigation';
  * ```
  */
 export async function requireAdmin() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session) {
     // Not authenticated - redirect to login
@@ -89,7 +89,7 @@ export async function requireAdmin() {
  * ```
  */
 export async function requireAuth() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session) {
     // Not authenticated - redirect to login
@@ -121,7 +121,7 @@ export async function requireAuth() {
  * ```
  */
 export async function getSessionSafe() {
-  return await getServerSession();
+  return await auth();
 }
 
 /**
@@ -138,6 +138,7 @@ export async function getSessionSafe() {
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isSessionAdmin(session: any): boolean {
   return session?.user?.role === USER_ROLES.ADMIN;
 }
@@ -156,6 +157,7 @@ export function isSessionAdmin(session: any): boolean {
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isSessionValid(session: any): boolean {
   return !!session?.user?.id;
 }
@@ -175,6 +177,7 @@ export function isSessionValid(session: any): boolean {
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getDashboardPath(session: any): string {
   return getUserDashboardPath(session?.user?.role);
 }

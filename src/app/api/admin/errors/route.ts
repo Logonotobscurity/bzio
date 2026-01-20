@@ -1,3 +1,4 @@
+import { auth } from '@/lib/auth';
 /**
  * Error Logging Endpoint
  * Client-side and server-side error logging for debugging and monitoring
@@ -6,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getServerSession } from 'next-auth/next';
-import { auth } from '~/auth';
+
+
 
 interface ErrorLogPayload {
   message: string;
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     const session = (await getServerSession(auth)) as AuthSession | null;
 
     // Create error log in database
-    const errorLog = await prisma.errorLog.create({
+    const errorLog = await prisma.error_logs.create({
       data: {
         message: body.message,
         stack: body.stack || null,
@@ -135,12 +136,12 @@ export async function GET(request: NextRequest) {
     };
 
     const [errorLogs, total] = await Promise.all([
-      prisma.errorLog.findMany({
+      prisma.error_logs.findMany({
         where,
         orderBy: { timestamp: 'desc' },
         take: Math.min(limit, 500), // Cap at 500
       }),
-      prisma.errorLog.count({ where }),
+      prisma.error_logs.count({ where }),
     ]);
 
     // Group by severity
@@ -200,7 +201,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.errorLog.delete({
+    await prisma.error_logs.delete({
       where: { id: errorId },
     });
 

@@ -1,622 +1,390 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
 }
 
-// =====================================================
-// CORE MODELS
-// =====================================================
-
-model Brand {
-  id                 Int       @id @default(autoincrement())
-  name               String    @unique
-  slug               String    @unique
-  brandDescription   String?   @map("brand_description")
-  companyId          Int?
-  imageUrl           String?
-  isFeatured         Boolean   @default(false)
-
-  company            Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  products           Product[]
-
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @default(now()) @updatedAt
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model Category {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  imageUrl    String?
-
-  products    ProductCategory[]
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+model addresses {
+  id         Int         @id @default(autoincrement())
+  type       AddressType @default(BILLING)
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String      @default("Nigeria")
+  isDefault  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime
+  userId     Int?
+  companyId  Int?
+  companies  companies?  @relation(fields: [companyId], references: [id])
+  users      users?      @relation(fields: [userId], references: [id])
 }
 
-model Company {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  isActive    Boolean   @default(true)
-  logo        String?
-
-  products    Product[]
-  brands      Brand[]
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
-}
-
-model Product {
-  id                  Int               @id @default(autoincrement())
-  sku                 String            @unique
-  slug                String            @unique
-  name                String
-  description         String?
-  detailedDescription String?           @map("detailedDescription")
-  price               Float?
-  isActive            Boolean           @default(true)
-  inStock             Boolean           @default(true)
-  isFeatured          Boolean           @default(false)
-  moq                 Int?
-  quantity            Int?
-  rating              Float?
-  reviewCount         Int?
-  specifications      Json?
-  tags                String[]
-  unit                String?
-
-  brandId             Int?
-  brand               Brand?            @relation(fields: [brandId], references: [id], onDelete: SetNull)
-
-  companyId           Int?
-  company             Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
-
-  categoryId          Int?
-  categories          ProductCategory[]
-
-  images              ProductImage[]
-  views               ProductView[]     // Relation to ProductView
-  favoritedBy         UserFavorite[]    // Relation to UserFavorite
-  cartItems          CartItem[]         // Relation to CartItem
-
-  stock               Int               @default(0)
-  stockMovements      StockMovement[]
-
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @default(now()) @updatedAt
-}
-
-model StockMovement {
-  id          Int      @id @default(autoincrement())
-  productId   Int
-  quantity    Int
-  type        String // e.g., "initial", "sale", "return", "adjustment"
-  notes       String?
-  createdAt   DateTime @default(now())
-
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-model ProductImage {
-  id        Int     @id @default(autoincrement())
-  url       String
-  alt       String?
-  order     Int?
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([productId, order], name: "ProductImage_product_order_key")
-}
-
-model ProductCategory {
-  productId  Int
-  categoryId Int
-
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([productId, categoryId])
-}
-
-
-// =====================================================
-// USER MANAGEMENT MODELS
-// =====================================================
-
-model User {
-  id               Int       @id @default(autoincrement())
-  email            String    @unique
-  password         String?
-  hashedPassword   String?   @map("hashed_password")
-  firstName        String?   @map("first_name")
-  lastName         String?   @map("last_name")
-  phone            String?   @unique
-  role             String    @default("customer") // e.g., customer, admin
-  emailVerified    DateTime? @map("email_verified")
-  isActive         Boolean   @default(true)
-  
-  companyName      String?   @map("company_name")
-  companyPhone     String?   @map("company_phone")
-  businessType     String?   @map("business_type") // e.g., retailer, wholesaler, distributor
-  businessRegistration String? @map("business_registration")
-  
-  // Welcome & Onboarding Fields
-  isNewUser        Boolean   @default(true) @map("is_new_user")
-  lastLogin        DateTime? @map("last_login")
-  hasCompletedOnboarding Boolean @default(false) @map("has_completed_onboarding")
-
-  accounts         Account[]
-  sessions         Session[]
-  addresses        Address[]
-  quotes           Quote[]
-  carts            Cart[]
-  cartItems        CartItem[]
-  notifications    Notification[]
-  productViews     ProductView[]
-  searchQueries    SearchQuery[]
-  favorites        UserFavorite[]
-  analyticsEvents  AnalyticsEvent[]
-  adminNotifications AdminNotification[]
-  activities       UserActivity[]
-
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@index([createdAt])
-  @@index([lastLogin])
-  @@index([role])
-  @@map("users")
-}
-
-// =====================================================
-// AUTHENTICATION TOKEN MODELS
-// =====================================================
-
-model Account {
-  id                 String  @id @default(cuid())
-  userId             Int     @map("user_id")
-  type               String
-  provider           String
-  providerAccountId  String  @map("provider_account_id")
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       Int      @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
-}
-
-model Address {
-  id             Int       @id @default(autoincrement())
-  userId         Int       @map("user_id")
-  type           String    // shipping, billing
-  isDefault      Boolean   @default(false) @map("is_default")
-  
-  label          String?
-  contactPerson  String?   @map("contact_person")
-  phone          String?
-  
-  addressLine1   String    @map("address_line1")
-  addressLine2   String?   @map("address_line2")
-  city           String
-  state          String
-  postalCode     String?   @map("postal_code")
-  country        String    @default("Nigeria")
-  
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  @@map("addresses")
-}
-
-// =====================================================
-// SHOPPING CART MODELS
-// =====================================================
-
-model Cart {
-  id        String   @id @default(uuid())
-  userId    Int      @map("user_id")
-  status    String   @default("active") // active, converted_to_quote, abandoned
-  
-  items     CartItem[]
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([status])
-  @@map("carts")
-}
-
-model CartItem {
-  id        String   @id @default(uuid())
-  cartId    String   @map("cart_id")
-  productId Int      @map("product_id")
-  userId    Int      @map("user_id")
-  quantity  Int      @default(1)
-  unitPrice Float?   @map("unit_price")
-  
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([cartId])
-  @@index([userId])
-  @@index([productId])
-  @@map("cart_items")
-}
-
-// =====================================================
-// QUOTE MODELS
-// =====================================================
-
-model Quote {
-  id                 String   @id @default(uuid())
-  reference          String   @unique
-  
-  userId             Int?     @map("user_id")
-  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  buyerCompanyId     String?
-  buyerContactPhone  String?
-  buyerContactEmail  String?
-  
-  status             String   @default("draft")
-  total              Float?
-  
-  lines              QuoteLine[]
-  messages           NegotiationMessage[]
-  quoteMessages      QuoteMessage[]
-  events             QuoteEvent[]
-
-  customer   Customer? @relation(fields: [customerId], references: [id])
-  customerId String?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@index([userId])
-  @@index([createdAt])
-  @@index([status])
-}
-
-model QuoteLine {
-  id        String  @id @default(uuid())
-  quoteId   String
-  productId String? 
-  qty       Int
-  unitPrice Float?
-  
-  quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-
-  productName String
-  productSku  String?
-  description String?
-}
-
-model NegotiationMessage {
-  id              String   @id @default(uuid())
-  quoteId         String
-  direction       String   
-  channel         String   
-  fromNumber      String?
-  toNumber        String?
-  body            String
-  vendorMessageId String?
-  metadata        Json?
-  status          String?  
-  
-  quote           Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-
-  createdAt       DateTime @default(now())
-}
-
-model QuoteEvent {
-  id        String   @id @default(uuid())
-  quoteId   String
-  actorId   String?  
-  eventType String
-  payload   Json
-  version   Int      @default(1)
-  
-  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-}
-
-// =====================================================
-// NOTIFICATION & ANALYTICS MODELS
-// =====================================================
-
-model Notification {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  type        String    
-  message     String
-  isRead      Boolean   @default(false)
-  link        String?   
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@map("notifications")
-}
-
-model ProductView {
-  id        Int       @id @default(autoincrement())
-  productId Int
-  userId    Int?      
-  ipAddress String?
-
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime  @default(now())
-
-  @@map("product_views")
-}
-
-model SearchQuery {
-  id        Int       @id @default(autoincrement())
-  query     String
-  userId    Int?      
-  results   Int       @default(0)
-
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime  @default(now())
-
-  @@map("search_queries")
-}
-
-model UserFavorite {
-  userId    Int
-  productId Int
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime  @default(now())
-
-  @@id([userId, productId])
-  @@map("user_favorites")
-}
-
-// =====================================================
-// ERROR LOGGING MODEL
-// =====================================================
-
-model ErrorLog {
-  id          String   @id @default(uuid())
-  message     String
-  stack       String?
-  context     Json?
-  severity    String
-  url         String
-  userAgent   String?
-  sessionId   String
-  userId      String?
-  breadcrumbs Json?
-  sourceMap   Json?
-  environment String
-  version     String
-  timestamp   DateTime @default(now())
-
-  @@map("error_logs")
-}
-
-// =====================================================
-// CRM MODELS
-// =====================================================
-
-model Customer {
-  id           String @id @default(uuid())
-  externalId   String? @unique @map("external_id")
-  source       String
-  email        String @unique
-  firstName    String? @map("first_name")
-  lastName     String? @map("last_name")
-  companyName  String? @map("company_name")
-  phone        String?
-  customerType String @map("customer_type")
-  status       String @default("ACTIVE")
-  metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  quotes       Quote[]
-
-  @@map("customers")
-}
-
-model Lead {
-  id           String @id @default(uuid())
-  email        String
-  name         String?
-  companyName  String? @map("company_name")
-  phone        String?
-  type         String
-  source       String
-  status       String @default("NEW")
-  leadScore    Int @default(0) @map("lead_score")
-  assignedTo   String? @map("assigned_to")
-  metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  convertedAt  DateTime? @map("converted_at")
-
-  @@index([email])
-  @@index([status])
-  @@index([createdAt])
-  @@map("leads")
-}
-
-model NewsletterSubscriber {
-  id             String @id @default(uuid())
-  email          String @unique
-  source         String
-  status         String
-  subscribedAt   DateTime @default(now()) @map("subscribed_at")
-  unsubscribedAt DateTime? @map("unsubscribed_at")
-  metadata       Json?
-
-  @@index([email])
-  @@index([status])
-  @@index([subscribedAt])
-  @@map("newsletter_subscribers")
-}
-
-model FormSubmission {
-  id          String @id @default(uuid())
-  formType    String @map("form_type")
-  data        Json
-  submittedAt DateTime @default(now()) @map("submitted_at")
-  ipAddress   String? @map("ip_address")
-  userAgent   String? @map("user_agent")
-  status      String @default("NEW")
-
-  @@index([formType])
-  @@index([submittedAt])
-  @@index([status])
-  @@map("form_submissions")
-}
-
-model AnalyticsEvent {
-  id        String @id @default(uuid())
-  eventType String @map("event_type")
-  userId    Int? @map("user_id")
-  sessionId String? @map("session_id")
-  timestamp DateTime @default(now())
-  data      Json
-  source    String @default("B2B_PLATFORM")
-  user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([eventType])
-  @@index([userId])
-  @@index([timestamp])
-  @@map("analytics_events")
-}
-
-model CrmNotification {
-  id            String @id @default(uuid())
-  type          String
-  targetSystem  String @map("target_system")
-  priority      String @default("NORMAL")
-  data          Json
-  read          Boolean @default(false)
-  readAt        DateTime? @map("read_at")
-  createdAt     DateTime @default(now())
-
-  @@index([targetSystem, read])
-  @@index([createdAt])
-  @@map("crm_notifications")
-}
-
-model AdminNotification {
-  id        String @id @default(uuid())
-  adminId   Int    @map("admin_id")
-  type      String // e.g., new_quote, new_form, new_user, quote_message, new_newsletter
+model admin_notifications {
+  id        Int                   @id @default(autoincrement())
+  adminId   Int
   title     String
   message   String
-  data      Json @default("{}")
-  actionUrl String? @map("action_url")
-  read      Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  admin     User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  type      AdminNotificationType @default(INFO)
+  isRead    Boolean               @default(false)
+  data      Json?
+  createdAt DateTime              @default(now())
 
   @@index([adminId])
   @@index([createdAt])
-  @@index([adminId, read])
-  @@map("admin_notifications")
+  @@index([isRead])
+  @@index([type])
 }
 
-model QuoteMessage {
-  id        String @id @default(uuid())
-  quoteId   String @map("quote_id")
-  senderRole String @map("sender_role") // ADMIN or CUSTOMER
-  senderEmail String @map("sender_email")
-  senderName String @map("sender_name")
-  senderId  Int? @map("sender_id")
-  message   String
-  isRead    Boolean @default(false) @map("is_read")
+model analytics_events {
+  id        Int      @id @default(autoincrement())
+  eventType String
+  eventData Json?
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @map("updated_at")
+  userId    Int?
+  users     users?   @relation(fields: [userId], references: [id])
 
-  quote     Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  @@index([createdAt])
+  @@index([eventType])
+  @@index([userId])
+}
 
-  @@index([quoteId])
+model brands {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  logo        String?
+  website     String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  products    products[]
+}
+
+model cart_items {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  userId    Int
+  productId Int
+  products  products @relation(fields: [productId], references: [id])
+  users     users    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model categories {
+  id               Int          @id @default(autoincrement())
+  name             String       @unique
+  slug             String       @unique
+  description      String?
+  image            String?
+  isActive         Boolean      @default(true)
+  sortOrder        Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime
+  parentId         Int?
+  categories       categories?  @relation("categoriesTocategories", fields: [parentId], references: [id])
+  other_categories categories[] @relation("categoriesTocategories")
+  products         products[]
+}
+
+model companies {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  registrationNumber String?
+  taxId              String?
+  industry           String?
+  website            String?
+  description        String?
+  logo               String?
+  isVerified         Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
+  addresses          addresses[]
+  users              users[]
+}
+
+model form_submissions {
+  id        Int                  @id @default(autoincrement())
+  formType  String
+  data      Json
+  email     String?
+  status    FormSubmissionStatus @default(NEW)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime
+  userId    Int?
+  users     users?               @relation(fields: [userId], references: [id])
+}
+
+model leads {
+  id        Int        @id @default(autoincrement())
+  email     String
+  firstName String?
+  lastName  String?
+  company   String?
+  phone     String?
+  source    LeadSource @default(WEBSITE)
+  status    LeadStatus @default(NEW)
+  score     Int        @default(0)
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+}
+
+model newsletter_subscribers {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  firstName      String?
+  lastName       String?
+  isActive       Boolean   @default(true)
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+}
+
+model notification_preferences {
+  id                 Int      @id @default(autoincrement())
+  emailNotifications Boolean  @default(true)
+  marketingEmails    Boolean  @default(false)
+  quoteUpdates       Boolean  @default(true)
+  productAlerts      Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  userId             Int      @unique
+  users              users    @relation(fields: [userId], references: [id])
+}
+
+model notifications {
+  id        Int              @id @default(autoincrement())
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  userId    Int
+  users     users            @relation(fields: [userId], references: [id])
+
   @@index([createdAt])
   @@index([isRead])
-  @@map("quote_messages")
+  @@index([userId])
 }
 
-// =====================================================
-// USER ACTIVITY TRACKING MODEL
-// =====================================================
+model product_views {
+  id        Int      @id @default(autoincrement())
+  viewedAt  DateTime @default(now())
+  userId    Int?
+  productId Int
+  products  products @relation(fields: [productId], references: [id])
+  users     users?   @relation(fields: [userId], references: [id])
+}
 
-model UserActivity {
-  id          String   @id @default(uuid())
-  userId      Int      @map("user_id")
-  activityType String  @map("activity_type") // view, cart_add, cart_remove, quote_create, quote_update, quote_submitted, search, purchase, order_placement
-  title       String?
-  description String
-  referenceId String?  @map("reference_id") // Links to Quote, Cart, Product, etc.
-  referenceType String? @map("reference_type") // Quote, Cart, Product, Order
-  metadata    Json?    // Store additional context like product name, quantity, price, etc.
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  
-  @@index([userId])
+model products {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  description         String?
+  sku                 String            @unique
+  price               Decimal           @db.Decimal(10, 2)
+  costPrice           Decimal?          @db.Decimal(10, 2)
+  compareAtPrice      Decimal?          @db.Decimal(10, 2)
+  weight              Decimal?          @db.Decimal(8, 3)
+  dimensions          String?
+  imageUrl            String?
+  images              String[]          @default([])
+  isActive            Boolean           @default(true)
+  isFeatured          Boolean           @default(false)
+  stockQuantity       Int               @default(0)
+  minOrderQty         Int               @default(1)
+  maxOrderQty         Int?
+  tags                String[]          @default([])
+  metaTitle           String?
+  metaDescription     String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime
+  brandId             Int
+  categoryId          Int
+  detailedDescription String?
+  slug                String            @unique
+  specifications      Json?
+  unit                String?           @default("Unit")
+  cart_items          cart_items[]
+  product_views       product_views[]
+  brands              brands            @relation(fields: [brandId], references: [id])
+  categories          categories        @relation(fields: [categoryId], references: [id])
+  quote_lines         quote_lines[]
+  stock_movements     stock_movements[]
+
+  @@index([brandId])
+  @@index([categoryId])
   @@index([createdAt])
-  @@index([userId, createdAt])
-  @@index([activityType])
-  @@map("user_activities")
+  @@index([isActive])
+  @@index([isFeatured])
+}
+
+model quote_lines {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(10, 2)
+  totalPrice Decimal  @db.Decimal(12, 2)
+  notes      String?
+  quoteId    Int
+  productId  Int
+  products   products @relation(fields: [productId], references: [id])
+  quotes     quotes   @relation(fields: [quoteId], references: [id])
+}
+
+model quote_messages {
+  id          Int      @id @default(autoincrement())
+  message     String
+  isFromAdmin Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  quoteId     Int
+  quotes      quotes   @relation(fields: [quoteId], references: [id])
+}
+
+model quotes {
+  id              Int              @id @default(autoincrement())
+  reference       String           @unique
+  status          QuoteStatus      @default(DRAFT)
+  totalAmount     Decimal          @db.Decimal(12, 2)
+  notes           String?
+  internalNotes   String?
+  validUntil      DateTime?
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  userId          Int
+  quote_lines     quote_lines[]
+  quote_messages  quote_messages[]
+  users           users            @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([userId])
+}
+
+model search_queries {
+  id        Int      @id @default(autoincrement())
+  query     String
+  results   Int      @default(0)
+  createdAt DateTime @default(now())
+  userId    Int?
+  users     users?   @relation(fields: [userId], references: [id])
+}
+
+model stock_movements {
+  id        Int               @id @default(autoincrement())
+  type      StockMovementType
+  quantity  Int
+  reason    String?
+  reference String?
+  createdAt DateTime          @default(now())
+  productId Int
+  products  products          @relation(fields: [productId], references: [id])
+}
+
+model users {
+  id                       Int                       @id @default(autoincrement())
+  email                    String                    @unique
+  password                 String
+  firstName                String?
+  lastName                 String?
+  phone                    String?
+  role                     UserRole                  @default(CUSTOMER)
+  emailVerified            DateTime?
+  emailVerificationToken   String?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  isActive                 Boolean                   @default(true)
+  lastLogin                DateTime?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime
+  companyId                Int?
+  addresses                addresses[]
+  analytics_events         analytics_events[]
+  cart_items               cart_items[]
+  form_submissions         form_submissions[]
+  notification_preferences notification_preferences?
+  notifications            notifications[]
+  product_views            product_views[]
+  quotes                   quotes[]
+  search_queries           search_queries[]
+  companies                companies?                @relation(fields: [companyId], references: [id])
+
+  @@index([createdAt])
+  @@index([isActive])
+  @@index([role])
+}
+
+enum AddressType {
+  BILLING
+  SHIPPING
+}
+
+enum AdminNotificationType {
+  NEW_USER
+  NEW_QUOTE
+  LOW_STOCK
+  SYSTEM_ALERT
+  INFO
+}
+
+enum FormSubmissionStatus {
+  NEW
+  READ
+  RESPONDED
+}
+
+enum LeadSource {
+  WEBSITE
+  EMAIL
+  PHONE
+  REFERRAL
+  SOCIAL
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum QuoteStatus {
+  DRAFT
+  PENDING
+  NEGOTIATING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
 }

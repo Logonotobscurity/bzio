@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +20,6 @@ interface FormState {
 }
 
 export function ProductForm({ product }: ProductFormProps) {
-  const router = useRouter();
   const [error, action] = useActionState<FormState, FormData>(
     product ? updateProduct.bind(null, product.id) : createProduct,
     {}

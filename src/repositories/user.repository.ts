@@ -14,7 +14,7 @@ interface CreateUserInput {
   lastName?: string;
   companyName?: string;
   phone?: string;
-  hashedPassword?: string;
+  password?: string;
   role?: string;
 }
 
@@ -31,7 +31,7 @@ interface UpdateUserInput {
 export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
   async findAll(limit?: number, skip?: number): Promise<User[]> {
     try {
-      return await prisma.user.findMany({
+      return await prisma.users.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
@@ -43,7 +43,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findById(id: string | number): Promise<User | null> {
     try {
-      return await prisma.user.findUnique({
+      return await prisma.users.findUnique({
         where: { id: Number(id) },
       });
     } catch (error) {
@@ -53,7 +53,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await prisma.user.findUnique({
+      return await prisma.users.findUnique({
         where: { email },
       });
     } catch (error) {
@@ -63,7 +63,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByPhone(phone: string): Promise<User | null> {
     try {
-      return await prisma.user.findUnique({
+      return await prisma.users.findUnique({
         where: { phone },
       });
     } catch (error) {
@@ -73,14 +73,14 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async create(data: CreateUserInput): Promise<User> {
     try {
-      return await prisma.user.create({
+      return await prisma.users.create({
         data: {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
           companyName: data.companyName,
           phone: data.phone,
-          hashedPassword: data.hashedPassword,
+          password: data.password,
           role: data.role || 'customer',
         },
       });
@@ -91,7 +91,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async update(id: string | number, data: UpdateUserInput): Promise<User> {
     try {
-      return await prisma.user.update({
+      return await prisma.users.update({
         where: { id: Number(id) },
         data,
       });
@@ -102,7 +102,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async delete(id: string | number): Promise<boolean> {
     try {
-      await prisma.user.delete({
+      await prisma.users.delete({
         where: { id: Number(id) },
       });
       return true;
@@ -113,7 +113,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async count(where?: Record<string, unknown>): Promise<number> {
     try {
-      return await prisma.user.count({ where });
+      return await prisma.users.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -127,7 +127,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       const date = new Date();
       date.setDate(date.getDate() - days);
 
-      return await prisma.user.count({
+      return await prisma.users.count({
         where: {
           createdAt: {
             gte: date,
@@ -144,7 +144,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
    */
   async updateLastLogin(userId: number): Promise<User> {
     try {
-      return await prisma.user.update({
+      return await prisma.users.update({
         where: { id: userId },
         data: { lastLogin: new Date() },
       });

@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
 
-type Lead = Prisma.LeadGetPayload<{}>;
+type Lead = Prisma.leadsGetPayload<{}>;
 
 interface CreateLeadInput {
   email: string;
@@ -35,7 +35,7 @@ interface UpdateLeadInput {
 export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, UpdateLeadInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.lead.findMany({
+      return await prisma.leads.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
@@ -47,8 +47,8 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async findById(id: string | number) {
     try {
-      return await prisma.lead.findUnique({
-        where: { id: String(id) },
+      return await prisma.leads.findUnique({
+        where: { id: Number(id) },
       });
     } catch (error) {
       this.handleError(error, 'findById');
@@ -57,7 +57,7 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async findByEmail(email: string) {
     try {
-      return await prisma.lead.findFirst({
+      return await prisma.leads.findFirst({
         where: { email },
       });
     } catch (error) {
@@ -67,18 +67,19 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async create(data: CreateLeadInput) {
     try {
-      return await prisma.lead.create({
-        data: {
-          email: data.email,
-          name: data.name,
-          companyName: data.companyName,
-          phone: data.phone,
-          type: data.type,
-          source: data.source,
-          status: data.status || 'NEW',
-          metadata: data.metadata,
-        },
-      });
+      const createData: any = {
+        email: data.email,
+        name: data.name,
+        companyName: data.companyName,
+        phone: data.phone,
+        type: data.type,
+        // map to Prisma enum shape at runtime (cast to any to avoid generated enum name mismatch)
+        source: (data.source || 'WEB').toString().toUpperCase() as any,
+        status: (data.status || 'NEW').toString().toUpperCase() as any,
+        metadata: data.metadata,
+      };
+
+      return await prisma.leads.create({ data: createData });
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -86,9 +87,14 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async update(id: string | number, data: UpdateLeadInput) {
     try {
-      return await prisma.lead.update({
-        where: { id: String(id) },
-        data,
+      const updateData: any = { ...data };
+      if (data.status) {
+        updateData.status = (data.status as string).toUpperCase() as any;
+      }
+
+      return await prisma.leads.update({
+        where: { id: Number(id) },
+        data: updateData,
       });
     } catch (error) {
       this.handleError(error, 'update');
@@ -97,8 +103,8 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async delete(id: string | number) {
     try {
-      await prisma.lead.delete({
-        where: { id: String(id) },
+      await prisma.leads.delete({
+        where: { id: Number(id) },
       });
       return true;
     } catch (error) {
@@ -108,7 +114,7 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async count(where?: Record<string, unknown>) {
     try {
-      return await prisma.lead.count({ where });
+      return await prisma.leads.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -119,8 +125,8 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
    */
   async findByStatus(status: string, limit?: number) {
     try {
-      return await prisma.lead.findMany({
-        where: { status },
+      return await prisma.leads.findMany({
+        where: { status: (status || '').toUpperCase() as unknown as Prisma.LeadStatus },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -134,8 +140,8 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
    */
   async findBySource(source: string, limit?: number) {
     try {
-      return await prisma.lead.findMany({
-        where: { source },
+      return await prisma.leads.findMany({
+        where: { source: (source || '').toUpperCase() as unknown as Prisma.LeadSource },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -149,8 +155,8 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
    */
   async countByStatus(status: string) {
     try {
-      return await prisma.lead.count({
-        where: { status },
+      return await prisma.leads.count({
+        where: { status: (status || '').toUpperCase() as unknown as Prisma.LeadStatus },
       });
     } catch (error) {
       this.handleError(error, 'countByStatus');

@@ -104,7 +104,7 @@ describe('React Query API Functions', () => {
           productId: '1',
           quantity: 100,
           companyName: 'ABC Corp',
-          status: 'pending',
+          status: "PENDING",
         },
       ];
 
@@ -145,7 +145,7 @@ describe('React Query API Functions', () => {
         companyName: 'Test Corp',
         email: 'test@example.com',
       };
-      const mockResponse = { id: '1', ...quoteData, status: 'pending' };
+      const mockResponse = { id: '1', ...quoteData, status: "PENDING" };
 
       mockAxios.post.mockResolvedValue({ data: mockResponse });
 

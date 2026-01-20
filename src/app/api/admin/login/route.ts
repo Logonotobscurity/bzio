@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is an admin
-    if (admin.role !== 'admin') {
+    if (admin.role !== "ADMIN") {
       // Log unauthorized role attempt
       await logAdminActivity(
         admin.id,
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate password exists
-    if (!admin.hashedPassword) {
+    if (!admin.password) {
       // Log password missing (should not happen in normal operation)
       await logAdminActivity(
         admin.id,
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify password
-    const passwordValid = await bcrypt.compare(password, admin.hashedPassword);
+    const passwordValid = await bcrypt.compare(password, admin.password);
 
     if (!passwordValid) {
       // Log failed attempt (account lockout fields not in schema yet)

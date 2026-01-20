@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 import { z } from 'zod';
 import { Resend } from 'resend';
-import { getServerSession } from 'next-auth';
+import { auth } from "@/lib/auth";
 import { logActivity } from '@/lib/activity-service';
 import { trackQuoteRequest } from '@/app/admin/_actions/tracking';
 import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     
     // Get session for authenticated user activity logging
-    const session = await getServerSession();
+    const session = await auth();
     
     const json = await req.json();
     const {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
           buyerContactEmail: email,
           buyerContactPhone: phone,
           buyerCompanyId: company || null,
-          status: 'draft',
+          status: "DRAFT",
           lines: {
             create: items.map(item => ({
               productId: item.id,

@@ -5,60 +5,38 @@
  * Single source of truth for app-level settings
  */
 
+import { env, APP_PUBLIC, FEATURE_FLAGS_PUBLIC, API_PUBLIC, CACHE_PUBLIC, RATELIMIT_PUBLIC, DATABASE_PUBLIC } from './env';
+
 /**
- * Application metadata
+ * Application metadata (sourced from validated `env` module)
  */
-export const APP_CONFIG = {
-  name: process.env.NEXT_PUBLIC_APP_NAME || 'BZION B2B Platform',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'https://bzion.shop',
-  version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
-  description: 'BZION B2B E-Commerce Platform',
-} as const;
+export const APP_CONFIG = APP_PUBLIC;
 
 /**
  * Environment configuration
  */
 export const ENV_CONFIG = {
-  isDevelopment: process.env.NODE_ENV === 'development',
-  isProduction: process.env.NODE_ENV === 'production',
-  isTest: process.env.NODE_ENV === 'test',
-  environment: process.env.NODE_ENV as 'development' | 'production' | 'test',
+  isDevelopment: env.isDevelopment,
+  isProduction: env.isProduction,
+  isTest: env.isTest,
+  environment: env.nodeEnv,
 } as const;
 
 /**
  * Feature flags
  */
-export const FEATURE_FLAGS = {
-  // Authentication features
-  ENABLE_EMAIL_AUTH: process.env.NEXT_PUBLIC_ENABLE_EMAIL_AUTH !== 'false',
-  ENABLE_CREDENTIALS_AUTH: process.env.NEXT_PUBLIC_ENABLE_CREDENTIALS_AUTH !== 'false',
-  ENABLE_MAGIC_LINKS: process.env.NEXT_PUBLIC_ENABLE_MAGIC_LINKS !== 'false',
-  
-  // Product features
-  ENABLE_QUOTE_REQUESTS: process.env.NEXT_PUBLIC_ENABLE_QUOTE_REQUESTS !== 'false',
-  ENABLE_SEARCH: process.env.NEXT_PUBLIC_ENABLE_SEARCH !== 'false',
-  ENABLE_FILTERING: process.env.NEXT_PUBLIC_ENABLE_FILTERING !== 'false',
-  
-  // Admin features
-  ENABLE_ADMIN_DASHBOARD: process.env.NEXT_PUBLIC_ENABLE_ADMIN_DASHBOARD !== 'false',
-  ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false',
-  ENABLE_CRM_SYNC: process.env.NEXT_PUBLIC_ENABLE_CRM_SYNC !== 'false',
-} as const;
+export const FEATURE_FLAGS = FEATURE_FLAGS_PUBLIC;
 
 /**
  * API configuration
  */
-export const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL,
-  timeout: parseInt(process.env.API_TIMEOUT || '30000'),
-  retries: parseInt(process.env.API_RETRIES || '3'),
-} as const;
+export const API_CONFIG = API_PUBLIC;
 
 /**
  * Email configuration
  */
 export const EMAIL_CONFIG = {
-  from: process.env.EMAIL_FROM || 'noreply@bzion.shop',
+  from: env.emailFrom || 'noreply@bzion.shop',
   replyTo: process.env.EMAIL_REPLY_TO || 'support@bzion.shop',
   adminEmail: process.env.ADMIN_EMAIL || 'admin@bzion.shop',
 } as const;
@@ -67,29 +45,43 @@ export const EMAIL_CONFIG = {
  * Cache configuration
  */
 export const CACHE_CONFIG = {
-  defaultTTL: parseInt(process.env.CACHE_TTL || '300'), // 5 minutes
-  redisTTL: parseInt(process.env.REDIS_TTL || '3600'), // 1 hour
-  maxSize: parseInt(process.env.CACHE_MAX_SIZE || '100'),
+  defaultTTL: CACHE_PUBLIC.defaultTTL,
+  redisTTL: CACHE_PUBLIC.redisTTL,
+  maxSize: CACHE_PUBLIC.maxSize,
 } as const;
 
 /**
  * Rate limiting configuration
  */
 export const RATELIMIT_CONFIG = {
-  defaultLimit: parseInt(process.env.RATELIMIT_DEFAULT || '100'),
-  windowMs: parseInt(process.env.RATELIMIT_WINDOW || '60000'), // 1 minute
-  maxRequests: parseInt(process.env.RATELIMIT_MAX_REQUESTS || '100'),
+  defaultLimit: RATELIMIT_PUBLIC.defaultLimit,
+  windowMs: RATELIMIT_PUBLIC.windowMs,
+  maxRequests: RATELIMIT_PUBLIC.maxRequests,
 } as const;
 
 /**
  * Database configuration
  */
 export const DATABASE_CONFIG = {
-  url: process.env.DATABASE_URL,
-  poolMin: parseInt(process.env.DATABASE_POOL_MIN || '2'),
-  poolMax: parseInt(process.env.DATABASE_POOL_MAX || '10'),
-  connectionTimeout: parseInt(process.env.DATABASE_CONNECTION_TIMEOUT || '5000'),
-  idleTimeout: parseInt(process.env.DATABASE_IDLE_TIMEOUT || '30000'),
+  url: DATABASE_PUBLIC.url,
+  poolMin: DATABASE_PUBLIC.poolMin,
+  poolMax: DATABASE_PUBLIC.poolMax,
+  connectionTimeout: DATABASE_PUBLIC.connectionTimeout,
+  idleTimeout: DATABASE_PUBLIC.idleTimeout,
+} as const;
+
+/**
+ * Configuration domains map
+ */
+const CONFIG = {
+  app: APP_CONFIG,
+  env: ENV_CONFIG,
+  features: FEATURE_FLAGS,
+  api: API_CONFIG,
+  email: EMAIL_CONFIG,
+  cache: CACHE_CONFIG,
+  ratelimit: RATELIMIT_CONFIG,
+  database: DATABASE_CONFIG,
 } as const;
 
 /**
@@ -97,17 +89,6 @@ export const DATABASE_CONFIG = {
  * Usage: getConfig('email')
  */
 export function getConfig<K extends keyof typeof CONFIG>(domain: K) {
-  const CONFIG = {
-    app: APP_CONFIG,
-    env: ENV_CONFIG,
-    features: FEATURE_FLAGS,
-    api: API_CONFIG,
-    email: EMAIL_CONFIG,
-    cache: CACHE_CONFIG,
-    ratelimit: RATELIMIT_CONFIG,
-    database: DATABASE_CONFIG,
-  };
-  
   return CONFIG[domain];
 }
 

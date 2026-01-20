@@ -139,9 +139,6 @@ export * from '@/lib/web-vitals';
 // Placeholder images
 export * from '@/lib/placeholder-images';
 
-// WebSocket handler
-export * from '@/lib/websocket-handler';
-
 // ============================================================================
 // NOTES FOR FUTURE REFACTORING
 // ============================================================================

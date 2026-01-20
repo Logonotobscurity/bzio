@@ -1,5 +1,5 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { formSubmissionSchema, contactFormSchema, newsletterFormSchema, quoteFormSchema } from '@/lib/validations/forms';
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
           return new Response(JSON.stringify({ message: 'Invalid contact form data', details: parsedData.error.format() }), { status: 400, headers });
         }
 
-        await prisma.formSubmission.create({
+        await prisma.form_submissions.create({
           data: {
             formType: 'contact',
             data: parsedData.data,
@@ -81,13 +81,14 @@ export async function POST(req: NextRequest) {
         }
         
         try {
-            await prisma.newsletterSubscriber.create({
+            await prisma.newsletter_subscribers.create({
               data: {
                 email: parsedData.data.email,
                 source: parsedData.data.source || 'Website Footer',
                 status: 'SUBSCRIBED',
               },
             });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             // Handle unique constraint violation for email
             if (error.code === 'P2002') {
@@ -159,7 +160,7 @@ export async function POST(req: NextRequest) {
             const createdQuote = await tx.quote.create({
               data: {
                 reference: quoteReference,
-                status: 'draft',
+                status: "DRAFT",
                 buyerContactEmail: email,
                 buyerContactPhone: phone,
                 customerId: customer.id,

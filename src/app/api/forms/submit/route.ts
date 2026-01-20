@@ -26,8 +26,6 @@ const formSubmissionSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-type FormSubmissionData = z.infer<typeof formSubmissionSchema>;
-
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting

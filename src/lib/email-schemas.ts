@@ -193,6 +193,7 @@ export function validateSendEmailRequest(data: unknown) {
     return {
       success: true,
       data: sendEmailSchema.parse(data),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       errors: [] as any[],
     };
   } catch (error) {
@@ -209,6 +210,7 @@ export function validateSendEmailRequest(data: unknown) {
     return {
       success: false,
       data: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       errors: [{ field: 'unknown', message: 'Validation error' }] as any[],
     };
   }
@@ -222,6 +224,7 @@ export function validateUserContactRequest(data: unknown) {
     return {
       success: true,
       data: userContactSchema.parse(data),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       errors: [] as any[],
     };
   } catch (error) {
@@ -238,6 +241,7 @@ export function validateUserContactRequest(data: unknown) {
     return {
       success: false,
       data: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       errors: [{ field: 'unknown', message: 'Validation error' }] as any[],
     };
   }

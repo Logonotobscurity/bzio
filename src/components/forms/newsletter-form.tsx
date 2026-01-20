@@ -46,7 +46,7 @@ export function NewsletterForm() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Network Error',
         description: 'Could not connect to the server. Please check your connection.',

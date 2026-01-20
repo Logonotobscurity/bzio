@@ -10,17 +10,16 @@ export async function trackCheckoutEvent(data: {
   email: string;
 }) {
   try {
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'checkout_completed',
         userId: data.userId,
-        data: {
+        eventData: {
           orderTotal: data.orderTotal,
           orderId: data.orderId,
           itemCount: data.itemCount,
           email: data.email,
         },
-        source: 'B2B_PLATFORM',
       },
     });
   } catch (error) {
@@ -36,17 +35,16 @@ export async function trackUserRegistration(data: {
   companyName?: string;
 }) {
   try {
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'user_registered',
         userId: data.userId,
-        data: {
+        eventData: {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
           companyName: data.companyName,
         },
-        source: 'B2B_PLATFORM',
       },
     });
   } catch (error) {
@@ -63,18 +61,17 @@ export async function trackQuoteRequest(data: {
   estimatedValue?: number;
 }) {
   try {
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'quote_requested',
         userId: data.userId,
-        data: {
+        eventData: {
           quoteId: data.quoteId,
           reference: data.reference,
           email: data.email,
           itemCount: data.itemCount,
           estimatedValue: data.estimatedValue,
         },
-        source: 'B2B_PLATFORM',
       },
     });
   } catch (error) {
@@ -88,7 +85,7 @@ export async function trackNewsletterSignup(data: {
 }) {
   try {
     // Create/update newsletter subscriber
-    await prisma.newsletterSubscriber.upsert({
+    await prisma.newsletter_subscribers.upsert({
       where: { email: data.email },
       update: {
         status: 'active',
@@ -104,14 +101,13 @@ export async function trackNewsletterSignup(data: {
     });
 
     // Track event
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'newsletter_signup',
-        data: {
+        eventData: {
           email: data.email,
           source: data.source,
         },
-        source: 'B2B_PLATFORM',
       },
     });
   } catch (error) {
@@ -132,10 +128,10 @@ export async function trackFormSubmission(data: {
   userAgent?: string;
 }) {
   try {
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'form_submitted',
-        data: {
+        eventData: {
           formSubmissionId: data.formSubmissionId,
           formType: data.formType,
           email: data.email,
@@ -145,7 +141,8 @@ export async function trackFormSubmission(data: {
           company: data.company,
           subject: data.subject,
         },
-        source: 'B2B_PLATFORM',
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
       },
     });
   } catch (error) {
@@ -159,7 +156,7 @@ export async function trackProductView(data: {
   ipAddress?: string;
 }) {
   try {
-    await prisma.productView.create({
+    await prisma.product_views.create({
       data: {
         productId: data.productId,
         userId: data.userId,
@@ -167,14 +164,14 @@ export async function trackProductView(data: {
       },
     });
 
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'product_viewed',
         userId: data.userId,
-        data: {
+        eventData: {
           productId: data.productId,
         },
-        source: 'B2B_PLATFORM',
+        ipAddress: data.ipAddress,
       },
     });
   } catch (error) {
@@ -188,7 +185,7 @@ export async function trackSearchQuery(data: {
   resultCount: number;
 }) {
   try {
-    await prisma.searchQuery.create({
+    await prisma.search_queries.create({
       data: {
         query: data.query,
         userId: data.userId,
@@ -196,15 +193,14 @@ export async function trackSearchQuery(data: {
       },
     });
 
-    await prisma.analyticsEvent.create({
+    await prisma.analytics_events.create({
       data: {
         eventType: 'search_performed',
         userId: data.userId,
-        data: {
+        eventData: {
           query: data.query,
           resultCount: data.resultCount,
         },
-        source: 'B2B_PLATFORM',
       },
     });
   } catch (error) {
@@ -220,7 +216,7 @@ export async function createNotification(data: {
   link?: string;
 }) {
   try {
-    const notification = await prisma.notification.create({
+    const notification = await prisma.notifications.create({
       data: {
         userId: data.userId,
         type: data.type,
@@ -237,7 +233,7 @@ export async function createNotification(data: {
 
 export async function updateUserLastLogin(userId: number) {
   try {
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: userId },
       data: {
         lastLogin: new Date(),

@@ -6,10 +6,7 @@
  */
 
 import { newsletterSubscriberRepository } from '@/repositories';
-import type { Prisma } from '@prisma/client';
-
-// Use repository type directly
-type NewsletterSubscriber = Prisma.NewsletterSubscriberGetPayload<{}>;
+import type { NewsletterSubscriber } from '@/lib/types/domain';
 
 interface SubscribeInput {
   email: string;
@@ -34,15 +31,18 @@ export class NewsletterService {
 
     // Check if already subscribed
     const existing = await newsletterSubscriberRepository.findByEmail(input.email);
-    if (existing && existing.status === 'active') {
+    // support both legacy `status` field and newer `isActive` boolean
+    const alreadyActive = existing && ((existing as any).status === 'active' || (existing as any).isActive === true);
+    if (alreadyActive) {
       throw new Error('Email already subscribed');
     }
 
     // Create or reactivate subscription
-    if (existing && existing.status !== 'active') {
+    if (existing && !alreadyActive) {
       return (await newsletterSubscriberRepository.update(existing.id, {
         status: 'active',
         metadata: input.metadata,
+        unsubscribedAt: null,
       })) as unknown as NewsletterSubscriber;
     }
 
@@ -63,7 +63,7 @@ export class NewsletterService {
       throw new Error('Subscriber not found');
     }
 
-    return (await newsletterSubscriberRepository.unsubscribe(subscriber.id)) as unknown as NewsletterSubscriber;
+    return (await newsletterSubscriberRepository.unsubscribe(String((subscriber as any).id))) as unknown as NewsletterSubscriber;
   }
 
   /**
@@ -78,7 +78,7 @@ export class NewsletterService {
    */
   async getActiveSubscribers(limit?: number, skip?: number): Promise<NewsletterSubscriber[]> {
     const all = await newsletterSubscriberRepository.findAll(limit, skip);
-    return (all?.filter(s => s.status === 'active') || []) as unknown as NewsletterSubscriber[];
+    return (all?.filter(s => (s as any).status === 'active' || (s as any).isActive === true) || []) as unknown as NewsletterSubscriber[];
   }
 
   /**

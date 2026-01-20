@@ -13,14 +13,14 @@ import { logActivity } from '@/lib/activity-service';
 export async function trackNewsletterSignup(email: string): Promise<void> {
   try {
     // Check if already subscribed
-    const existing = await prisma.newsletterSubscriber.findUnique({
+    const existing = await prisma.newsletter_subscribers.findUnique({
       where: { email },
     });
 
     if (existing) {
       // Reactivate if unsubscribed
       if (existing.status !== 'active') {
-        await prisma.newsletterSubscriber.update({
+        await prisma.newsletter_subscribers.update({
           where: { email },
           data: {
             status: 'active',
@@ -32,7 +32,7 @@ export async function trackNewsletterSignup(email: string): Promise<void> {
     }
 
     // Create new subscription
-    await prisma.newsletterSubscriber.create({
+    await prisma.newsletter_subscribers.create({
       data: {
         email,
         status: 'active',
@@ -59,7 +59,7 @@ export async function trackNewsletterSignup(email: string): Promise<void> {
  */
 export async function trackNewsletterUnsubscribe(email: string): Promise<void> {
   try {
-    await prisma.newsletterSubscriber.updateMany({
+    await prisma.newsletter_subscribers.updateMany({
       where: { email },
       data: {
         status: 'unsubscribed',
@@ -89,11 +89,11 @@ export async function getNewsletterMetrics(): Promise<{
   unsubscribed: number;
 }> {
   try {
-    const total = await prisma.newsletterSubscriber.count();
-    const active = await prisma.newsletterSubscriber.count({
+    const total = await prisma.newsletter_subscribers.count();
+    const active = await prisma.newsletter_subscribers.count({
       where: { status: 'active' },
     });
-    const unsubscribed = await prisma.newsletterSubscriber.count({
+    const unsubscribed = await prisma.newsletter_subscribers.count({
       where: { status: 'unsubscribed' },
     });
 
@@ -113,7 +113,7 @@ export async function getNewsletterMetrics(): Promise<{
  */
 export async function getRecentSubscribers(limit: number = 20) {
   try {
-    return await prisma.newsletterSubscriber.findMany({
+    return await prisma.newsletter_subscribers.findMany({
       take: limit,
       where: { status: 'active' },
       orderBy: { subscribedAt: 'desc' },

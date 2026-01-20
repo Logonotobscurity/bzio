@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
 
-type FormSubmission = Prisma.FormSubmissionGetPayload<{}>;
+type FormSubmission = Prisma.form_submissionsGetPayload<{}>;
 
 interface CreateFormSubmissionInput {
   formType: string;
@@ -26,7 +26,7 @@ interface UpdateFormSubmissionInput {
 export class FormSubmissionRepository extends BaseRepository<FormSubmission, CreateFormSubmissionInput, UpdateFormSubmissionInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.formSubmission.findMany({
+      return await prisma.form_submissions.findMany({
         take: limit,
         skip,
         orderBy: { submittedAt: 'desc' },
@@ -38,7 +38,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async findById(id: string | number) {
     try {
-      return await prisma.formSubmission.findUnique({
+      return await prisma.form_submissions.findUnique({
         where: { id: String(id) },
       });
     } catch (error) {
@@ -48,7 +48,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async create(data: CreateFormSubmissionInput) {
     try {
-      return await prisma.formSubmission.create({
+      return await prisma.form_submissions.create({
         data: {
           formType: data.formType,
           data: data.data,
@@ -64,7 +64,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async update(id: string | number, data: UpdateFormSubmissionInput) {
     try {
-      return await prisma.formSubmission.update({
+      return await prisma.form_submissions.update({
         where: { id: String(id) },
         data,
       });
@@ -75,7 +75,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async delete(id: string | number) {
     try {
-      await prisma.formSubmission.delete({
+      await prisma.form_submissions.delete({
         where: { id: String(id) },
       });
       return true;
@@ -86,7 +86,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async findByStatus(status: string, limit?: number, skip?: number) {
     try {
-      return await prisma.formSubmission.findMany({
+      return await prisma.form_submissions.findMany({
         where: { status },
         take: limit,
         skip,
@@ -99,7 +99,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async findPending(limit?: number, skip?: number) {
     try {
-      return await prisma.formSubmission.findMany({
+      return await prisma.form_submissions.findMany({
         where: { status: 'NEW' },
         take: limit,
         skip,
@@ -112,7 +112,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
 
   async count() {
     try {
-      return await prisma.formSubmission.count();
+      return await prisma.form_submissions.count();
     } catch (error) {
       this.handleError(error, 'count');
     }

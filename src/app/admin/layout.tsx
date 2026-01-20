@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
+import { auth } from "@/lib/auth";
 import { Bell, Home, Package2, ShoppingCart, Users, FileText, Mail, BarChart3 } from "lucide-react";
 import { USER_ROLES } from "@/lib/auth-constants";
 
@@ -12,7 +12,7 @@ export default async function AdminLayout({
   }: {
     children: React.ReactNode
   }) {
-  const session = await getServerSession();
+  const session = await auth();
   if (!session || session.user?.role !== USER_ROLES.ADMIN) {
     redirect('/admin/login');
   }

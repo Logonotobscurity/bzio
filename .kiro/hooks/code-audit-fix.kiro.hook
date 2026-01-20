@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Expert Code Audit & Automated Fix",
+  "description": "Comprehensive TypeScript/Next.js code auditor that validates imports, variables, functions, Prisma schema alignment, fixes TypeScript errors, ESLint issues, and ensures production-ready code standards",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "prisma/schema.prisma",
+      "*.ts",
+      "*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "You are an expert TypeScript/Next.js code auditor and fixer. Analyze the edited file and perform a comprehensive audit:\n\n1. CODE CONTEXT VALIDATION\n- Check if all imports are used and necessary\n- Verify variables/constants are declared AND used\n- Ensure functions are called from at least one location\n- Validate type definitions match their usage\n- Check file structure matches Next.js conventions\n\n2. SPELLING & NAMING VALIDATION\n- Check for misspelled variable/function names\n- Verify consistent naming conventions (camelCase vs snake_case)\n- Look for typos in string literals and comments\n- Ensure Prisma models use snake_case, TypeScript uses camelCase\n\n3. PRISMA SCHEMA SYNCHRONIZATION\n- Verify 100% alignment between schema.prisma and code usage\n- Check for model name mismatches (e.g., crmNotification vs crm_notifications)\n- Identify missing models or fields\n- Generate fixes for schema misalignments\n\n4. TYPESCRIPT ERROR RESOLUTION\n- Fix type errors, import errors, eliminate 'any' types\n- Replace with proper type definitions\n- Ensure JSX imports are correct\n\n5. ESLINT ERROR RESOLUTION\n- Fix critical build blockers first\n- Remove unused variables/imports\n- Replace 'any' types with proper types\n- Fix react-hooks dependencies\n\nRun these commands to validate fixes:\n```bash\nnpm run lint\nnpx tsc --noEmit\nnpx prisma validate\nnpx prisma generate\n```\n\nProvide specific fixes for any issues found and ensure the code is production-ready."
+  }
+}

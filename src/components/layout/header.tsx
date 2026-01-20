@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { getUserDashboardPath, USER_ROLES } from "@/lib/auth-constants";
+import { getUserDashboardPath } from "@/lib/auth-constants";
 import { SearchBar } from "@/components/search-bar";
 import { cn } from "@/lib/utils";
 import {

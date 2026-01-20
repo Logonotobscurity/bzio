@@ -66,11 +66,11 @@ export async function getFormMetrics(): Promise<{
   otherForms: number;
 }> {
   try {
-    const total = await prisma.formSubmission.count();
-    const contactForms = await prisma.formSubmission.count({
+    const total = await prisma.form_submissions.count();
+    const contactForms = await prisma.form_submissions.count({
       where: { formType: 'contact' },
     });
-    const quoteForms = await prisma.formSubmission.count({
+    const quoteForms = await prisma.form_submissions.count({
       where: { formType: 'quote_request' },
     });
 
@@ -91,7 +91,7 @@ export async function getFormMetrics(): Promise<{
  */
 export async function getRecentFormSubmissions(limit: number = 10) {
   try {
-    return await prisma.formSubmission.findMany({
+    return await prisma.form_submissions.findMany({
       take: limit,
       orderBy: { submittedAt: 'desc' },
       select: {

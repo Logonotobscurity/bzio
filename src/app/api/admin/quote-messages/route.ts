@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { auth } from "@/lib/auth";
 import { prisma } from '@/lib/db';
 
 /**
@@ -9,8 +9,8 @@ import { prisma } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // ✅ CRITICAL: Verify admin access
-    const session = await getServerSession();
-    if (!session || session.user?.role !== 'admin') {
+    const session = await auth();
+    if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // ✅ CRITICAL: Verify admin access
-    const session = await getServerSession();
-    if (!session || session.user?.role !== 'admin') {
+    const session = await auth();
+    if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }

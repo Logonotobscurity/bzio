@@ -1,14 +1,12 @@
 import { prisma } from '@/lib/db';
-
-export type NotificationType = 'new_quote' | 'new_form' | 'new_user' | 'quote_message' | 'new_newsletter' | 'quote_request' | 'quote_status_change' | 'user_registration';
+import { AdminNotificationType } from '@prisma/client';
 
 export interface NotificationPayload {
   adminId: number;
-  type: NotificationType;
+  type: AdminNotificationType;
   title: string;
   message: string;
   data?: Record<string, string | number | boolean | null>;
-  actionUrl?: string;
 }
 
 /**
@@ -17,15 +15,14 @@ export interface NotificationPayload {
  */
 export async function createAdminNotification(payload: NotificationPayload) {
   try {
-    const notification = await prisma.adminNotification.create({
+    const notification = await prisma.admin_notifications.create({
       data: {
         adminId: payload.adminId,
         type: payload.type,
         title: payload.title,
         message: payload.message,
         data: payload.data || {},
-        actionUrl: payload.actionUrl || null,
-        read: false,
+        isRead: false,
       },
     });
 
@@ -41,15 +38,14 @@ export async function createAdminNotification(payload: NotificationPayload) {
  * Broadcast a notification to all admins
  */
 export async function broadcastAdminNotification(
-  type: NotificationType,
+  type: AdminNotificationType,
   title: string,
   message: string,
-  data?: Record<string, string | number | boolean | null>,
-  actionUrl?: string
+  data?: Record<string, string | number | boolean | null>
 ) {
   try {
     // Get all admins
-    const admins = await prisma.user.findMany({
+    const admins = await prisma.users.findMany({
       where: { role: 'ADMIN' },
       select: { id: true },
     });
@@ -63,7 +59,6 @@ export async function broadcastAdminNotification(
           title,
           message,
           data,
-          actionUrl,
         })
       )
     );
@@ -80,10 +75,10 @@ export async function broadcastAdminNotification(
  */
 export async function getAdminUnreadCount(adminId: number) {
   try {
-    const count = await prisma.adminNotification.count({
+    const count = await prisma.admin_notifications.count({
       where: {
         adminId,
-        read: false,
+        isRead: false,
       },
     });
     return count;
@@ -98,13 +93,13 @@ export async function getAdminUnreadCount(adminId: number) {
  */
 export async function markAllAsRead(adminId: number) {
   try {
-    await prisma.adminNotification.updateMany({
+    await prisma.admin_notifications.updateMany({
       where: {
         adminId,
-        read: false,
+        isRead: false,
       },
       data: {
-        read: true,
+        isRead: true,
       },
     });
   } catch (error) {
@@ -119,7 +114,7 @@ export async function clearOldNotifications() {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    await prisma.adminNotification.deleteMany({
+    await prisma.admin_notifications.deleteMany({
       where: {
         createdAt: {
           lt: thirtyDaysAgo,

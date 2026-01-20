@@ -118,7 +118,7 @@ export const createMockQuote = (overrides: any = {}) => ({
   quantity: 5,
   unit: 'kg',
   totalPrice: 500,
-  status: 'pending',
+  status: "PENDING",
   message: 'Test message',
   createdAt: new Date(),
   updatedAt: new Date(),

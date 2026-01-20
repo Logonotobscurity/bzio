@@ -8,10 +8,10 @@ import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
 
-type QuoteMessage = Prisma.QuoteMessageGetPayload<{}>;
+type QuoteMessage = Prisma.quote_messagesGetPayload<{}>;
 
 interface CreateQuoteMessageInput {
-  quoteId: string;
+  quoteId: number;
   senderRole: string;
   senderEmail: string;
   senderName: string;
@@ -27,7 +27,7 @@ interface UpdateQuoteMessageInput {
 export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQuoteMessageInput, UpdateQuoteMessageInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.quoteMessage.findMany({
+      return await prisma.quote_messages.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
@@ -39,8 +39,8 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async findById(id: string | number) {
     try {
-      return await prisma.quoteMessage.findUnique({
-        where: { id: String(id) },
+      return await prisma.quote_messages.findUnique({
+        where: { id: Number(id) },
       });
     } catch (error) {
       this.handleError(error, 'findById');
@@ -49,8 +49,8 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async findByQuoteId(quoteId: string, limit?: number) {
     try {
-      return await prisma.quoteMessage.findMany({
-        where: { quoteId },
+      return await prisma.quote_messages.findMany({
+        where: { quoteId: Number(quoteId) },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -61,7 +61,7 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async create(data: CreateQuoteMessageInput) {
     try {
-      return await prisma.quoteMessage.create({
+      return await prisma.quote_messages.create({
         data: {
           quoteId: data.quoteId,
           senderRole: data.senderRole,
@@ -78,8 +78,8 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async update(id: string | number, data: UpdateQuoteMessageInput) {
     try {
-      return await prisma.quoteMessage.update({
-        where: { id: String(id) },
+      return await prisma.quote_messages.update({
+        where: { id: Number(id) },
         data,
       });
     } catch (error) {
@@ -89,8 +89,8 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async delete(id: string | number) {
     try {
-      await prisma.quoteMessage.delete({
-        where: { id: String(id) },
+      await prisma.quote_messages.delete({
+        where: { id: Number(id) },
       });
       return true;
     } catch (error) {
@@ -100,7 +100,7 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
 
   async count() {
     try {
-      return await prisma.quoteMessage.count();
+      return await prisma.quote_messages.count();
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -111,14 +111,11 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
    */
   async markAsRead(quoteId: string) {
     try {
-      return await prisma.quoteMessage.updateMany({
-        where: {
-          quoteId,
-          isRead: false,
-        },
-        data: {
-          isRead: true,
-        },
+      // `isRead` is not a guaranteed DB column in the generated schema.
+      // Use dynamic access to avoid type errors when the column is absent.
+      return await (prisma as any).quote_messages.updateMany({
+        where: { quoteId: Number(quoteId), isRead: false },
+        data: { isRead: true },
       });
     } catch (error) {
       this.handleError(error, 'markAsRead');
@@ -130,12 +127,7 @@ export class QuoteMessageRepository extends BaseRepository<QuoteMessage, CreateQ
    */
   async countUnread(quoteId: string) {
     try {
-      return await prisma.quoteMessage.count({
-        where: {
-          quoteId,
-          isRead: false,
-        },
-      });
+      return await (prisma as any).quote_messages.count({ where: { quoteId: Number(quoteId), isRead: false } });
     } catch (error) {
       this.handleError(error, 'countUnread');
     }

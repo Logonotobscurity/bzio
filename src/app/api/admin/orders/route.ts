@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { auth } from "@/lib/auth";
 import { getRecentQuotes, getOrderStats } from '@/app/admin/_actions/orders';
 
 /**
@@ -7,11 +7,11 @@ import { getRecentQuotes, getOrderStats } from '@/app/admin/_actions/orders';
  * Fetch orders/quotes data for the dashboard
  * ADMIN-ONLY ENDPOINT
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // ✅ CRITICAL: Verify admin access
-    const session = await getServerSession();
-    if (!session || session.user?.role !== 'admin') {
+    const session = await auth();
+    if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }

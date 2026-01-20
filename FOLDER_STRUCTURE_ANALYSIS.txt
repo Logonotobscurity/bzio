@@ -1,0 +1,792 @@
+================================================================================
+                    APPLICATION FOLDER STRUCTURE & FLOW ANALYSIS
+================================================================================
+
+================================================================================
+1. ADMIN FOLDER STRUCTURE (/src/app/admin)
+================================================================================
+
+src/app/admin/
+├── _actions/                          # Server Actions (Backend Logic)
+│   ├── activities.ts                  # Activity tracking & logging
+│   ├── forms.ts                       # Form submission handling
+│   ├── newsletter.ts                  # Newsletter management actions
+│   ├── notifications.ts               # Admin notification actions
+│   ├── products.ts                    # Product CRUD operations
+│   ├── quotes.ts                      # Quote management actions
+│   ├── tracking.ts                    # Analytics tracking
+│   └── users.ts                       # User management actions
+│
+├── _components/                       # Shared Admin UI Components
+│   ├── ActivityFeed.tsx               # Recent activity display
+│   ├── DashboardFilters.tsx           # Filter controls for dashboard
+│   ├── DataTable.tsx                  # Reusable data table component
+│   ├── ExportButton.tsx               # Data export functionality
+│   ├── MetricsCards.tsx               # Dashboard metric cards
+│   ├── QuoteActionsModal.tsx          # Quote action dialogs
+│   ├── StatusBadge.tsx                # Status indicator badges
+│   ├── UserActionsModal.tsx           # User action dialogs
+│   └── index.ts                       # Component exports
+│
+├── _services/                         # Business Logic Services
+│   ├── analytics.service.ts           # Analytics data processing
+│   ├── newsletter.service.ts          # Newsletter operations
+│   ├── product.service.ts             # Product business logic
+│   ├── quote.service.ts               # Quote business logic
+│   ├── user.service.ts                # User business logic
+│   └── index.ts                       # Service exports
+│
+├── analytics/                         # Analytics Page
+│   ├── AnalyticsClient.tsx            # Client-side analytics component
+│   └── page.tsx                       # Analytics page (Server Component)
+│
+├── login/                             # Admin Login
+│   ├── admin-login-content.tsx        # Login form content
+│   ├── layout.tsx                     # Login page layout (no auth required)
+│   └── page.tsx                       # Admin login page
+│
+├── newsletter/                        # Newsletter Management
+│   ├── NewsletterClient.tsx           # Newsletter management UI
+│   └── page.tsx                       # Newsletter page
+│
+├── notifications/                     # Admin Notifications
+│   ├── NotificationsClient.tsx        # Notifications UI
+│   └── page.tsx                       # Notifications page
+│
+├── products/                          # Product Management
+│   ├── _components/
+│   │   ├── ProductSearch.tsx          # Product search component
+│   │   └── ProductTable.tsx           # Product listing table
+│   ├── ProductsClient.tsx             # Products management UI
+│   └── page.tsx                       # Products page
+│
+├── quotes/                            # Quote Management
+│   ├── QuotesClient.tsx               # Quotes management UI
+│   └── page.tsx                       # Quotes page
+│
+├── settings/                          # Admin Settings
+│   └── page.tsx                       # Settings page
+│
+├── users/                             # User Management
+│   ├── UsersClient.tsx                # Users management UI
+│   └── page.tsx                       # Users page
+│
+├── AdminDashboardClient.tsx           # Main dashboard client component
+├── error.tsx                          # Error boundary
+├── layout.tsx                         # Admin layout (with auth protection)
+├── loading.tsx                        # Loading state
+└── page.tsx                           # Admin dashboard home
+
+ADMIN FLOW:
+-----------
+1. User navigates to /admin
+2. layout.tsx checks authentication (requires ADMIN role)
+3. If not authenticated → redirect to /admin/login
+4. If authenticated → render AdminDashboardClient.tsx
+5. Dashboard loads data via _services/ and _actions/
+6. Sub-pages (products, users, quotes, etc.) follow same pattern
+
+
+================================================================================
+2. ACCOUNT FOLDER STRUCTURE (/src/app/account) - User Dashboard
+================================================================================
+
+src/app/account/
+├── _actions/                          # Server Actions
+│   ├── dashboard.ts                   # Dashboard data fetching
+│   └── settings.ts                    # User settings updates
+│
+├── _components/                       # Shared Account Components
+│   ├── RequestQuoteButton.tsx         # Quick quote request
+│   ├── UserAccountDetails.tsx         # Account info display
+│   ├── UserDashboardShell.tsx         # Dashboard layout wrapper
+│   ├── UserGreeting.tsx               # Personalized greeting
+│   ├── UserRecentActivity.tsx         # Activity history
+│   └── UserStatsCards.tsx             # User statistics cards
+│
+├── _types/                            # TypeScript Types
+│   └── dashboard.ts                   # Dashboard type definitions
+│
+├── notifications/                     # User Notifications
+│   ├── NotificationsClient.tsx        # Notifications UI
+│   └── page.tsx                       # Notifications page
+│
+├── orders/                            # Order History
+│   └── page.tsx                       # Orders page
+│
+├── quotes/                            # User Quotes
+│   ├── QuotesClient.tsx               # Quotes UI
+│   └── page.tsx                       # Quotes page
+│
+├── settings/                          # User Settings
+│   ├── SettingsClient.tsx             # Settings form UI
+│   └── page.tsx                       # Settings page
+│
+├── error.tsx                          # Error boundary
+├── layout.tsx                         # Account layout (requires USER auth)
+├── loading.tsx                        # Loading state
+└── page.tsx                           # Account dashboard home
+
+USER ACCOUNT FLOW:
+------------------
+1. User navigates to /account
+2. layout.tsx checks authentication (requires USER role)
+3. If not authenticated → redirect to /login
+4. If authenticated → render user dashboard
+5. Dashboard shows: greeting, stats, recent activity, quick actions
+6. Sub-pages for quotes, orders, notifications, settings
+
+
+================================================================================
+3. AUTHENTICATION & LOGIN STRUCTURE (DETAILED)
+================================================================================
+
+LOGIN PAGES:
+------------
+src/app/login/
+└── page.tsx                           # Main unified login page (Customer & Admin)
+
+src/app/admin/login/
+├── admin-login-content.tsx            # Admin-specific login form UI
+├── layout.tsx                         # Standalone layout (bypasses admin auth)
+└── page.tsx                           # Admin login page (server component)
+
+src/app/auth/
+├── login/                             # (Empty - uses /login instead)
+└── register/
+    └── page.tsx                       # User registration page
+
+AUTH COMPONENTS:
+----------------
+src/components/auth/
+├── auth-status.tsx                    # Auth state display component
+├── base-login-form.tsx                # Reusable login form base
+├── logout-button.tsx                  # Logout functionality
+└── WelcomeAlert.tsx                   # Post-login welcome message
+
+AUTH LIBRARY:
+-------------
+src/lib/
+├── auth/
+│   └── jwt-auth.ts                    # JWT token handling utilities
+├── auth.ts                            # NextAuth v5 FULL configuration (Node.js)
+├── auth.config.ts                     # Edge-safe config (for middleware)
+├── auth-constants.ts                  # Role constants & redirect paths
+└── prisma.ts                          # Database connection
+
+API ROUTES:
+-----------
+src/app/api/auth/
+├── [...nextauth]/
+│   └── route.ts                       # NextAuth catch-all handler
+├── register/
+│   └── route.ts                       # POST: User registration
+└── logout/
+    └── route.ts                       # POST: Session logout
+
+
+================================================================================
+3.1 LOGIN PROCESS - DETAILED EXPLANATION
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         LOGIN FLOW DIAGRAM                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    User visits /login or /admin/login
+              │
+              ▼
+    ┌─────────────────────┐
+    │   Login Page        │
+    │   (Client Component)│
+    │   - /login/page.tsx │
+    │   - /admin/login/   │
+    │     page.tsx        │
+    └──────────┬──────────┘
+               │
+               │ User submits email + password
+               ▼
+    ┌─────────────────────┐
+    │   signIn()          │
+    │   (next-auth/react) │
+    │   redirect: false   │
+    └──────────┬──────────┘
+               │
+               │ POST request
+               ▼
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │   /api/auth/[...nextauth]/route.ts                                      │
+    │   ─────────────────────────────────────────────────────────────────────│
+    │   Handles: /api/auth/signin, /api/auth/callback/credentials, etc.      │
+    │   Exports: { GET, POST } = handlers from src/lib/auth.ts               │
+    └──────────┬──────────────────────────────────────────────────────────────┘
+               │
+               ▼
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │   CREDENTIALS PROVIDER (src/lib/auth.ts)                                │
+    │   ─────────────────────────────────────────────────────────────────────│
+    │   authorize() function:                                                 │
+    │   1. Validate credentials exist                                         │
+    │   2. Query database: prisma.user.findUnique({ email })                 │
+    │   3. Check user.isActive === true                                       │
+    │   4. Compare password: bcryptjs.compare(password, user.password)       │
+    │   5. Update lastLogin timestamp                                         │
+    │   6. Return User object with: id, email, name, role, company           │
+    └──────────┬──────────────────────────────────────────────────────────────┘
+               │
+               │ If valid credentials
+               ▼
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │   JWT CALLBACK (src/lib/auth.ts)                                        │
+    │   ─────────────────────────────────────────────────────────────────────│
+    │   On initial sign-in:                                                   │
+    │   - token.role = user.role (ADMIN or CUSTOMER)                         │
+    │   - token.company = user.company                                        │
+    │                                                                         │
+    │   On subsequent requests (trigger === "update"):                        │
+    │   - Refresh role from database (ensures role changes take effect)      │
+    └──────────┬──────────────────────────────────────────────────────────────┘
+               │
+               ▼
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │   SESSION CALLBACK (src/lib/auth.ts)                                    │
+    │   ─────────────────────────────────────────────────────────────────────│
+    │   Exposes token data to client:                                         │
+    │   - session.user.id = token.sub                                         │
+    │   - session.user.role = token.role                                      │
+    │   - session.user.company = token.company                                │
+    └──────────┬──────────────────────────────────────────────────────────────┘
+               │
+               │ Returns to client
+               ▼
+    ┌─────────────────────┐
+    │   Login Page        │
+    │   Receives result   │
+    │   result.ok = true  │
+    └──────────┬──────────┘
+               │
+               │ getSession() to get role
+               ▼
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │   ROLE-BASED REDIRECT (Login Page)                                      │
+    │   ─────────────────────────────────────────────────────────────────────│
+    │   if (role === 'ADMIN') → router.push('/admin')                        │
+    │   else                  → router.push('/account')                       │
+    └─────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+3.2 CALLBACK URLs & REDIRECT BEHAVIOR
+================================================================================
+
+CALLBACK URL HANDLING:
+----------------------
+When an unauthenticated user tries to access a protected route:
+
+1. Middleware intercepts request (src/middleware.ts)
+2. authorized() callback in auth.config.ts checks authentication
+3. If not logged in, redirects to login with callbackUrl:
+   
+   Example: User tries to access /account/settings
+   → Redirects to: /login?callbackUrl=/account/settings
+
+4. After successful login, user is redirected to original destination
+
+CODE FLOW:
+----------
+src/lib/auth.config.ts → authorized() callback:
+
+    // User routes - require authentication
+    if (isUserRoute) {
+      if (!isLoggedIn) {
+        const loginUrl = new URL("/login", nextUrl);
+        loginUrl.searchParams.set("callbackUrl", path);  // ← Preserves original URL
+        return Response.redirect(loginUrl);
+      }
+      return true;
+    }
+
+    // Admin routes - require ADMIN role
+    if (isAdminRoute) {
+      if (!isLoggedIn) {
+        const loginUrl = new URL("/login", nextUrl);
+        loginUrl.searchParams.set("callbackUrl", path);  // ← Preserves original URL
+        return Response.redirect(loginUrl);
+      }
+      if (role !== USER_ROLES.ADMIN) {
+        return Response.redirect(new URL("/403", nextUrl));  // ← Forbidden
+      }
+      return true;
+    }
+
+
+REDIRECT PATHS (src/lib/auth-constants.ts):
+-------------------------------------------
+    export const REDIRECT_PATHS = {
+      ADMIN_DASHBOARD: '/admin',      // Admin users go here
+      USER_DASHBOARD: '/account',     // Customer users go here
+      LOGIN: '/login',                // Login page
+      REGISTER: '/register',          // Registration page
+      UNAUTHORIZED: '/403',           // Access denied page
+      NOT_FOUND: '/404',              // Not found page
+    };
+
+
+================================================================================
+3.3 MIDDLEWARE ROUTE PROTECTION
+================================================================================
+
+FILE: src/middleware.ts
+-----------------------
+    export { auth as middleware } from "@/lib/auth";
+    
+    export const config = {
+      matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+    };
+
+The middleware uses NextAuth's auth() function which internally calls
+the authorized() callback from auth.config.ts.
+
+
+ROUTE PROTECTION LOGIC (src/lib/auth.config.ts):
+------------------------------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ROUTE PROTECTION MATRIX                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Route Pattern          │ Auth Required │ Role Required │ Redirect If Fail  │
+├─────────────────────────┼───────────────┼───────────────┼───────────────────┤
+│  /                      │ No            │ None          │ N/A               │
+│  /products/*            │ No            │ None          │ N/A               │
+│  /login                 │ No            │ None          │ N/A               │
+│  /register              │ No            │ None          │ N/A               │
+│  /admin/login           │ No            │ None          │ N/A               │
+│  /api/auth/*            │ No            │ None          │ N/A               │
+├─────────────────────────┼───────────────┼───────────────┼───────────────────┤
+│  /account/*             │ Yes           │ Any           │ /login            │
+│  /checkout/*            │ Yes           │ Any           │ /login            │
+├─────────────────────────┼───────────────┼───────────────┼───────────────────┤
+│  /admin/*               │ Yes           │ ADMIN         │ /login or /403    │
+│  (except /admin/login)  │               │               │                   │
+└─────────────────────────┴───────────────┴───────────────┴───────────────────┘
+
+PUBLIC ROUTES (No authentication required):
+    const exactPublicPaths = ["/"];
+    const prefixPublicPaths = [
+      "/products",
+      "/quote",
+      "/guest-quote",
+      "/newsletter",
+      "/contact",
+      "/login",
+      "/register",
+      "/auth/",
+      "/api/auth/",
+      "/_next/",
+      "/favicon.ico",
+      "/403",
+      "/404",
+      "/admin/login",  // Admin login is public!
+    ];
+
+
+================================================================================
+3.4 LOGIN PAGE BEHAVIOR
+================================================================================
+
+MAIN LOGIN PAGE (/login/page.tsx):
+----------------------------------
+- Client component with unified login for both Customer and Admin
+- Uses login type selector (Customer/Admin toggle)
+- Both types use same signIn() call - role is determined by database
+
+BEHAVIOR:
+1. Check if already authenticated (useSession hook)
+2. If authenticated → redirect to appropriate dashboard based on role
+3. If not authenticated → show login form
+4. On submit:
+   - Call signIn('credentials', { email, password, redirect: false })
+   - If error → show toast error
+   - If success → getSession() to get role → redirect based on role
+
+    // Role-based redirect after login
+    const redirectUrl = userRole === USER_ROLES.ADMIN
+      ? REDIRECT_PATHS.ADMIN_DASHBOARD   // '/admin'
+      : REDIRECT_PATHS.USER_DASHBOARD;   // '/account'
+    
+    router.push(redirectUrl);
+
+
+ADMIN LOGIN PAGE (/admin/login/page.tsx):
+-----------------------------------------
+- Server component that checks auth before rendering
+- If already admin → redirect to /admin
+- If logged in but not admin → redirect to /403
+- If not logged in → render AdminLoginContent (client component)
+
+    export default async function AdminLoginPage() {
+      const session = await auth();
+      
+      if (session?.user) {
+        const userRole = (session.user as { role?: string }).role;
+        if (userRole === USER_ROLES.ADMIN) {
+          redirect('/admin');  // Already admin, go to dashboard
+        }
+        redirect('/403');      // Logged in but not admin
+      }
+      
+      return <AdminLoginContent />;  // Show login form
+    }
+
+
+================================================================================
+3.5 FILES RESPONSIBLE FOR EACH FUNCTION
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  FUNCTION                    │  FILE(S) RESPONSIBLE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Login Page UI               │  src/app/login/page.tsx                      │
+│                              │  src/app/admin/login/admin-login-content.tsx │
+│                              │  src/components/auth/base-login-form.tsx     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Credential Validation       │  src/lib/auth.ts (authorize function)        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  JWT Token Creation          │  src/lib/auth.ts (jwt callback)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Session Management          │  src/lib/auth.ts (session callback)          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Route Protection            │  src/middleware.ts                           │
+│                              │  src/lib/auth.config.ts (authorized callback)│
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Callback URL Handling       │  src/lib/auth.config.ts (authorized callback)│
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Role Constants              │  src/lib/auth-constants.ts                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Redirect Paths              │  src/lib/auth-constants.ts                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  API Handler                 │  src/app/api/auth/[...nextauth]/route.ts     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Database Queries            │  src/lib/prisma.ts                           │
+│                              │  src/lib/auth.ts (authorize function)        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Password Hashing            │  bcryptjs (in src/lib/auth.ts)               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Logout                      │  src/app/api/auth/logout/route.ts            │
+│                              │  src/components/auth/logout-button.tsx       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Registration                │  src/app/api/auth/register/route.ts          │
+│                              │  src/app/auth/register/page.tsx              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+3.6 NEXTAUTH CALLBACKS EXPLAINED
+================================================================================
+
+NextAuth uses a callback chain to process authentication:
+
+1. AUTHORIZE CALLBACK (Credentials Provider):
+   - Validates email/password against database
+   - Returns User object or null
+   - Location: src/lib/auth.ts → providers → Credentials → authorize()
+
+2. JWT CALLBACK:
+   - Called when JWT is created or updated
+   - Adds custom data (role, company) to token
+   - Location: src/lib/auth.ts → callbacks → jwt()
+
+3. SESSION CALLBACK:
+   - Called when session is checked
+   - Exposes token data to client via session object
+   - Location: src/lib/auth.ts → callbacks → session()
+
+4. AUTHORIZED CALLBACK (Edge-safe):
+   - Runs in middleware (edge runtime)
+   - Determines if request should proceed
+   - Handles redirects for protected routes
+   - Location: src/lib/auth.config.ts → callbacks → authorized()
+
+
+CALLBACK EXECUTION ORDER:
+-------------------------
+    Login Request
+         │
+         ▼
+    authorize() ──────► Returns User or null
+         │
+         ▼ (if User returned)
+    jwt() ────────────► Adds role/company to token
+         │
+         ▼
+    session() ────────► Exposes data to client
+         │
+         ▼
+    Client receives session
+
+
+ROUTE ACCESS:
+-------------
+    Request to protected route
+         │
+         ▼
+    authorized() ─────► Check auth + role
+         │
+         ├── Allow ────► Continue to page
+         │
+         └── Deny ─────► Redirect to /login or /403
+
+
+ROLE-BASED ACCESS:
+------------------
+- CUSTOMER role: Access to /account/* routes
+- ADMIN role: Access to /admin/* routes (and /account/*)
+- Public: /login, /register, /products, etc.
+
+
+================================================================================
+4. API FOLDER STRUCTURE & ROUTES (/src/app/api)
+================================================================================
+
+src/app/api/
+├── account/                           # User Account APIs
+│   └── dashboard-data/
+│       └── route.ts                   # GET: User dashboard data
+│
+├── admin/                             # Admin APIs (Protected)
+│   ├── activities/
+│   │   └── route.ts                   # GET: Admin activity logs
+│   │
+│   ├── analytics/
+│   │   └── route.ts                   # GET: Analytics data
+│   │
+│   ├── dashboard-data/
+│   │   └── route.ts                   # GET: Admin dashboard data
+│   │
+│   ├── newsletter/
+│   │   └── route.ts                   # GET/POST: Newsletter management
+│   │
+│   ├── products/
+│   │   ├── [id]/
+│   │   │   └── route.ts               # GET/PUT/DELETE: Single product
+│   │   └── route.ts                   # GET/POST: Products list/create
+│   │
+│   ├── quotes/
+│   │   ├── [id]/
+│   │   │   └── route.ts               # GET/PUT/DELETE: Single quote
+│   │   └── route.ts                   # GET/POST: Quotes list/create
+│   │
+│   ├── stats/
+│   │   └── route.ts                   # GET: Admin statistics
+│   │
+│   └── users/
+│       ├── [id]/
+│       │   └── route.ts               # GET/PUT/DELETE: Single user
+│       └── route.ts                   # GET/POST: Users list/create
+│
+├── auth/                              # Authentication APIs
+│   ├── [...nextauth]/
+│   │   └── route.ts                   # NextAuth handler (all auth routes)
+│   ├── login/                         # (Empty - handled by NextAuth)
+│   ├── logout/
+│   │   └── route.ts                   # POST: Logout handler
+│   └── register/
+│       └── route.ts                   # POST: User registration
+│
+└── products/                          # Public Product APIs
+    ├── search/
+    │   └── route.ts                   # GET: Product search
+    └── suggestions/
+        └── route.ts                   # GET: Search suggestions
+
+API ROUTES SUMMARY:
+-------------------
+┌─────────────────────────────────────┬────────┬─────────────────────────────┐
+│ Route                               │ Method │ Description                 │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/auth/[...nextauth]             │ ALL    │ NextAuth authentication     │
+│ /api/auth/register                  │ POST   │ User registration           │
+│ /api/auth/logout                    │ POST   │ User logout                 │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/account/dashboard-data         │ GET    │ User dashboard data         │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/admin/dashboard-data           │ GET    │ Admin dashboard data        │
+│ /api/admin/activities               │ GET    │ Activity logs               │
+│ /api/admin/analytics                │ GET    │ Analytics data              │
+│ /api/admin/stats                    │ GET    │ Statistics                  │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/admin/products                 │ GET    │ List all products           │
+│ /api/admin/products                 │ POST   │ Create product              │
+│ /api/admin/products/[id]            │ GET    │ Get single product          │
+│ /api/admin/products/[id]            │ PUT    │ Update product              │
+│ /api/admin/products/[id]            │ DELETE │ Delete product              │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/admin/users                    │ GET    │ List all users              │
+│ /api/admin/users                    │ POST   │ Create user                 │
+│ /api/admin/users/[id]               │ GET    │ Get single user             │
+│ /api/admin/users/[id]               │ PUT    │ Update user                 │
+│ /api/admin/users/[id]               │ DELETE │ Delete user                 │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/admin/quotes                   │ GET    │ List all quotes             │
+│ /api/admin/quotes                   │ POST   │ Create quote                │
+│ /api/admin/quotes/[id]              │ GET    │ Get single quote            │
+│ /api/admin/quotes/[id]              │ PUT    │ Update quote                │
+│ /api/admin/quotes/[id]              │ DELETE │ Delete quote                │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/admin/newsletter               │ GET    │ List subscribers            │
+│ /api/admin/newsletter               │ POST   │ Add subscriber              │
+├─────────────────────────────────────┼────────┼─────────────────────────────┤
+│ /api/products/search                │ GET    │ Search products (public)    │
+│ /api/products/suggestions           │ GET    │ Search suggestions (public) │
+└─────────────────────────────────────┴────────┴─────────────────────────────┘
+
+
+================================================================================
+5. COMPLETE APPLICATION FLOW DIAGRAM
+================================================================================
+
+                              ┌─────────────────┐
+                              │   User Request  │
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │   Middleware    │
+                              │ (src/middleware)│
+                              └────────┬────────┘
+                                       │
+              ┌────────────────────────┼────────────────────────┐
+              │                        │                        │
+    ┌─────────▼─────────┐    ┌─────────▼─────────┐    ┌─────────▼─────────┐
+    │   Public Routes   │    │   User Routes     │    │   Admin Routes    │
+    │   /products       │    │   /account/*      │    │   /admin/*        │
+    │   /login          │    │   Requires USER   │    │   Requires ADMIN  │
+    │   /register       │    │   role            │    │   role            │
+    └─────────┬─────────┘    └─────────┬─────────┘    └─────────┬─────────┘
+              │                        │                        │
+              │              ┌─────────▼─────────┐    ┌─────────▼─────────┐
+              │              │  Account Layout   │    │   Admin Layout    │
+              │              │  (auth check)     │    │   (auth check)    │
+              │              └─────────┬─────────┘    └─────────┬─────────┘
+              │                        │                        │
+              │              ┌─────────▼─────────┐    ┌─────────▼─────────┐
+              │              │  User Dashboard   │    │  Admin Dashboard  │
+              │              │  - Greeting       │    │  - Metrics        │
+              │              │  - Stats          │    │  - Activity Feed  │
+              │              │  - Activity       │    │  - Quick Actions  │
+              │              │  - Quick Actions  │    │  - Data Tables    │
+              │              └─────────┬─────────┘    └─────────┬─────────┘
+              │                        │                        │
+              │              ┌─────────▼─────────┐    ┌─────────▼─────────┐
+              │              │  Server Actions   │    │  Server Actions   │
+              │              │  _actions/*.ts    │    │  _actions/*.ts    │
+              │              └─────────┬─────────┘    └─────────┬─────────┘
+              │                        │                        │
+              └────────────────────────┼────────────────────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │   API Routes    │
+                              │  /api/*         │
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │   Services      │
+                              │  _services/*.ts │
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │  Repositories   │
+                              │  /repositories  │
+                              └────────┬────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │    Database     │
+                              │    (Prisma)     │
+                              └─────────────────┘
+
+
+================================================================================
+6. ACTIVITY TRACKING FLOW
+================================================================================
+
+USER ACTIVITIES (Account):
+--------------------------
+1. User performs action (login, quote request, settings update)
+2. Action logged via _actions/dashboard.ts
+3. Stored in database via repositories
+4. Displayed in UserRecentActivity.tsx component
+5. API: GET /api/account/dashboard-data returns activity
+
+ADMIN ACTIVITIES:
+-----------------
+1. Admin performs action (user update, quote approval, product edit)
+2. Action logged via _actions/activities.ts
+3. Stored in database
+4. Displayed in ActivityFeed.tsx component
+5. API: GET /api/admin/activities returns activity logs
+
+Activity Types:
+- LOGIN: User/Admin login events
+- LOGOUT: User/Admin logout events
+- QUOTE_REQUEST: New quote submissions
+- QUOTE_UPDATE: Quote status changes
+- USER_UPDATE: Profile/settings changes
+- PRODUCT_CREATE/UPDATE/DELETE: Product management
+- SETTINGS_UPDATE: System settings changes
+
+
+================================================================================
+7. SERVICES & REPOSITORIES LAYER
+================================================================================
+
+ADMIN SERVICES (/src/app/admin/_services/):
+-------------------------------------------
+- analytics.service.ts  → Analytics data aggregation
+- newsletter.service.ts → Newsletter subscriber management
+- product.service.ts    → Product CRUD operations
+- quote.service.ts      → Quote management logic
+- user.service.ts       → User management logic
+
+GLOBAL SERVICES (/src/services/):
+---------------------------------
+- productService.ts     → Product data operations
+- quoteService.ts       → Quote business logic
+- userService.ts        → User operations
+- searchService.ts      → Search functionality
+- analyticsService.ts   → Analytics tracking
+- notificationService.ts → Notification handling
+
+REPOSITORIES (/src/repositories/):
+----------------------------------
+- base.repository.ts    → Base repository pattern
+- user.repository.ts    → User data access
+- quote.repository.ts   → Quote data access
+- address.repository.ts → Address data access
+- notification.repository.ts → Notification data access
+
+
+================================================================================
+8. MIDDLEWARE & ROUTE PROTECTION
+================================================================================
+
+File: src/middleware.ts
+
+Protected Routes:
+- /admin/*     → Requires ADMIN role (except /admin/login)
+- /account/*   → Requires USER or ADMIN role
+- /api/admin/* → Requires ADMIN role
+
+Public Routes:
+- /login, /register
+- /products, /about, /contact
+- /api/auth/*, /api/products/*
+
+Middleware Flow:
+1. Check if route is protected
+2. Verify JWT token from session
+3. Check user role against required role
+4. Allow or redirect based on authorization
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================

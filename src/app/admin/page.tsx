@@ -11,14 +11,6 @@ import {
 } from './_actions/activities';
 import AdminDashboardClient from './_components/AdminDashboardClient';
 
-interface ActivityEvent {
-  id: string;
-  type: string;
-  timestamp: Date;
-  userId?: number;
-  data?: any;
-}
-
 export default async function AdminPage() {
   const session = await auth();
   
@@ -60,9 +52,13 @@ export default async function AdminPage() {
     totalFormSubmissions: 0,
     totalCheckouts: 0,
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quotes = (results[2].status === 'fulfilled' ? (results[2].value.data || []) : []) as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newUsers = (results[3].status === 'fulfilled' ? (results[3].value.data || []) : []) as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newsletterSubscribers = (results[4].status === 'fulfilled' ? (results[4].value.data || []) : []) as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formSubmissions = (results[5].status === 'fulfilled' ? (results[5].value.data || []) : []) as any;
 
   return (

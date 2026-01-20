@@ -49,7 +49,7 @@ async function handleIncomingMessage(webhook: Record<string, unknown>): Promise<
       return;
     }
 
-    await prisma.negotiationMessage.create({
+    await prisma.quote_messages.create({
       data: {
         quoteId: (payload.quoteId as string) || 'unknown',
         direction: 'inbound',

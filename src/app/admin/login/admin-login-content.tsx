@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
+import { REDIRECT_PATHS } from '@/lib/auth-constants';
 import { AlertCircle, Shield, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 

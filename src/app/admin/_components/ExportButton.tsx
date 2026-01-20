@@ -5,6 +5,7 @@ import { Download, FileText } from 'lucide-react';
 
 interface ExportData {
   filename: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[];
 }
 
@@ -69,6 +70,7 @@ export function useExport() {
 }
 
 interface ExportButtonProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[];
   filename: string;
   variant?: 'default' | 'outline' | 'ghost';

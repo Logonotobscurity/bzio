@@ -106,7 +106,7 @@ export async function getQuoteMetrics(): Promise<{
   try {
     const [total, pending, accepted, rejected] = await Promise.all([
       prisma.quote.count(),
-      prisma.quote.count({ where: { status: 'pending' } }),
+      prisma.quote.count({ where: { status: "PENDING" } }),
       prisma.quote.count({ where: { status: 'accepted' } }),
       prisma.quote.count({ where: { status: 'rejected' } }),
     ]);

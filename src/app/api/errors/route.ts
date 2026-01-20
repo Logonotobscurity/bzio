@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    await prisma.errorLog.create({
+    await prisma.error_logs.create({
       data: {
         message: body.message || 'Unknown error',
         stack: body.stack || null,

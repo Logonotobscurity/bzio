@@ -9,7 +9,7 @@ import { quoteMessageRepository } from '@/repositories';
 import type { Prisma } from '@prisma/client';
 
 // Use repository type directly
-type QuoteMessage = Prisma.QuoteMessageGetPayload<{}>;
+type QuoteMessage = Prisma.quote_messagesGetPayload<{}>;
 
 interface CreateMessageInput {
   quoteId: string | number;
@@ -34,7 +34,7 @@ export class QuoteMessageService {
     this.validateMessageInput(input);
 
     return (await quoteMessageRepository.create({
-      quoteId: String(input.quoteId),
+      quoteId: Number(input.quoteId),
       senderRole: input.senderRole,
       senderEmail: input.senderEmail,
       senderName: input.senderName,
@@ -69,10 +69,10 @@ export class QuoteMessageService {
    */
   async markQuoteMessagesAsRead(quoteId: string | number): Promise<number> {
     const messages = await this.getQuoteMessages(quoteId);
-    const unreadMessages = messages.filter(m => !m.isRead);
+    const unreadMessages = messages.filter(m => !(m as any).isRead);
     
     await Promise.all(
-      unreadMessages.map(m => this.markAsRead(m.id))
+      unreadMessages.map(m => this.markAsRead((m as any).id))
     );
     
     return unreadMessages.length;
@@ -129,7 +129,7 @@ export class QuoteMessageService {
    */
   async getMessagesBySender(senderEmail: string): Promise<QuoteMessage[]> {
     const all = await quoteMessageRepository.findAll();
-    return (all?.filter(m => m.senderEmail === senderEmail) || []) as unknown as QuoteMessage[];
+    return (all?.filter(m => (m as any).senderEmail === senderEmail) || []) as unknown as QuoteMessage[];
   }
 
   /**
@@ -143,8 +143,8 @@ export class QuoteMessageService {
     const messages = await this.getQuoteMessages(quoteId);
     return {
       total: messages.length,
-      unread: messages.filter(m => !m.isRead).length,
-      read: messages.filter(m => m.isRead).length,
+      unread: messages.filter(m => !(m as any).isRead).length,
+      read: messages.filter(m => (m as any).isRead).length,
     };
   }
 

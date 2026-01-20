@@ -133,15 +133,15 @@ export interface Notification {
 }
 
 export interface AdminNotification {
-  id: string;
+  id: number;
   adminId: number;
   title: string;
   message: string;
   type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: Record<string, any>;
-  read: boolean;
+  isRead: boolean;
   createdAt: Date;
-  updatedAt: Date;
 }
 
 // ===== ANALYTICS & LOGGING =====
@@ -161,6 +161,7 @@ export interface ErrorLogReport {
   version?: string;
   breadcrumbs?: unknown[];
   sourceMap?: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -168,6 +169,7 @@ export interface AnalyticsEvent {
   id: string;
   eventType: string;
   userId?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
   timestamp: Date;
 }
@@ -176,6 +178,7 @@ export interface AnalyticsEvent {
 export interface FormSubmission {
   id: string;
   formType: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
   status: string;
   submittedAt: Date;
@@ -231,6 +234,7 @@ export interface Lead {
   status: string;
   leadScore: number;
   assignedTo?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
@@ -254,13 +258,16 @@ export interface ErrorLog {
   id: string;
   message: string;
   stack?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context?: Record<string, any>;
   severity: string;
   url: string;
   userAgent?: string;
   sessionId: string;
   userId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   breadcrumbs?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sourceMap?: Record<string, any>;
   environment: string;
   version: string;

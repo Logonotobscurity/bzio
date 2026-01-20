@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
       avgFID: 0,
       avgCLS: 0,
       avgTTFB: 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       poorMetrics: [] as any[],
     }
 

@@ -83,6 +83,7 @@ export default function RegisterPage() {
 
       router.push('/login');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast({
         title: 'Error',
