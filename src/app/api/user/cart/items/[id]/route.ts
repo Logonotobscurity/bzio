@@ -21,9 +21,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { quantity, unitPrice } = body;
 
     // Verify the item belongs to the user
-    const existingItem = await prisma.cart_items.findUnique({
-      where: { id: itemId },
-      include: { product: { select: { id: true, name: true } } },
+    const existingItem = await (prisma as any).cart_items.findUnique({
+      where: { id: Number(itemId) },
+      include: ({ product: { select: { id: true, name: true } } } as any),
     });
 
     if (!existingItem || existingItem.userId !== userId) {
@@ -35,7 +35,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     if (quantity !== undefined && quantity <= 0) {
       // Delete if quantity is 0 or negative
-      await prisma.cart_items.delete({ where: { id: itemId } });
+      await (prisma as any).cart_items.delete({ where: { id: Number(itemId) } });
       
       // Log removal activity
       await logActivity(
@@ -55,8 +55,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ success: true, deleted: true });
     }
 
-    const updatedItem = await prisma.cart_items.update({
-      where: { id: itemId },
+    const updatedItem = await (prisma as any).cart_items.update({
+      where: { id: Number(itemId) },
       data: {
         ...(quantity !== undefined && { quantity }),
         ...(unitPrice !== undefined && { unitPrice }),
@@ -99,9 +99,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
 
     // Verify the item belongs to the user and get product details
-    const existingItem = await prisma.cart_items.findUnique({
-      where: { id: itemId },
-      include: { product: { select: { id: true, name: true } } },
+    const existingItem = await (prisma as any).cart_items.findUnique({
+      where: { id: Number(itemId) },
+      include: ({ product: { select: { id: true, name: true } } } as any),
     });
 
     if (!existingItem || existingItem.userId !== userId) {
@@ -111,8 +111,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       );
     }
 
-    await prisma.cart_items.delete({
-      where: { id: itemId },
+    await (prisma as any).cart_items.delete({
+      where: { id: Number(itemId) },
     });
 
     // Log removal activity
