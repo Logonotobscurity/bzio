@@ -7,6 +7,7 @@
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Quote } from '@/lib/types/domain';
+import { mapQuoteRow, mapArrayIds } from './db/adapter';
 
 interface CreateQuoteInput {
   reference: string;
@@ -34,12 +35,13 @@ interface UpdateQuoteInput {
 export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, UpdateQuoteInput> {
   async findAll(limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quotes.findMany({
+      const rows = await prisma.quotes.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
         include: { quote_lines: true },
       });
+      return (mapArrayIds(rows) as unknown) as Quote[];
     } catch (error) {
       this.handleError(error, 'findAll');
     }
@@ -47,10 +49,11 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findById(id: string | number): Promise<Quote | null> {
     try {
-      return await prisma.quotes.findUnique({
+      const row = await prisma.quotes.findUnique({
         where: { id: Number(id) },
         include: { quote_lines: true },
       });
+      return row ? (mapQuoteRow(row) as Quote) : null;
     } catch (error) {
       this.handleError(error, 'findById');
     }
@@ -58,10 +61,11 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findByReference(reference: string): Promise<Quote | null> {
     try {
-      return await prisma.quotes.findUnique({
+      const row = await prisma.quotes.findUnique({
         where: { reference },
         include: { quote_lines: true },
       });
+      return row ? (mapQuoteRow(row) as Quote) : null;
     } catch (error) {
       this.handleError(error, 'findByReference');
     }
@@ -69,13 +73,14 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async findByUserId(userId: number, limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quotes.findMany({
+      const rows = await prisma.quotes.findMany({
         where: { userId },
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
         include: { quote_lines: true },
       });
+      return (mapArrayIds(rows) as unknown) as Quote[];
     } catch (error) {
       this.handleError(error, 'findByUserId');
     }
@@ -103,7 +108,8 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
         },
       };
 
-      return await prisma.quotes.create({ data: payload, include: { quote_lines: true } });
+      const row = await prisma.quotes.create({ data: payload, include: { quote_lines: true } });
+      return mapQuoteRow(row) as Quote;
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -111,11 +117,12 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
 
   async update(id: string | number, data: UpdateQuoteInput): Promise<Quote> {
     try {
-      return await prisma.quotes.update({
+      const row = await prisma.quotes.update({
         where: { id: Number(id) },
         data: data as any,
         include: { quote_lines: true },
       });
+      return mapQuoteRow(row) as Quote;
     } catch (error) {
       this.handleError(error, 'update');
     }

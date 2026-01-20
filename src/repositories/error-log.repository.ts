@@ -7,6 +7,7 @@
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { Prisma } from '@prisma/client';
+import { mapErrorLogRow, mapArrayIds } from './db/adapter';
 
 type ErrorLog = Prisma.error_logsGetPayload<{}>;
 
@@ -33,11 +34,12 @@ interface UpdateErrorLogInput {
 export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogInput, UpdateErrorLogInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      return await prisma.error_logs.findMany({
+      const rows = await prisma.error_logs.findMany({
         take: limit,
         skip,
         orderBy: { timestamp: 'desc' },
       });
+      return (mapArrayIds(rows) as unknown) as ErrorLog[];
     } catch (error) {
       this.handleError(error, 'findAll');
     }
@@ -45,9 +47,10 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async findById(id: string | number) {
     try {
-      return await prisma.error_logs.findUnique({
-        where: { id: String(id) },
+      const row = await prisma.error_logs.findUnique({
+        where: { id: Number(id) },
       });
+      return row ? mapErrorLogRow(row) : null;
     } catch (error) {
       this.handleError(error, 'findById');
     }
@@ -55,7 +58,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async create(data: CreateErrorLogInput) {
     try {
-      return await prisma.error_logs.create({
+      const row = await prisma.error_logs.create({
         data: {
           message: data.message,
           stack: data.stack,
@@ -71,6 +74,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
           version: data.version,
         },
       });
+      return mapErrorLogRow(row);
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -78,10 +82,11 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async update(id: string | number, data: UpdateErrorLogInput) {
     try {
-      return await prisma.error_logs.update({
-        where: { id: String(id) },
+      const row = await prisma.error_logs.update({
+        where: { id: Number(id) },
         data,
       });
+      return mapErrorLogRow(row);
     } catch (error) {
       this.handleError(error, 'update');
     }
@@ -90,7 +95,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
   async delete(id: string | number) {
     try {
       await prisma.error_logs.delete({
-        where: { id: String(id) },
+        where: { id: Number(id) },
       });
       return true;
     } catch (error) {
@@ -111,11 +116,12 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findBySeverity(severity: string, limit?: number) {
     try {
-      return await prisma.error_logs.findMany({
+      const rows = await prisma.error_logs.findMany({
         where: { severity },
         take: limit,
         orderBy: { timestamp: 'desc' },
       });
+      return (mapArrayIds(rows) as unknown) as ErrorLog[];
     } catch (error) {
       this.handleError(error, 'findBySeverity');
     }
@@ -126,10 +132,11 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findRecent(limit: number = 10) {
     try {
-      return await prisma.error_logs.findMany({
+      const rows = await prisma.error_logs.findMany({
         take: limit,
         orderBy: { timestamp: 'desc' },
       });
+      return (mapArrayIds(rows) as unknown) as ErrorLog[];
     } catch (error) {
       this.handleError(error, 'findRecent');
     }
@@ -140,11 +147,12 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findByUserId(userId: string, limit?: number) {
     try {
-      return await prisma.error_logs.findMany({
+      const rows = await prisma.error_logs.findMany({
         where: { userId },
         take: limit,
         orderBy: { timestamp: 'desc' },
       });
+      return (mapArrayIds(rows) as unknown) as ErrorLog[];
     } catch (error) {
       this.handleError(error, 'findByUserId');
     }

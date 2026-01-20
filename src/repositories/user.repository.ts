@@ -7,6 +7,7 @@
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
 import type { User } from '@/lib/types/domain';
+import { mapUserRow, mapArrayIds } from './db/adapter';
 
 interface CreateUserInput {
   email: string;
@@ -31,11 +32,12 @@ interface UpdateUserInput {
 export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
   async findAll(limit?: number, skip?: number): Promise<User[]> {
     try {
-      return await prisma.users.findMany({
+      const rows = await prisma.users.findMany({
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
       });
+      return (mapArrayIds(rows) as unknown) as User[];
     } catch (error) {
       this.handleError(error, 'findAll');
     }
@@ -43,9 +45,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findById(id: string | number): Promise<User | null> {
     try {
-      return await prisma.users.findUnique({
+      const row = await prisma.users.findUnique({
         where: { id: Number(id) },
       });
+      return row ? (mapUserRow(row) as User) : null;
     } catch (error) {
       this.handleError(error, 'findById');
     }
@@ -53,9 +56,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await prisma.users.findUnique({
+      const row = await prisma.users.findUnique({
         where: { email },
       });
+      return row ? (mapUserRow(row) as User) : null;
     } catch (error) {
       this.handleError(error, 'findByEmail');
     }
@@ -63,9 +67,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByPhone(phone: string): Promise<User | null> {
     try {
-      return await prisma.users.findUnique({
+      const row = await prisma.users.findUnique({
         where: { phone },
       });
+      return row ? (mapUserRow(row) as User) : null;
     } catch (error) {
       this.handleError(error, 'findByPhone');
     }
@@ -73,7 +78,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async create(data: CreateUserInput): Promise<User> {
     try {
-      return await prisma.users.create({
+      const row = await prisma.users.create({
         data: {
           email: data.email,
           firstName: data.firstName,
@@ -84,6 +89,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
           role: data.role || 'customer',
         },
       });
+      return mapUserRow(row) as User;
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -91,10 +97,11 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async update(id: string | number, data: UpdateUserInput): Promise<User> {
     try {
-      return await prisma.users.update({
+      const row = await prisma.users.update({
         where: { id: Number(id) },
         data,
       });
+      return mapUserRow(row) as User;
     } catch (error) {
       this.handleError(error, 'update');
     }
@@ -144,10 +151,11 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
    */
   async updateLastLogin(userId: number): Promise<User> {
     try {
-      return await prisma.users.update({
+      const row = await prisma.users.update({
         where: { id: userId },
         data: { lastLogin: new Date() },
       });
+      return mapUserRow(row) as User;
     } catch (error) {
       this.handleError(error, 'updateLastLogin');
     }
