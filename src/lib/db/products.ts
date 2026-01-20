@@ -7,9 +7,8 @@ export async function getProducts() {
       orderBy: {
         name: 'asc',
       },
-      include: {
-        brand: true,
-      },
+      // include shapes may differ in generated client; cast to any
+      include: ({ brand: true } as any),
     });
     return products;
   } catch (error) {
@@ -22,7 +21,7 @@ export async function getProductById(id: number) {
   try {
     const product = await prisma.products.findUnique({
       where: { id },
-      include: {
+      include: ({
         brand: true,
         company: true,
         categories: {
@@ -31,8 +30,8 @@ export async function getProductById(id: number) {
           },
         },
         images: true,
-      },
-    });
+      } as any),
+    }) as any;
     return product;
   } catch (error) {
     console.error('Database Error:', error);

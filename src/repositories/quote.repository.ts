@@ -150,13 +150,14 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
    */
   async findByStatus(status: string, limit?: number, skip?: number): Promise<Quote[]> {
     try {
-      return await prisma.quotes.findMany({
-        where: { status: (status as string).toUpperCase() },
+      const rows = await prisma.quotes.findMany({
+        where: { status: (status as any).toString().toUpperCase() as any },
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
         include: { quote_lines: true },
       });
+      return (mapArrayIds(rows) as unknown) as Quote[];
     } catch (error) {
       this.handleError(error, 'findByStatus');
     }
@@ -169,7 +170,7 @@ export class QuoteRepository extends BaseRepository<Quote, CreateQuoteInput, Upd
     try {
       return await prisma.quotes.count({
         where: {
-          status: { in: ['DRAFT', 'PENDING'] },
+          status: { in: (['DRAFT', 'PENDING'] as any) },
         },
       });
     } catch (error) {

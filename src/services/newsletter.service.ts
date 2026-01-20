@@ -7,6 +7,7 @@
 
 import { newsletterSubscriberRepository } from '@/repositories';
 import type { NewsletterSubscriber } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
 
 interface SubscribeInput {
   email: string;

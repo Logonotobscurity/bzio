@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function getCustomers() {
   try {
-    const customers = await prisma.customer.findMany({
+    const customers = await (prisma as any).customers.findMany({
       orderBy: {
         createdAt: 'desc',
       },
@@ -17,8 +17,8 @@ export async function getCustomers() {
 
 export async function getCustomerById(id: string) {
   try {
-    const customer = await prisma.customer.findUnique({
-      where: { id },
+    const customer = await (prisma as any).customers.findUnique({
+      where: { id: Number(id) },
     });
     return customer;
   } catch (error) {

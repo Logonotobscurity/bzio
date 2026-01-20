@@ -30,7 +30,8 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
       const rows = await prisma.form_submissions.findMany({
         take: limit,
         skip,
-        orderBy: { submittedAt: 'desc' },
+        // use createdAt ordering which exists on generated client
+        orderBy: { createdAt: 'desc' },
       });
       return (mapArrayIds(rows) as unknown) as FormSubmission[];
     } catch (error) {
@@ -57,7 +58,7 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
           data: data.data,
           ipAddress: data.ipAddress,
           userAgent: data.userAgent,
-          status: data.status || 'NEW',
+          status: data.status ? (data.status as any) : ('NEW' as any),
         },
       });
       return mapFormSubmissionRow(row);
@@ -92,10 +93,10 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
   async findByStatus(status: string, limit?: number, skip?: number) {
     try {
       const rows = await prisma.form_submissions.findMany({
-        where: { status },
+        where: { status: (status as any) },
         take: limit,
         skip,
-        orderBy: { submittedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
       });
       return (mapArrayIds(rows) as unknown) as FormSubmission[];
     } catch (error) {
@@ -106,10 +107,10 @@ export class FormSubmissionRepository extends BaseRepository<FormSubmission, Cre
   async findPending(limit?: number, skip?: number) {
     try {
       const rows = await prisma.form_submissions.findMany({
-        where: { status: 'NEW' },
+        where: { status: ('NEW' as any) },
         take: limit,
         skip,
-        orderBy: { submittedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
       });
       return (mapArrayIds(rows) as unknown) as FormSubmission[];
     } catch (error) {

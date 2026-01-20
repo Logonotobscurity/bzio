@@ -6,6 +6,7 @@ export const companyRepo = {
   },
 
   async getBySlug(slug: string) {
-    return await prisma.companies.findUnique({ where: { slug } });
+    // Use findFirst to avoid requiring a unique scalar in generated types
+    return await prisma.companies.findFirst({ where: { slug } });
   },
 };

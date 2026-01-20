@@ -9,7 +9,8 @@ export const getUserById = async (id: number): Promise<User | null> => {
 };
 
 export const getUserByPhone = async (phone: string): Promise<User | null> => {
-  return prisma.users.findUnique({
+  // phone may not be a unique scalar in generated schema; use findFirst
+  return prisma.users.findFirst({
     where: { phone },
   });
 };

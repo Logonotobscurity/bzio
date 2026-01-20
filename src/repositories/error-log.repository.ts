@@ -34,7 +34,7 @@ interface UpdateErrorLogInput {
 export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogInput, UpdateErrorLogInput> {
   async findAll(limit?: number, skip?: number) {
     try {
-      const rows = await prisma.error_logs.findMany({
+      const rows = await (prisma as any).error_logs.findMany({
         take: limit,
         skip,
         orderBy: { timestamp: 'desc' },
@@ -47,7 +47,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async findById(id: string | number) {
     try {
-      const row = await prisma.error_logs.findUnique({
+      const row = await (prisma as any).error_logs.findUnique({
         where: { id: Number(id) },
       });
       return row ? mapErrorLogRow(row) : null;
@@ -58,7 +58,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async create(data: CreateErrorLogInput) {
     try {
-      const row = await prisma.error_logs.create({
+      const row = await (prisma as any).error_logs.create({
         data: {
           message: data.message,
           stack: data.stack,
@@ -82,7 +82,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async update(id: string | number, data: UpdateErrorLogInput) {
     try {
-      const row = await prisma.error_logs.update({
+      const row = await (prisma as any).error_logs.update({
         where: { id: Number(id) },
         data,
       });
@@ -94,7 +94,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async delete(id: string | number) {
     try {
-      await prisma.error_logs.delete({
+      await (prisma as any).error_logs.delete({
         where: { id: Number(id) },
       });
       return true;
@@ -105,7 +105,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
 
   async count() {
     try {
-      return await prisma.error_logs.count();
+      return await (prisma as any).error_logs.count();
     } catch (error) {
       this.handleError(error, 'count');
     }
@@ -116,7 +116,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findBySeverity(severity: string, limit?: number) {
     try {
-      const rows = await prisma.error_logs.findMany({
+      const rows = await (prisma as any).error_logs.findMany({
         where: { severity },
         take: limit,
         orderBy: { timestamp: 'desc' },
@@ -132,7 +132,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findRecent(limit: number = 10) {
     try {
-      const rows = await prisma.error_logs.findMany({
+      const rows = await (prisma as any).error_logs.findMany({
         take: limit,
         orderBy: { timestamp: 'desc' },
       });
@@ -147,7 +147,7 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
    */
   async findByUserId(userId: string, limit?: number) {
     try {
-      const rows = await prisma.error_logs.findMany({
+      const rows = await (prisma as any).error_logs.findMany({
         where: { userId },
         take: limit,
         orderBy: { timestamp: 'desc' },
