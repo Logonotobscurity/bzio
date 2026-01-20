@@ -42,7 +42,9 @@ export async function logActivity(
         ) 
       : null;
 
-    await prisma.user_activities.create({
+    // Use dynamic delegate access to avoid generated-client delegate name mismatches
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).user_activities.create({
       data: {
         userId,
         activityType,
@@ -64,7 +66,8 @@ export async function logActivity(
  */
 export async function getUserActivities(userId: number, limit: number = 10) {
   try {
-    const activities = await prisma.user_activities.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activities = await (prisma as any).user_activities.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -96,16 +99,20 @@ export async function getActivitySummary(userId: number) {
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
     const [totalActivities, viewActivities, quoteActivities, cartActivities] = await Promise.all([
-      prisma.user_activities.count({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma as any).user_activities.count({
         where: { userId },
       }),
-      prisma.user_activities.count({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma as any).user_activities.count({
         where: { userId, activityType: 'view', createdAt: { gte: thirtyDaysAgo } },
       }),
-      prisma.user_activities.count({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma as any).user_activities.count({
         where: { userId, activityType: { in: ['quote_create', 'quote_update', 'quote_submitted'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
-      prisma.user_activities.count({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma as any).user_activities.count({
         where: { userId, activityType: { in: ['cart_add', 'cart_remove'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
     ]);

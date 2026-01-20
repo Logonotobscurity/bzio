@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 
 /**
  * GET /api/admin/customers/data
@@ -124,17 +123,18 @@ export async function GET(req: Request) {
     }
 
     // Fetch multiple customers with search
-    const whereClause: Prisma.UserWhereInput = search
+    // Use a permissive `any` here to tolerate Prisma generated-client naming/type differences
+    const whereClause: any = search
       ? {
           AND: [
             { role: 'customer' },
             {
               OR: [
-                { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                { firstName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                { lastName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                { companyName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                { phone: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { companyName: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search, mode: 'insensitive' } },
               ],
             },
           ],

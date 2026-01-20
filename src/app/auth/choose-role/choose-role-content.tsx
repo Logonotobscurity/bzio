@@ -56,8 +56,10 @@ export default function ChooseRoleContent() {
   // Check for role parameter from URL
   useEffect(() => {
     const roleParam = searchParams.get('role');
-    if (roleParam === 'customer' || roleParam === "ADMIN") {
-      setSelectedRole(roleParam);
+    if (!roleParam) return;
+    const rp = roleParam.toLowerCase();
+    if (rp === 'customer' || rp === 'admin') {
+      setSelectedRole(rp as 'customer' | 'admin');
     }
   }, [searchParams]);
 
@@ -73,7 +75,7 @@ export default function ChooseRoleContent() {
     });
 
     // Navigate to appropriate login page after brief delay for animation
-    const targetPath = role === "ADMIN" ? '/auth/admin/login' : '/auth/customer/login';
+    const targetPath = role === 'admin' ? '/auth/admin/login' : '/auth/customer/login';
     
     setTimeout(() => {
       router.push(targetPath);
@@ -189,7 +191,7 @@ export default function ChooseRoleContent() {
         {/* Admin Role Card */}
         <div
           className={`transition-all duration-300 cursor-pointer ${
-            selectedRole === "ADMIN" ? 'transform scale-105' : 'hover:shadow-lg'
+            selectedRole === 'admin' ? 'transform scale-105' : 'hover:shadow-lg'
           }`}
           onClick={() => handleRoleSelect('admin')}
         >
@@ -203,7 +205,7 @@ export default function ChooseRoleContent() {
                 <div className="p-3 bg-amber-100 rounded-lg">
                   <ShieldCheck className="w-8 h-8 text-amber-600" />
                 </div>
-                {selectedRole === "ADMIN" && (
+                {selectedRole === 'admin' && (
                   <div className="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-full">
                     Selected
                   </div>
@@ -247,7 +249,7 @@ export default function ChooseRoleContent() {
                 disabled={isNavigating}
               >
                 <LogIn className="w-4 h-4 mr-2" />
-                {selectedRole === "ADMIN" && isNavigating ? 'Redirecting...' : 'Continue as Admin'}
+                {selectedRole === 'admin' && isNavigating ? 'Redirecting...' : 'Continue as Admin'}
               </Button>
 
               {/* Helper Text */}

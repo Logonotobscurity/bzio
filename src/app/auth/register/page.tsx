@@ -17,7 +17,10 @@ interface FormData {
   email: string;
   phone: string;
   password: string;
-  confirmPassword: string;}
+  confirmPassword: string;
+  companyName: string;
+  industry: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,6 +34,7 @@ export default function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
+    companyName: '',
     industry: '',
   });
   const [errors, setErrors] = useState<Partial<FormData & { general: string }>>({});

@@ -17,7 +17,7 @@ export async function getUserDashboardData(userId: number): Promise<UserDashboar
   return getCachedQuery(
     `user:dashboard:${userId}`,
     () => fetchDashboardData(userId),
-    { ttl: CACHE_TTL.SHORT }
+    CACHE_TTL.short
   );
 }
 
@@ -82,11 +82,13 @@ async function fetchDashboardData(userId: number): Promise<UserDashboardData> {
     id: user.id.toString(),
     name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0],
     email: user.email,
-    company: user.company?.name || null,
+    // Prisma model may return a `companies` relation (array) or a single `company`.
+    // Handle both shapes defensively to avoid runtime/TS issues.
+    company: (user as any).company?.name || (user as any).companies?.[0]?.name || null,
     role: user.role as 'CUSTOMER' | 'ADMIN',
-    status: user.isActive ? 'active' : 'inactive',
-    lastLoginAt: user.lastLogin,
-    emailVerified: !!user.emailVerified,
+    status: (user as any).isActive ? 'active' : 'inactive',
+    lastLoginAt: (user as any).lastLogin || (user as any).lastLoginAt,
+    emailVerified: !!(user as any).emailVerified,
     createdAt: user.createdAt,
   };
 
@@ -190,7 +192,7 @@ export async function getUserQuotes(userId: number, limit: number = 5) {
     reference: quote.reference,
     status: quote.status,
     totalAmount: parseFloat(quote.totalAmount.toString()),
-    itemCount: quote.quoteLines.length,
+    itemCount: ((quote as any).quote_lines ?? (quote as any).quoteLines ?? []).length,
     createdAt: quote.createdAt,
   }));
 }

@@ -16,7 +16,8 @@ export async function POST(req: Request) {
 
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
     const body = await req.json();
-    const { productId, quantity = 1, unitPrice } = body;
+    const { productId: rawProductId, quantity = 1, unitPrice } = body;
+    const productId = Number(rawProductId);
 
     if (!productId) {
       return NextResponse.json(
@@ -26,25 +27,29 @@ export async function POST(req: Request) {
     }
 
     // Get or create active cart
-    let cart = await prisma.cart.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let cart = await (prisma as any).cart.findFirst({
       where: { userId, status: 'active' },
     });
 
     if (!cart) {
-      cart = await prisma.cart.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cart = await (prisma as any).cart.create({
         data: { userId },
       });
     }
 
     // Get product details for activity logging
-    const product = await prisma.products.findUnique({
-      where: { id: productId },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const product = await (prisma as any).products.findUnique({
+      where: { id: Number(productId) },
       select: { id: true, name: true, price: true },
     });
 
     // Check if product already exists in cart
-    const existingItem = await prisma.cart_items.findFirst({
-      where: { cartId: cart.id, productId },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingItem = await (prisma as any).cart_items.findFirst({
+      where: { cartId: cart.id, productId: Number(productId) },
     });
 
     let cartItem;
@@ -52,7 +57,8 @@ export async function POST(req: Request) {
 
     if (existingItem) {
       // Update quantity
-      cartItem = await prisma.cart_items.update({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cartItem = await (prisma as any).cart_items.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + quantity },
         include: {
@@ -69,11 +75,12 @@ export async function POST(req: Request) {
       });
     } else {
       // Create new cart item
-      cartItem = await prisma.cart_items.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cartItem = await (prisma as any).cart_items.create({
         data: {
           cartId: cart.id,
           userId,
-          productId,
+          productId: Number(productId),
           quantity,
           unitPrice: unitPrice || undefined,
         },

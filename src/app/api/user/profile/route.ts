@@ -16,8 +16,10 @@ export async function GET() {
 
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
 
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
+    // Use dynamic Prisma delegate access to avoid client delegate naming mismatches
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = await (prisma as any).users.findUnique({
+      where: { id: Number(userId) },
       select: {
         id: true,
         email: true,
@@ -77,8 +79,9 @@ export async function PUT(req: Request) {
     if (businessType !== undefined) updatedFields.push('businessType');
     if (businessRegistration !== undefined) updatedFields.push('businessRegistration');
 
-    const updatedUser = await prisma.users.update({
-      where: { id: userId },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedUser = await (prisma as any).users.update({
+      where: { id: Number(userId) },
       data: {
         ...(firstName !== undefined && { firstName }),
         ...(lastName !== undefined && { lastName }),

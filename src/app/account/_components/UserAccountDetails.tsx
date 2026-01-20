@@ -14,19 +14,23 @@ export function UserAccountDetails({ user }: UserAccountDetailsProps) {
   const details = [
     {
       icon: Mail,
+      label: 'Email',
       value: user.email,
     },
     {
       icon: Building2,
+      label: 'Company',
       value: user.company || 'Not specified',
     },
     {
       icon: UserCircle,
+      label: 'Role',
       value: user.role.toLowerCase(),
       capitalize: true,
     },
     {
       icon: Calendar,
+      label: 'Member Since',
       value: format(new Date(user.createdAt), 'MMM yyyy'),
     },
   ];

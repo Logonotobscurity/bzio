@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import EmailProvider from "next-auth/providers/email";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
-import type { NextAuthOptions } from "next-auth";
+import type { AuthOptions as NextAuthOptions } from "next-auth";
 import * as bcrypt from "bcryptjs";
 import type { Adapter } from "next-auth/adapters";
 
@@ -11,13 +11,13 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: string;
-      firstName: string | null;
-      lastName: string | null;
-      companyName: string | null;
-      phone: string | null;
-      isNewUser: boolean;
-      lastLogin: Date | null;
+      role?: string;
+      firstName?: string | null;
+      lastName?: string | null;
+      companyName?: string | null;
+      phone?: string | null;
+      isNewUser?: boolean;
+      lastLogin?: Date | null;
       name?: string | null;
       email?: string | null;
       image?: string | null;
@@ -26,26 +26,26 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    role: string;
-    firstName: string | null;
-    lastName: string | null;
-    companyName: string | null;
-    phone: string | null;
-    isNewUser: boolean;
-    lastLogin: Date | null;
+    role?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    companyName?: string | null;
+    phone?: string | null;
+    isNewUser?: boolean;
+    lastLogin?: Date | null;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: string;
-    firstName: string | null;
-    lastName: string | null;
-    companyName: string | null;
-    phone: string | null;
-    isNewUser: boolean;
-    lastLogin: Date | null;
+    role?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    companyName?: string | null;
+    phone?: string | null;
+    isNewUser?: boolean;
+    lastLogin?: Date | null;
   }
 }
 

@@ -19,11 +19,11 @@ interface AccountLayoutProps {
 }
 
 const navItems = [
-  { href: '/account', icon: LayoutDashboard },
-  { href: '/account/quotes', icon: FileText },
-  { href: '/account/orders', icon: ShoppingCart },
-  { href: '/account/notifications', icon: Bell },
-  { href: '/account/settings', icon: Settings },
+  { href: '/account', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/account/quotes', icon: FileText, label: 'Quotes' },
+  { href: '/account/orders', icon: ShoppingCart, label: 'Orders' },
+  { href: '/account/notifications', icon: Bell, label: 'Notifications' },
+  { href: '/account/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default async function AccountLayout({ children }: AccountLayoutProps) {
