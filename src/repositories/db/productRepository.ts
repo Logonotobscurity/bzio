@@ -11,18 +11,18 @@ export const productRepo = {
       where.categories = { some: { category: { slug: options.categorySlug } } };
     }
 
-    return await prisma.product.findMany({
+    return await prisma.products.findMany({
       where,
       include: {
         brand: true,
         images: true,
         categories: { include: { category: true } },
       },
-    }) as Awaited<ReturnType<typeof prisma.product.findMany>>;
+    }) as Awaited<ReturnType<typeof prisma.products.findMany>>;
   },
 
   async getBySlug(slug: string) {
-    return await prisma.product.findUnique({
+    return await prisma.products.findUnique({
       where: { slug },
       include: {
         brand: true,

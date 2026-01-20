@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     // If specific customer requested
     if (customerId) {
       const customerIdNum = parseInt(customerId);
-      const customer = await prisma.user.findFirst({
+      const customer = await prisma.users.findFirst({
         where: {
           id: customerIdNum,
           role: 'customer',
@@ -142,7 +142,7 @@ export async function GET(req: Request) {
       : { role: 'customer' };
 
     const [customers, total] = await Promise.all([
-      prisma.user.findMany({
+      prisma.users.findMany({
         where: whereClause,
         select: {
           id: true,
@@ -185,7 +185,7 @@ export async function GET(req: Request) {
         skip: offset,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.user.count({
+      prisma.users.count({
         where: whereClause,
       }),
     ]);

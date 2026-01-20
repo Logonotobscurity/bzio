@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: { email, firstName, lastName, role, password },
       select: { id: true, email: true, role: true }
     });
@@ -40,7 +40,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true },
       orderBy: { createdAt: 'desc' }
     });

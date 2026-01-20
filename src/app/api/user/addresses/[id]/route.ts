@@ -19,7 +19,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const body = await req.json();
 
     // Verify the address belongs to the user
-    const existingAddress = await prisma.address.findUnique({
+    const existingAddress = await prisma.addresses.findUnique({
       where: { id: addressId },
     });
 
@@ -46,13 +46,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     // If this is marked as default, unset other defaults
     if (isDefault) {
-      await prisma.address.updateMany({
+      await prisma.addresses.updateMany({
         where: { userId, isDefault: true, id: { not: addressId } },
         data: { isDefault: false },
       });
     }
 
-    const address = await prisma.address.update({
+    const address = await prisma.addresses.update({
       where: { id: addressId },
       data: {
         ...(type !== undefined && { type }),
@@ -95,7 +95,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const addressIdNum = parseInt(addressId);
 
     // Verify the address belongs to the user
-    const existingAddress = await prisma.address.findUnique({
+    const existingAddress = await prisma.addresses.findUnique({
       where: { id: addressIdNum },
     });
 
@@ -106,7 +106,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       );
     }
 
-    await prisma.address.delete({
+    await prisma.addresses.delete({
       where: { id: addressIdNum },
     });
 

@@ -22,7 +22,7 @@ interface ManageStockPageProps {
 }
 
 async function getProduct(id: number) {
-  const product = await prisma.product.findUnique({
+  const product = await prisma.products.findUnique({
     where: { id },
     include: {
       stockMovements: {

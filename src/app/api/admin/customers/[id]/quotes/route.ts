@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
     // Verify customer exists
-    const customer = await prisma.user.findFirst({
+    const customer = await prisma.users.findFirst({
       where: { id: customerId, role: 'customer' },
       select: { id: true },
     });
@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const [quotes, total] = await Promise.all([
-      prisma.quote.findMany({
+      prisma.quotes.findMany({
         where: { userId: customerId },
         include: {
           lines: true,
@@ -43,7 +43,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         skip: offset,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.quote.count({
+      prisma.quotes.count({
         where: { userId: customerId },
       }),
     ]);

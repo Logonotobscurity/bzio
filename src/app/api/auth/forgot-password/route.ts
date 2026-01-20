@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Find user (silently fail if not found - no email enumeration)
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: normalizedEmail },
     });
 

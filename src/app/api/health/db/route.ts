@@ -16,11 +16,11 @@ export async function GET() {
     console.log('[DB_HEALTH] ✓ SELECT 1 succeeded');
 
     // Test 2: Count users
-    const userCount = await prisma.user.count();
+    const userCount = await prisma.users.count();
     console.log('[DB_HEALTH] ✓ User count:', userCount);
 
     // Test 3: Count quotes
-    const quoteCount = await prisma.quote.count();
+    const quoteCount = await prisma.quotes.count();
     console.log('[DB_HEALTH] ✓ Quote count:', quoteCount);
 
     const duration = Date.now() - startTime;

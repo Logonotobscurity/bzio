@@ -17,7 +17,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const customerId = parseInt(id);
 
-    const customer = await prisma.user.findFirst({
+    const customer = await prisma.users.findFirst({
       where: {
         id: customerId,
         role: 'customer',

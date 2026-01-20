@@ -15,7 +15,7 @@ export async function GET() {
 
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
 
-    const addresses = await prisma.address.findMany({
+    const addresses = await prisma.addresses.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
@@ -68,13 +68,13 @@ export async function POST(req: Request) {
 
     // If this is marked as default, unset other defaults
     if (isDefault) {
-      await prisma.address.updateMany({
+      await prisma.addresses.updateMany({
         where: { userId, isDefault: true },
         data: { isDefault: false },
       });
     }
 
-    const address = await prisma.address.create({
+    const address = await prisma.addresses.create({
       data: {
         userId,
         type,

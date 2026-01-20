@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'users':
-        data = await prisma.user.findMany({
+        data = await prisma.users.findMany({
           select: {
             id: true,
             email: true,
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         break;
 
       case 'quotes':
-        data = await prisma.quote.findMany({
+        data = await prisma.quotes.findMany({
           select: {
             id: true,
             userId: true,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         break;
 
       case 'products':
-        data = await prisma.product.findMany({
+        data = await prisma.products.findMany({
           select: {
             id: true,
             name: true,

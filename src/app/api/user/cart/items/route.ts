@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     }
 
     // Get product details for activity logging
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
       select: { id: true, name: true, price: true },
     });

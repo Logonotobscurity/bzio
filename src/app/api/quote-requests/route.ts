@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     let quoteId: string | null = null;
     let quoteReference: string | null = null;
     try {
-      const quote = await prisma.quote.create({
+      const quote = await prisma.quotes.create({
         data: {
           reference: `QR-${Date.now()}`,
           buyerContactEmail: email,
@@ -228,7 +228,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const quoteRequests = await prisma.quote.findMany({
+    const quoteRequests = await prisma.quotes.findMany({
       include: {
         lines: true,
       },

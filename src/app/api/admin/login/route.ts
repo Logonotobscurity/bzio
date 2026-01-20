@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find admin by email
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.users.findUnique({
       where: { email: email.toLowerCase() },
     });
 
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Reset login attempts on successful login (when schema includes loginAttempts)
-    const updatedAdmin = await prisma.user.update({
+    const updatedAdmin = await prisma.users.update({
       where: { id: admin.id },
       data: {
         lastLogin: new Date(),

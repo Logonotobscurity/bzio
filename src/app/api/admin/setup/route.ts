@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Step 1: Delete any existing admin with this email
-    const existingAdmin = await prisma.user.findUnique({
+    const existingAdmin = await prisma.users.findUnique({
       where: { email: email.toLowerCase() },
     });
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         userId: existingAdmin.id,
       });
 
-      await prisma.user.delete({
+      await prisma.users.delete({
         where: { id: existingAdmin.id },
       });
     }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Step 2: Hash password and create new admin user
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newAdmin = await prisma.user.create({
+    const newAdmin = await prisma.users.create({
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,

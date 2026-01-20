@@ -16,7 +16,7 @@ export async function approveQuote(quoteId: string, notes?: string) {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const quote = await prisma.quote.update({
+    const quote = await prisma.quotes.update({
       where: { id: quoteId },
       data: {
         status: 'accepted',
@@ -52,7 +52,7 @@ export async function rejectQuote(quoteId: string, reason: string) {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const quote = await prisma.quote.update({
+    const quote = await prisma.quotes.update({
       where: { id: quoteId },
       data: {
         status: 'rejected',
@@ -93,7 +93,7 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
       return { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
     }
 
-    const quote = await prisma.quote.update({
+    const quote = await prisma.quotes.update({
       where: { id: quoteId },
       data: {
         status,
@@ -119,7 +119,7 @@ export async function sendQuote(quoteId: string, customerEmail: string) {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    const quote = await prisma.quote.findUnique({
+    const quote = await prisma.quotes.findUnique({
       where: { id: quoteId },
       include: { user: true },
     });
@@ -163,7 +163,7 @@ export async function deleteQuote(quoteId: string) {
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    await prisma.quote.delete({
+    await prisma.quotes.delete({
       where: { id: quoteId },
     });
 

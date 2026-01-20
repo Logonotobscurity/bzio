@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { quoteRequestId } = await params;
-    const quoteRequest = await prisma.quote.findUnique({
+    const quoteRequest = await prisma.quotes.findUnique({
       where: {
         id: quoteRequestId,
       },
@@ -35,7 +35,7 @@ export async function PATCH(
     const { quoteRequestId } = await params;
     const { ...values } = await req.json();
 
-    const quoteRequest = await prisma.quote.update({
+    const quoteRequest = await prisma.quotes.update({
       where: {
         id: quoteRequestId,
       },
@@ -57,7 +57,7 @@ export async function DELETE(
 ) {
   try {
     const { quoteRequestId } = await params;
-    const quoteRequest = await prisma.quote.delete({
+    const quoteRequest = await prisma.quotes.delete({
       where: {
         id: quoteRequestId,
       },

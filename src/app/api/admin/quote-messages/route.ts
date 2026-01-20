@@ -26,13 +26,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const messages = await prisma.quoteMessage.findMany({
+    const messages = await prisma.quote_messages.findMany({
       where: { quoteId },
       orderBy: { createdAt: 'asc' },
     });
 
     // Mark messages as read
-    await prisma.quoteMessage.updateMany({
+    await prisma.quote_messages.updateMany({
       where: { quoteId, senderRole: 'customer' },
       data: { isRead: true },
     });
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { quoteId, message, senderRole } = body;
 
-    const newMessage = await prisma.quoteMessage.create({
+    const newMessage = await prisma.quote_messages.create({
       data: {
         quoteId,
         message,

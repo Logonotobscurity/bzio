@@ -21,7 +21,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
 
   const data = result.data;
 
-  await prisma.product.create({
+  await prisma.products.create({
     data: {
       sku: data.sku,
       name: data.name,
@@ -44,7 +44,7 @@ export async function updateProduct(id: number, prevState: unknown, formData: Fo
 
   const data = result.data;
 
-  await prisma.product.update({
+  await prisma.products.update({
     where: { id },
     data: {
       sku: data.sku,

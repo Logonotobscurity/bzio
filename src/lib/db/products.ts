@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function getProducts() {
   try {
-    const products = await prisma.product.findMany({
+    const products = await prisma.products.findMany({
       orderBy: {
         name: 'asc',
       },
@@ -20,7 +20,7 @@ export async function getProducts() {
 
 export async function getProductById(id: number) {
   try {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id },
       include: {
         brand: true,

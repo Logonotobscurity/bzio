@@ -171,7 +171,7 @@ export async function getRecentActivities(
           withTimeout(
             Promise.all([
               prisma.users.count(),
-              prisma.quote.count(),
+              prisma.quotes.count(),
               prisma.form_submissions.count(),
               prisma.newsletter_subscribers.count(),
               prisma.analytics_events.count({ where: { eventType: 'checkout_completed' } }),
@@ -282,8 +282,8 @@ export async function getActivityStats() {
                 },
               },
             }),
-            prisma.quote.count(),
-            prisma.quote.count({
+            prisma.quotes.count(),
+            prisma.quotes.count({
               where: {
                 status: { in: ['draft', 'pending'] },
               },
@@ -341,7 +341,7 @@ export async function getQuotes(
       try {
         const [quotes, total] = await Promise.all([
           withTimeout(
-            prisma.quote.findMany({
+            prisma.quotes.findMany({
               where: status ? { status } : undefined,
               take: limit,
               skip: offset,
@@ -370,7 +370,7 @@ export async function getQuotes(
             15000
           ),
           withTimeout(
-            prisma.quote.count({ where: status ? { status } : undefined }),
+            prisma.quotes.count({ where: status ? { status } : undefined }),
             15000
           ),
         ]);
