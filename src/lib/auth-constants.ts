@@ -10,11 +10,13 @@
 /**
  * User role constants
  * Must match database values exactly
- * Database stores: 'customer' and 'admin' (LOWERCASE)
+ * Database stores: 'CUSTOMER' and 'ADMIN' (UPPERCASE)
  */
 export const USER_ROLES = {
-  ADMIN: 'admin',
-  USER: 'customer',
+  ADMIN: 'ADMIN',
+  CUSTOMER: 'CUSTOMER',
+  // Backwards compatibility alias
+  USER: 'CUSTOMER',
 } as const;
 
 // Type-safe role type derived from constants
@@ -76,7 +78,7 @@ export function isAdmin(role: string | undefined): boolean {
  * @returns true if role is USER
  */
 export function isUser(role: string | undefined): boolean {
-  return role === USER_ROLES.USER;
+  return role === USER_ROLES.CUSTOMER;
 }
 
 /**
@@ -85,5 +87,5 @@ export function isUser(role: string | undefined): boolean {
  * @returns true if role is one of the defined USER_ROLES
  */
 export function isValidRole(role: string | undefined): role is UserRole {
-  return role === USER_ROLES.ADMIN || role === USER_ROLES.USER;
+  return role === USER_ROLES.ADMIN || role === USER_ROLES.CUSTOMER;
 }
