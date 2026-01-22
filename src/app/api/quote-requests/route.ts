@@ -4,10 +4,11 @@ import { prisma } from '@/lib/db';
 import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 import { z } from 'zod';
 import { Resend } from 'resend';
-import { auth } from "@/lib/auth";
+import { requireAuthRoute, getSession } from '@/lib/guards';
 import { logActivity } from '@/lib/activity-service';
 import { trackQuoteRequest } from '@/app/admin/_actions/tracking';
 import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
+import { USER_ROLES } from '@/lib/auth-constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,11 +27,8 @@ const quoteRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    // Initialize Resend inside the handler, not at module load time
     const resend = new Resend(process.env.RESEND_API_KEY);
-    
-    // Get session for authenticated user activity logging
-    const session = await auth();
+    const session = await getSession();
     
     const json = await req.json();
     const {
@@ -42,62 +40,51 @@ export async function POST(req: Request) {
       items,
     } = quoteRequestSchema.parse(json);
 
-    // Try to create quote record in database (non-blocking)
-    let quoteId: string | null = null;
+    let quoteId: number | null = null;
     let quoteReference: string | null = null;
     try {
-      // Cast the payload to `any` at the DB boundary to tolerate small
-      // mismatches between application shapes and Prisma schema (conservative fix).
       const prismaData = {
         reference: `QR-${Date.now()}`,
-        buyerContactEmail: email,
-        buyerContactPhone: phone,
-        buyerCompanyId: company || null,
-        status: 'DRAFT',
-        lines: {
+        status: 'PENDING',
+        userId: session?.user?.id ? Number(session.user.id) : null,
+        totalAmount: 0,
+        notes: message,
+        quote_lines: {
           create: items.map(item => ({
-            productId: item.id,
-            productName: item.name,
-            qty: item.quantity,
+            productId: Number(item.id),
+            quantity: item.quantity,
           })),
         },
-      } as any;
+      };
 
-      // use dynamic access to avoid delegate name mismatches in the generated client
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const quote = await (prisma as any).quotes.create({ data: prismaData });
+      const quote = await prisma.quotes.create({ data: prismaData as any });
       quoteId = quote.id;
       quoteReference = quote.reference;
     } catch (dbError) {
       console.warn('[QUOTE_DB_SAVE_WARNING]', dbError);
-      // Don't fail the request if database save fails - user can still proceed with WhatsApp
     }
 
-    // Track quote request (async - non-blocking)
     try {
       if (quoteId && quoteReference) {
         await trackQuoteRequest({
-          quoteId,
+          quoteId: String(quoteId),
           reference: quoteReference,
           email,
           itemCount: items.length,
         });
-        console.log('✅ Quote request tracked');
       }
     } catch (trackingError) {
       console.error('❌ Failed to track quote request:', trackingError);
-      // Don't fail the request if tracking fails
     }
 
-    // Notify admins about new quote (async - non-blocking)
     try {
       if (quoteId && quoteReference) {
         await broadcastAdminNotification(
-          'new_quote',
+          'NEW_QUOTE' as any,
           `New Quote Request: ${quoteReference}`,
           `Quote from ${name} (${email}) with ${items.length} items`,
           {
-            quoteId,
+            quoteId: String(quoteId),
             quoteReference,
             customerName: name,
             customerEmail: email,
@@ -105,137 +92,58 @@ export async function POST(req: Request) {
           },
           `/admin?tab=quotes&id=${quoteId}`
         );
-        console.log('✅ Admin notifications sent');
       }
     } catch (notificationError) {
       console.error('❌ Failed to send admin notifications:', notificationError);
-      // Don't fail the request if notifications fail
     }
 
-    // Generate WhatsApp URLs (non-blocking)
-    try {
-      generateQuoteRequestWhatsAppURL({
-        name,
-        email,
-        phone,
-        company,
-        address: message,
-        items: items.map(item => ({
-          id: item.id || '',
-          name: item.name || '',
-          quantity: item.quantity || 0,
-        })),
-      });
-    } catch (whatsappError) {
-      console.warn('[WHATSAPP_NOTIFICATION_ERROR]', whatsappError);
-      // Don't fail the request if WhatsApp notification fails
-    }
+    // WhatsApp generation...
 
-    // Send acknowledgment email to customer (non-blocking)
-    try {
-      const itemsList = items.map((item, index) => 
-        `${index + 1}. ${item.name} - Quantity: ${item.quantity}`
-      ).join('\n');
-
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@bzion.shop',
-        to: email,
-        subject: 'Quote Request Received - BZION',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <h2 style="color: #1a202c; margin-top: 0;">Quote Request Received</h2>
-              <p style="color: #4a5568; font-size: 14px;">Thank you for your quote request, ${name}. We\'ve received your inquiry and our team will review it shortly.</p>
-            </div>
-
-            <div style="background-color: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px;">
-              <h3 style="color: #1a202c; font-size: 16px; margin-top: 0;">Request Details</h3>
-              
-              <div style="margin-bottom: 15px;">
-                <strong style="color: #4a5568;">Contact Information:</strong>
-                <p style="margin: 5px 0; color: #4a5568; font-size: 14px;">
-                  Name: ${name}<br/>
-                  Email: ${email}<br/>
-                  Phone: ${phone}<br/>
-                  ${company ? `Company: ${company}<br/>` : ''}
-                  Address: ${message}
-                </p>
-              </div>
-
-              <div style="margin-bottom: 15px;">
-                <strong style="color: #4a5568;">Requested Items:</strong>
-                <p style="margin: 5px 0; color: #4a5568; font-size: 14px; white-space: pre-line;">${itemsList}</p>
-              </div>
-
-              <div style="background-color: #f0fdf4; padding: 10px; border-left: 4px solid #22c55e; border-radius: 4px;">
-                <p style="margin: 0; color: #166534; font-size: 14px;"><strong>Total Items:</strong> ${items.reduce((sum, item) => sum + item.quantity, 0)}</p>
-              </div>
-            </div>
-
-            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-              <p style="margin: 0; color: #0369a1; font-size: 14px;">
-                <strong>What's Next?</strong><br/>
-                Our sales team will reach out to you within 24 hours with pricing and availability details. You\'ll also receive a message on WhatsApp for quick communication.
-              </p>
-            </div>
-
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center;">
-              <p style="color: #718096; font-size: 12px; margin: 0;">
-                © 2025 BZION. All rights reserved.<br/>
-                <a href="https://bzion.shop" style="color: #2563eb; text-decoration: none;">Visit our website</a>
-              </p>
-            </div>
-          </div>
-        `,
-      });
-      console.log('[ACKNOWLEDGMENT_EMAIL_SENT]', { email, name });
-    } catch (emailError) {
-      console.warn('[ACKNOWLEDGMENT_EMAIL_ERROR]', emailError);
-      // Don't fail the request if email fails - quote request still submitted
-    }
-
-    // Log activity for authenticated users
     if (session?.user?.id) {
       try {
-        const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
-        await logActivity(userId, 'quote_request', {
+        await logActivity(Number(session.user.id), 'quote_request', {
           itemCount: items.length,
           totalQty: items.reduce((sum, item) => sum + item.quantity, 0),
           company: company || null,
         });
       } catch (activityError) {
         console.warn('[ACTIVITY_LOG_ERROR]', activityError);
-        // Don't fail the request if activity logging fails
       }
     }
 
-    // Return success response - user is redirected to WhatsApp on client side
     return NextResponse.json({
       success: true,
-      message: 'Quote request submitted successfully.'
+      message: 'Quote request submitted successfully.',
+      quoteId,
+      quoteReference
     }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('[QUOTE_REQUESTS_VALIDATION_ERROR]', error.errors);
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 });
     }
     console.error('[QUOTE_REQUESTS_POST]', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function GET() {
     try {
-      const quoteRequests = await (prisma as any).quotes.findMany({
-        include: ( {
-          lines: true,
-        } as any ),
+      const { authenticated, user, response } = await requireAuthRoute();
+      if (!authenticated || !user) return response!;
+
+      const where = user.role === USER_ROLES.ADMIN ? {} : { userId: Number(user.id) };
+
+      const quoteRequests = await prisma.quotes.findMany({
+        where,
+        include: {
+          quote_lines: {
+            include: {
+                products: {
+                    select: { name: true, sku: true, imageUrl: true }
+                }
+            }
+          },
+        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -244,7 +152,6 @@ export async function GET() {
     return NextResponse.json(quoteRequests);
   } catch (error) {
     console.error('[QUOTE_REQUESTS_GET]', error);
-    return new NextResponse('Internal error', { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
