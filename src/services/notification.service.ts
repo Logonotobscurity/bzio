@@ -7,11 +7,11 @@
 
 import { adminNotificationRepository } from '@/repositories/admin-notification.repository';
 import type { AdminNotification } from '@/lib/types/domain';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, AdminNotificationType } from '@prisma/client';
 
 interface CreateNotificationInput {
   adminId: number;
-  type: string;
+  type: AdminNotificationType | string;
   title: string;
   message: string;
   data?: Prisma.InputJsonValue;
@@ -32,7 +32,7 @@ export class NotificationService {
 
     return (await adminNotificationRepository.create({
       adminId: input.adminId,
-      type: input.type,
+      type: input.type as AdminNotificationType,
       title: input.title,
       message: input.message,
       data: input.data,

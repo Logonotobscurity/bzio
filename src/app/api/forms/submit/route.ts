@@ -5,14 +5,13 @@ import { checkRateLimit } from '@/lib/ratelimit';
 import {
   VALID_FORM_TYPES,
   LEAD_SCORE_MAP,
-  getLeadTypeForFormType,
   getNotificationPriority,
 } from '@/lib/constants/form-types';
 import { trackFormSubmission } from '@/app/admin/_actions/tracking';
 import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 
 const formSubmissionSchema = z.object({
-  formType: z.enum(VALID_FORM_TYPES, {
+  formType: z.enum(VALID_FORM_TYPES as any, {
     errorMap: () => ({
       message: `formType must be one of: ${VALID_FORM_TYPES.join(', ')}`,
     }),
@@ -55,21 +54,6 @@ export async function POST(request: NextRequest) {
 
     const { formType, email, name, companyName, phone, message, metadata } = validation.data;
 
-    // Check if database is available
-    if (!process.env.DATABASE_URL) {
-      console.log('Form submission (no DB):', { formType, email });
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Form submitted successfully',
-        },
-        { status: 200, headers: rateLimitHeaders }
-      );
-    }
-
-    // Extract IP and user agent
-    const userAgent = request.headers.get('user-agent') || '';
-
     // Prepare form submission data
     const formSubmissionData = {
       formType,
@@ -81,8 +65,6 @@ export async function POST(request: NextRequest) {
         message,
         ...metadata,
       },
-      ipAddress: ip,
-      userAgent,
       status: 'NEW' as const,
     };
 
@@ -92,34 +74,25 @@ export async function POST(request: NextRequest) {
 
     // Create all records in a transaction to ensure data consistency
     const result = await prisma.$transaction(async (tx) => {
-      // Use dynamic delegate access and cast data to any at the DB boundary
-      // to tolerate delegate/name differences between the code and generated client.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const formSubmission = await (tx as any).form_submissions.create({ data: formSubmissionData as any });
+      const formSubmission = await tx.form_submissions.create({ data: formSubmissionData as any });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const lead = await (tx as any).leads.create({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const [firstName, lastName] = name ? name.split(' ') : [undefined, undefined];
+
+      const lead = await tx.leads.create({
         data: {
           email,
-          name,
-          companyName,
+          firstName,
+          lastName,
+          company: companyName,
           phone,
-          type: getLeadTypeForFormType(formType),
-          source: 'web_form',
+          source: 'WEBSITE',
           status: 'NEW',
-          leadScore,
-          metadata: {
-            formSubmissionId: formSubmission.id,
-            formType,
-            ...metadata,
-          },
+          score: leadScore,
+          notes: `Form Type: ${formType}. ${message || ''}`,
         } as any,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const notification = await (tx as any).notifications.create({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const notification = await tx.crm_notifications.create({
         data: {
           type: 'NEW_FORM_SUBMISSION',
           targetSystem: 'BZION_HUB',
@@ -139,42 +112,38 @@ export async function POST(request: NextRequest) {
         } as any,
       });
 
-      return { formSubmission, lead, notification } as any;
+      return { formSubmission, lead, notification };
     });
 
     // Track form submission (async - non-blocking)
     try {
       await trackFormSubmission({
-        formSubmissionId: result.formSubmission.id,
+        formSubmissionId: String(result.formSubmission.id),
         formType,
         email,
         name: name || 'Unknown',
       });
-      console.log('✅ Form submission tracked');
     } catch (trackingError) {
       console.error('❌ Failed to track form submission:', trackingError);
-      // Don't fail the request if tracking fails
     }
 
     // Notify admins about new form submission (async - non-blocking)
     try {
       await broadcastAdminNotification(
-        'new_form',
+        'INFO',
         `New Form Submission: ${formType}`,
         `${name || 'Unknown'} (${email}) submitted a ${formType.replace('_', ' ')} form`,
         {
-          formSubmissionId: result.formSubmission.id,
-          leadId: result.lead.id,
+          formSubmissionId: String(result.formSubmission.id),
+          leadId: String(result.lead.id),
           formType,
           customerName: name,
           customerEmail: email,
         },
         `/admin?tab=forms&id=${result.formSubmission.id}`
       );
-      console.log('✅ Admin notifications sent');
     } catch (notificationError) {
       console.error('❌ Failed to send admin notifications:', notificationError);
-      // Don't fail the request if notifications fail
     }
 
     return NextResponse.json(

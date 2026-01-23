@@ -6,25 +6,40 @@
  */
 
 import { analyticsEventRepository } from '@/repositories';
-import type { AnalyticsEvent } from '@/lib/types/domain';
-import { Prisma } from '@prisma/client';
+import type { Prisma, analytics_events as AnalyticsEventRow } from '@prisma/client';
 
-function mapEvent(row: any): AnalyticsEvent {
+export interface AnalyticsEvent {
+  id: string;
+  eventType: string;
+  userId?: number;
+  data: Record<string, any>;
+  timestamp: Date;
+  title?: string;
+  description?: string;
+}
+
+function mapEvent(row: AnalyticsEventRow): AnalyticsEvent {
   return {
-    id: String(row?.id ?? ''),
-    eventType: row?.eventType ?? row?.type ?? '',
-    userId: row?.userId ?? undefined,
-    data: (row?.eventData ?? row?.data) as Record<string, any> || {},
-    timestamp: row?.createdAt ?? row?.timestamp ?? new Date(),
-  } as AnalyticsEvent;
+    id: String(row.id),
+    eventType: row.eventType,
+    userId: row.userId ?? undefined,
+    data: (row.eventData as Record<string, any>) || {},
+    timestamp: row.createdAt,
+    title: row.title || undefined,
+    description: row.description || undefined,
+  };
 }
 
 interface TrackEventInput {
   eventType: string;
-  userId?: number;
+  userId?: number | string;
+  title?: string;
+  description?: string;
   metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
+  referenceId?: string;
+  referenceType?: string;
 }
 
 export class AnalyticsService {
@@ -40,8 +55,13 @@ export class AnalyticsService {
       eventData: (input.metadata as Prisma.InputJsonValue) ?? {},
       ipAddress: input.ipAddress,
       userAgent: input.userAgent,
+      title: input.title,
+      description: input.description,
+      referenceId: input.referenceId,
+      referenceType: input.referenceType,
     });
 
+    if (!result) throw new Error("Failed to track event");
     return mapEvent(result);
   }
 
@@ -60,17 +80,17 @@ export class AnalyticsService {
     return (rows || []).map(mapEvent);
   }
 
-  async getEventsByUser(userId: number): Promise<AnalyticsEvent[]> {
+  async getEventsByUser(userId: number | string): Promise<AnalyticsEvent[]> {
     const rows = await analyticsEventRepository.findByUserId(userId);
     return (rows || []).map(mapEvent);
   }
 
   async getEventTypeStats(eventType: string): Promise<number> {
-    return analyticsEventRepository.countByEventType(eventType);
+    return (await analyticsEventRepository.countByEventType(eventType)) || 0;
   }
 
-  async getUserActivityStats(userId: number): Promise<number> {
-    return analyticsEventRepository.count({ userId });
+  async getUserActivityStats(userId: number | string): Promise<number> {
+    return (await analyticsEventRepository.count({ userId: Number(userId) })) || 0;
   }
 
   async getAllEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
@@ -79,49 +99,11 @@ export class AnalyticsService {
   }
 
   async getEventCount(): Promise<number> {
-    return analyticsEventRepository.count();
+    return (await analyticsEventRepository.count()) || 0;
   }
 
   async deleteEvent(id: string | number): Promise<boolean> {
     return analyticsEventRepository.delete(id);
-  }
-
-  async getEventsByDateRange(startDate: Date, endDate: Date): Promise<AnalyticsEvent[]> {
-    const all = await analyticsEventRepository.findAll();
-    const mapped = (all || []).map(mapEvent);
-    return mapped.filter(e => new Date(e.timestamp) >= startDate && new Date(e.timestamp) <= endDate);
-  }
-
-  async getPopularEvents(limit: number = 10): Promise<Array<{ type: string; count: number }>> {
-    const all = await analyticsEventRepository.findAll();
-    const counts = new Map<string, number>();
-
-    (all || []).forEach(event => {
-      const ev = mapEvent(event);
-      counts.set(ev.eventType, (counts.get(ev.eventType) || 0) + 1);
-    });
-
-    return Array.from(counts.entries())
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
-  }
-
-  async getActiveUsers(limit?: number): Promise<Array<{ userId: number; eventCount: number }>> {
-    const all = await analyticsEventRepository.findAll();
-    const userCounts = new Map<number, number>();
-
-    (all || []).forEach(event => {
-      const ev = mapEvent(event);
-      if (ev.userId) {
-        userCounts.set(ev.userId, (userCounts.get(ev.userId) || 0) + 1);
-      }
-    });
-
-    return Array.from(userCounts.entries())
-      .map(([userId, eventCount]) => ({ userId, eventCount }))
-      .sort((a, b) => b.eventCount - a.eventCount)
-      .slice(0, limit);
   }
 
   /**

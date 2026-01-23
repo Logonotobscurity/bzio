@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
-import prisma from '@/lib/prisma';
+import { requireAdminRoute } from '@/lib/guards';
+import { prisma } from '@/lib/db';
 
 /**
  * GET /api/admin/customers/data
@@ -9,14 +9,7 @@ import prisma from '@/lib/prisma';
  */
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
-    }
+    await requireAdminRoute();
 
     const url = new URL(req.url);
     const customerId = url.searchParams.get('customerId');
@@ -31,7 +24,7 @@ export async function GET(req: Request) {
       const customer = await prisma.users.findFirst({
         where: {
           id: customerIdNum,
-          role: 'customer',
+          role: 'CUSTOMER',
         },
         select: {
           id: true,
@@ -57,17 +50,14 @@ export async function GET(req: Request) {
             include: {
               items: {
                 include: {
-                  product: {
+                  products: {
                     select: {
                       id: true,
                       name: true,
                       sku: true,
                       price: true,
-                      stock: true,
-                      images: {
-                        select: { url: true },
-                        take: 1,
-                      },
+                      stockQuantity: true,
+                      imageUrl: true,
                     },
                   },
                 },
@@ -78,7 +68,7 @@ export async function GET(req: Request) {
           // Quotes
           quotes: {
             include: {
-              lines: true,
+              quote_lines: true,
             },
             orderBy: { createdAt: 'desc' },
             take: 20,
@@ -98,7 +88,7 @@ export async function GET(req: Request) {
         ...cart,
         itemCount: cart.items.length,
         total: cart.items.reduce(
-          (sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
+          (sum, item) => sum + (Number(item.unitPrice) || Number(item.products.price) || 0) * item.quantity,
           0
         ),
       }));
@@ -108,8 +98,8 @@ export async function GET(req: Request) {
         id: quote.id,
         reference: quote.reference,
         status: quote.status,
-        total: quote.total,
-        itemCount: quote.lines?.length || 0,
+        total: quote.totalAmount,
+        itemCount: quote.quote_lines?.length || 0,
         createdAt: quote.createdAt,
       }));
 
@@ -123,11 +113,10 @@ export async function GET(req: Request) {
     }
 
     // Fetch multiple customers with search
-    // Use a permissive `any` here to tolerate Prisma generated-client naming/type differences
     const whereClause: any = search
       ? {
           AND: [
-            { role: 'customer' },
+            { role: 'CUSTOMER' },
             {
               OR: [
                 { email: { contains: search, mode: 'insensitive' } },
@@ -139,7 +128,7 @@ export async function GET(req: Request) {
             },
           ],
         }
-      : { role: 'customer' };
+      : { role: 'CUSTOMER' };
 
     const [customers, total] = await Promise.all([
       prisma.users.findMany({
@@ -172,7 +161,7 @@ export async function GET(req: Request) {
                 select: {
                   quantity: true,
                   unitPrice: true,
-                  product: {
+                  products: {
                     select: { price: true },
                   },
                 },
@@ -193,7 +182,7 @@ export async function GET(req: Request) {
     // Transform and enhance customer data
     const customersWithTotals = customers.map(customer => {
       const cartTotal = customer.carts[0]?.items.reduce(
-        (sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
+        (sum, item) => sum + (Number(item.unitPrice) || Number(item.products.price) || 0) * item.quantity,
         0
       ) || 0;
 

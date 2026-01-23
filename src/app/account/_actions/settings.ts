@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { revalidatePath } from "next/cache";
 import { invalidateDashboardCache } from '@/lib/cache';
 import { compare, hash } from 'bcryptjs';
@@ -69,8 +69,9 @@ async function trackActivity(
   await prisma.analytics_events.create({
     data: {
       userId,
-      eventType,
-      eventData: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
+      eventType: eventType,
+      description: eventType,
+      metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
     },
   });
 }
@@ -119,7 +120,7 @@ export async function getUserProfile() {
     addresses: user.addresses.map(addr => ({
       id: addr.id,
       type: addr.type,
-      street: addr.street,
+      street: addr.addressLine1, // Mapped to our schema
       city: addr.city,
       state: addr.state,
       postalCode: addr.postalCode,
@@ -170,22 +171,21 @@ export async function createAddress(input: z.infer<typeof addressSchema>) {
   // If setting as default, unset other defaults of same type
   if (data.isDefault) {
     await prisma.addresses.updateMany({
-      where: { userId, type: data.type },
+      where: { userId, isDefault: true },
       data: { isDefault: false },
     });
   }
 
   const address = await prisma.addresses.create({
     data: {
-      street: data.street,
+      addressLine1: data.street,
       city: data.city,
       state: data.state,
       postalCode: data.postalCode,
       country: data.country,
       type: data.type,
       isDefault: data.isDefault,
-      users: { connect: { id: userId } },
-      updatedAt: new Date(),
+      userId,
     },
   });
 
@@ -218,17 +218,25 @@ export async function updateAddress(
     throw new Error('Address not found');
   }
 
-  // If setting as default, unset other defaults of same type
+  // If setting as default, unset other defaults
   if (data.isDefault) {
     await prisma.addresses.updateMany({
-      where: { userId, type: data.type, id: { not: addressId } },
+      where: { userId, id: { not: addressId }, isDefault: true },
       data: { isDefault: false },
     });
   }
 
   const address = await prisma.addresses.update({
     where: { id: addressId },
-    data,
+    data: {
+        addressLine1: data.street,
+        city: data.city,
+        state: data.state,
+        postalCode: data.postalCode,
+        country: data.country,
+        type: data.type,
+        isDefault: data.isDefault,
+    },
   });
 
   await trackActivity(userId, 'address_updated', { addressId });
@@ -277,9 +285,9 @@ export async function setDefaultAddress(addressId: number) {
     throw new Error('Address not found');
   }
 
-  // Unset other defaults of same type
+  // Unset other defaults
   await prisma.addresses.updateMany({
-    where: { userId, type: address.type },
+    where: { userId, isDefault: true },
     data: { isDefault: false },
   });
 
@@ -319,7 +327,7 @@ export async function updateCompany(input: z.infer<typeof companySchema>) {
   let company;
   if (user?.companyId) {
     // Update existing company
-    company = await prisma.companies.update({
+    company = await prisma.businessAccount.update({
       where: { id: user.companyId },
       data: {
         name: data.name,
@@ -329,14 +337,12 @@ export async function updateCompany(input: z.infer<typeof companySchema>) {
     });
   } else {
     // Create new company and link to user
-    company = await prisma.companies.create({
+    company = await prisma.businessAccount.create({
       data: {
         name: data.name,
         industry: data.industry || null,
         website: data.website || null,
         users: { connect: { id: userId } },
-        // Prisma types require updatedAt on create in this schema; set to now
-        updatedAt: new Date(),
       },
     });
   }
@@ -396,8 +402,6 @@ export async function changePassword(input: z.infer<typeof passwordSchema>) {
 // ============================================================================
 // NOTIFICATION PREFERENCES
 // ============================================================================
-// NOTIFICATION PREFERENCES
-// ============================================================================
 
 /**
  * Get notification preferences for current user
@@ -435,15 +439,13 @@ export async function updateNotificationPreferences(
       marketingEmails: data.marketingEmails,
       quoteUpdates: data.quoteUpdates,
       productAlerts: data.productAlerts,
-      updatedAt: new Date(),
     },
     create: {
-      users: { connect: { id: userId } },
+      userId,
       emailNotifications: data.emailNotifications,
       marketingEmails: data.marketingEmails,
       quoteUpdates: data.quoteUpdates,
       productAlerts: data.productAlerts,
-      updatedAt: new Date(),
     },
   });
 

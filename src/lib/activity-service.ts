@@ -29,7 +29,7 @@ export interface ActivityData {
  */
 export async function logActivity(
   userId: number,
-  activityType: ActivityType,
+  eventType: ActivityType,
   data: ActivityData = {}
 ) {
   try {
@@ -44,12 +44,12 @@ export async function logActivity(
 
     // Use dynamic delegate access to avoid generated-client delegate name mismatches
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma as any).user_activities.create({
+    await (prisma as any).analytics_events.create({
       data: {
         userId,
-        activityType,
+        eventType,
         title: (data.title as string) || null,
-        description: (data.message as string) || activityType,
+        description: (data.message as string) || eventType,
         referenceId: (data.referenceId as string) || null,
         referenceType: (data.referenceType as string) || null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,7 +57,7 @@ export async function logActivity(
       },
     });
   } catch (error) {
-    console.error(`Failed to log activity ${activityType} for user ${userId}:`, error);
+    console.error(`Failed to log activity ${eventType} for user ${userId}:`, error);
   }
 }
 
@@ -67,13 +67,13 @@ export async function logActivity(
 export async function getUserActivities(userId: number, limit: number = 10) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activities = await (prisma as any).user_activities.findMany({
+    const activities = await (prisma as any).analytics_events.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
         id: true,
-        activityType: true,
+        eventType: true,
         title: true,
         description: true,
         referenceId: true,
@@ -100,20 +100,20 @@ export async function getActivitySummary(userId: number) {
 
     const [totalActivities, viewActivities, quoteActivities, cartActivities] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma as any).user_activities.count({
+      (prisma as any).analytics_events.count({
         where: { userId },
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma as any).user_activities.count({
-        where: { userId, activityType: 'view', createdAt: { gte: thirtyDaysAgo } },
+      (prisma as any).analytics_events.count({
+        where: { userId, eventType: 'view', createdAt: { gte: thirtyDaysAgo } },
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma as any).user_activities.count({
-        where: { userId, activityType: { in: ['quote_create', 'quote_update', 'quote_submitted'] }, createdAt: { gte: ninetyDaysAgo } },
+      (prisma as any).analytics_events.count({
+        where: { userId, eventType: { in: ['quote_create', 'quote_update', 'quote_submitted'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma as any).user_activities.count({
-        where: { userId, activityType: { in: ['cart_add', 'cart_remove'] }, createdAt: { gte: ninetyDaysAgo } },
+      (prisma as any).analytics_events.count({
+        where: { userId, eventType: { in: ['cart_add', 'cart_remove'] }, createdAt: { gte: ninetyDaysAgo } },
       }),
     ]);
 

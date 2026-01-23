@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { USER_ROLES } from '@/lib/auth-constants';
 import UsersClient from './UsersClient';
 
@@ -8,7 +8,7 @@ async function getUsersData() {
   const users = await prisma.users.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      companies: { select: { name: true } },
+      organization: { select: { name: true } },
       _count: {
         select: {
           quotes: true,
@@ -17,7 +17,7 @@ async function getUsersData() {
     },
   });
 
-  return users.map((user) => ({
+  return users.map((user: any) => ({
     id: user.id.toString(),
     email: user.email,
     firstName: user.firstName,
@@ -25,9 +25,9 @@ async function getUsersData() {
     role: user.role,
     emailVerified: !!user.emailVerified,
     isActive: user.isActive,
-    company: user.company?.name || null,
+    company: user.organization?.name || null,
     quotesCount: user._count.quotes,
-    ordersCount: 0, // Orders not in schema yet
+    ordersCount: 0,
     createdAt: user.createdAt,
     lastLogin: user.lastLogin,
   }));

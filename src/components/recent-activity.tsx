@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 
 interface Activity {
   id: string;
-  activityType: string;
+  eventType: string;
   title: string | null;
   description: string;
   referenceId: string | null;
@@ -43,7 +43,7 @@ export default function RecentActivity() {
     }
   };
 
-  const getActivityIcon = (activityType: string) => {
+  const getActivityIcon = (eventType: string) => {
     const icons: Record<string, string> = {
       view: '👁️',
       cart_add: '🛒',
@@ -56,10 +56,10 @@ export default function RecentActivity() {
       order_placement: '📦',
       profile_update: '👤',
     };
-    return icons[activityType] || '📌';
+    return icons[eventType] || '📌';
   };
 
-  const getActivityColor = (activityType: string) => {
+  const getActivityColor = (eventType: string) => {
     const colors: Record<string, string> = {
       view: 'bg-blue-100 text-blue-800',
       cart_add: 'bg-green-100 text-green-800',
@@ -72,7 +72,7 @@ export default function RecentActivity() {
       order_placement: 'bg-indigo-100 text-indigo-800',
       profile_update: 'bg-gray-100 text-gray-800',
     };
-    return colors[activityType] || 'bg-gray-100 text-gray-800';
+    return colors[eventType] || 'bg-gray-100 text-gray-800';
   };
 
   const formatDate = (dateString: string) => {
@@ -116,7 +116,7 @@ export default function RecentActivity() {
             {activities.map((activity) => (
               <div key={activity.id} className="flex gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="text-xl sm:text-2xl flex-shrink-0">
-                  {getActivityIcon(activity.activityType)}
+                  {getActivityIcon(activity.eventType)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -130,8 +130,8 @@ export default function RecentActivity() {
                         </p>
                       )}
                     </div>
-                    <Badge className={`${getActivityColor(activity.activityType)} text-[10px] sm:text-xs py-0.5 px-1.5 flex-shrink-0`}>
-                      {activity.activityType.replace(/_/g, ' ')}
+                    <Badge className={`${getActivityColor(activity.eventType)} text-[10px] sm:text-xs py-0.5 px-1.5 flex-shrink-0`}>
+                      {activity.eventType.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">

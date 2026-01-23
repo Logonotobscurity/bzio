@@ -1,188 +1,116 @@
-"use server";
+import { prisma } from '@/lib/db';
+import { getCachedQuery, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
 
-import { prisma } from '@/lib/prisma';
-import { getCachedQuery, CACHE_TTL } from '@/lib/cache';
-
-export interface AnalyticsFilters {
-  dateFrom?: Date;
-  dateTo?: Date;
-  eventType?: string;
-}
-
-export interface DailyMetric {
-  date: string;
-  count: number;
-}
-
-export interface EventTypeMetric {
-  type: string;
-  count: number;
-  percentage: number;
-}
-
-export interface AnalyticsSummary {
-  totalEvents: number;
-  uniqueUsers: number;
-  eventsToday: number;
-  eventsThisWeek: number;
-  eventsThisMonth: number;
-  topEventTypes: EventTypeMetric[];
-  dailyTrend: DailyMetric[];
-  hourlyDistribution: { hour: number; count: number }[];
-}
-
-/**
- * Get comprehensive analytics summary
- */
-export async function getAnalyticsSummary(days = 30): Promise<AnalyticsSummary> {
+export async function getDashboardStats() {
   return getCachedQuery(
-    `analytics:summary:${days}`,
+    CACHE_KEYS.dashboard.stats,
     async () => {
-      const now = new Date();
-      const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
       const [
-        totalEvents,
-        uniqueUsersResult,
-        eventsToday,
-        eventsThisWeek,
-        eventsThisMonth,
-        eventsByType,
-        dailyEvents,
+        totalUsers,
+        totalQuotes,
+        totalProducts,
+        pendingQuotes,
       ] = await Promise.all([
-        prisma.analytics_events.count({ where: { createdAt: { gte: startDate } } }),
-        prisma.analytics_events.groupBy({
-          by: ['userId'],
-          where: { createdAt: { gte: startDate }, userId: { not: null } },
-        }),
-        prisma.analytics_events.count({ where: { createdAt: { gte: startOfToday } } }),
-        prisma.analytics_events.count({ where: { createdAt: { gte: startOfWeek } } }),
-        prisma.analytics_events.count({ where: { createdAt: { gte: startOfMonth } } }),
-        prisma.analytics_events.groupBy({
-          by: ['eventType'],
-          where: { createdAt: { gte: startDate } },
-          _count: { eventType: true },
-          orderBy: { _count: { eventType: 'desc' } },
-          take: 10,
-        }),
-        prisma.$queryRaw<{ date: Date; count: bigint }[]>`
-          SELECT DATE("createdAt") as date, COUNT(*) as count
-          FROM analytics_events
-          WHERE "createdAt" >= ${startDate}
-          GROUP BY DATE("createdAt")
-          ORDER BY date ASC
-        `,
+        prisma.users.count({ where: { role: 'CUSTOMER' } }),
+        prisma.quotes.count(),
+        prisma.products.count(),
+        prisma.quotes.count({ where: { status: 'PENDING' } }),
       ]);
 
-      const topEventTypes: EventTypeMetric[] = eventsByType.map((e) => ({
-        type: e.eventType,
-        count: e._count.eventType,
-        percentage: totalEvents > 0 ? (e._count.eventType / totalEvents) * 100 : 0,
-      }));
-
-      const dailyTrend: DailyMetric[] = dailyEvents.map((d) => ({
-        date: new Date(d.date).toISOString().split('T')[0],
-        count: Number(d.count),
-      }));
-
-      // Generate hourly distribution (mock for now, would need raw query)
-      const hourlyDistribution = Array.from({ length: 24 }, (_, hour) => ({
-        hour,
-        count: Math.floor(Math.random() * 100) + 10,
-      }));
-
       return {
-        totalEvents,
-        uniqueUsers: uniqueUsersResult.length,
-        eventsToday,
-        eventsThisWeek,
-        eventsThisMonth,
-        topEventTypes,
-        dailyTrend,
-        hourlyDistribution,
+        totalUsers,
+        totalQuotes,
+        totalProducts,
+        pendingQuotes,
       };
     },
-    { ttl: CACHE_TTL.MEDIUM }
+    CACHE_TTL.dashboard.stats
   );
 }
 
-/**
- * Get events with filters
- */
-export async function getAnalyticsEvents(filters: AnalyticsFilters = {}, page = 1, limit = 50) {
-  const where: Record<string, unknown> = {};
-
-  if (filters.eventType && filters.eventType !== 'all') {
-    where.eventType = filters.eventType;
-  }
-
-  if (filters.dateFrom || filters.dateTo) {
-    where.createdAt = {};
-    if (filters.dateFrom) (where.createdAt as Record<string, Date>).gte = filters.dateFrom;
-    if (filters.dateTo) (where.createdAt as Record<string, Date>).lte = filters.dateTo;
-  }
-
-  const [events, total] = await Promise.all([
-    prisma.analytics_events.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: { user: { select: { email: true, firstName: true, lastName: true } } },
-    }),
-    prisma.analytics_events.count({ where }),
-  ]);
-
-  return {
-    events: events.map((e) => ({
-      id: e.id.toString(),
-      eventType: e.eventType,
-      eventData: e.eventData as Record<string, unknown>,
-      user: e.user,
-      createdAt: e.createdAt,
-    })),
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-  };
+export async function getRecentEvents(limit = 10) {
+  return prisma.analytics_events.findMany({
+    take: limit,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      users: {
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
 }
 
-/**
- * Get conversion funnel data
- */
+export async function getAnalyticsSummary(days = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const [eventCounts, topEvents] = await Promise.all([
+        prisma.analytics_events.count({
+            where: { createdAt: { gte: startDate } }
+        }),
+        prisma.$queryRaw`SELECT "eventType", COUNT(*) as count FROM analytics_events WHERE "createdAt" >= ${startDate} GROUP BY "eventType" ORDER BY count DESC LIMIT 5`
+    ]);
+
+    return {
+        totalEvents: eventCounts,
+        topEvents: topEvents as any[]
+    };
+}
+
 export async function getConversionFunnel(days = 30) {
-  const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
 
-  const [productViews, quoteRequests, checkouts] = await Promise.all([
-    prisma.analytics_events.count({ where: { eventType: 'product_viewed', createdAt: { gte: startDate } } }),
-    prisma.analytics_events.count({ where: { eventType: 'quote_requested', createdAt: { gte: startDate } } }),
-    prisma.analytics_events.count({ where: { eventType: 'checkout_completed', createdAt: { gte: startDate } } }),
-  ]);
+    const stages = [
+        { name: 'Views', type: 'product_viewed' },
+        { name: 'Cart', type: 'cart_item_added' },
+        { name: 'Checkout', type: 'checkout_started' },
+        { name: 'Quotes', type: 'quote_requested' }
+    ];
 
-  return {
-    steps: [
-      { name: 'Product Views', count: productViews, percentage: 100 },
-      { name: 'Quote Requests', count: quoteRequests, percentage: productViews > 0 ? (quoteRequests / productViews) * 100 : 0 },
-      { name: 'Checkouts', count: checkouts, percentage: productViews > 0 ? (checkouts / productViews) * 100 : 0 },
-    ],
-  };
+    const funnel = await Promise.all(stages.map(async (stage) => {
+        const count = await prisma.analytics_events.count({
+            where: {
+                eventType: stage.type,
+                createdAt: { gte: startDate }
+            }
+        });
+        return { name: stage.name, value: count };
+    }));
+
+    return funnel;
 }
 
-/**
- * Export analytics to CSV
- */
-export async function exportAnalyticsToCSV(filters: AnalyticsFilters = {}): Promise<string> {
-  const { events } = await getAnalyticsEvents(filters, 1, 10000);
-  
-  const headers = ['ID', 'Event Type', 'User Email', 'Created At', 'Data'];
-  const rows = events.map((e) => [
-    e.id,
-    e.eventType,
-    e.user?.email || 'Anonymous',
-    new Date(e.createdAt).toISOString(),
-    JSON.stringify(e.eventData || {}),
-  ]);
+export async function getAnalyticsEvents(limit = 50, offset = 0) {
+    const items = await prisma.analytics_events.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: { createdAt: 'desc' },
+        include: { users: true }
+    });
+    return items;
+}
 
-  return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+export async function exportAnalyticsToCSV(days = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const events = await prisma.analytics_events.findMany({
+        where: { createdAt: { gte: startDate } },
+        include: { users: true }
+    });
+
+    const headers = ['ID', 'Type', 'User', 'Date', 'Data'];
+    const rows = events.map(e => [
+        String(e.id),
+        e.eventType,
+        e.users?.email || 'System',
+        e.createdAt.toISOString(),
+        JSON.stringify(e.eventData)
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 }

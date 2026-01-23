@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import type { User } from '@prisma/client';
+import type { users as User } from '@prisma/client';
 
 export const getUserById = async (id: number): Promise<User | null> => {
   return prisma.users.findUnique({
@@ -11,7 +11,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
 export const getUserByPhone = async (phone: string): Promise<User | null> => {
   // phone may not be a unique scalar in generated schema; use findFirst
   return prisma.users.findFirst({
-    where: { phone },
+    where: { phone: String(phone) },
   });
 };
 

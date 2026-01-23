@@ -6,30 +6,30 @@
 
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, LeadSource, LeadStatus } from '@prisma/client';
 
 type Lead = Prisma.leadsGetPayload<{}>;
 
 interface CreateLeadInput {
   email: string;
+  firstName?: string;
+  lastName?: string;
   name?: string;
-  companyName?: string;
+  company?: string;
   phone?: string;
-  type: string;
-  source: string;
-  status?: string;
-  metadata?: Prisma.InputJsonValue;
+  source?: LeadSource | string;
+  status?: LeadStatus | string;
+  notes?: string;
 }
 
 interface UpdateLeadInput {
-  name?: string;
-  companyName?: string;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
   phone?: string;
-  type?: string;
-  status?: string;
-  metadata?: Prisma.InputJsonValue;
-  assignedTo?: string;
-  convertedAt?: Date;
+  status?: LeadStatus | string;
+  notes?: string;
+  score?: number;
 }
 
 export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, UpdateLeadInput> {
@@ -67,19 +67,20 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async create(data: CreateLeadInput) {
     try {
-      const createData: any = {
-        email: data.email,
-        name: data.name,
-        companyName: data.companyName,
-        phone: data.phone,
-        type: data.type,
-        // map to Prisma enum shape at runtime (cast to any to avoid generated enum name mismatch)
-        source: (data.source || 'WEB').toString().toUpperCase() as any,
-        status: (data.status || 'NEW').toString().toUpperCase() as any,
-        metadata: data.metadata,
-      };
+      const [firstName, lastName] = data.name ? data.name.split(' ') : [data.firstName, data.lastName];
 
-      return await prisma.leads.create({ data: createData });
+      return await prisma.leads.create({
+        data: {
+          email: data.email,
+          firstName: firstName || data.firstName,
+          lastName: lastName || data.lastName,
+          company: data.company,
+          phone: data.phone,
+          source: (data.source as LeadSource) || 'WEBSITE',
+          status: (data.status as LeadStatus) || 'NEW',
+          notes: data.notes,
+        },
+      });
     } catch (error) {
       this.handleError(error, 'create');
     }
@@ -87,14 +88,12 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
 
   async update(id: string | number, data: UpdateLeadInput) {
     try {
-      const updateData: any = { ...data };
-      if (data.status) {
-        updateData.status = (data.status as string).toUpperCase() as any;
-      }
-
       return await prisma.leads.update({
         where: { id: Number(id) },
-        data: updateData,
+        data: {
+          ...data,
+          status: (data.status as LeadStatus) || undefined,
+        },
       });
     } catch (error) {
       this.handleError(error, 'update');
@@ -126,7 +125,7 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
   async findByStatus(status: string, limit?: number) {
     try {
       return await prisma.leads.findMany({
-        where: { status: (status || '').toUpperCase() as unknown as Prisma.LeadStatus },
+        where: { status: (status || '').toUpperCase() as LeadStatus },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -141,7 +140,7 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
   async findBySource(source: string, limit?: number) {
     try {
       return await prisma.leads.findMany({
-        where: { source: (source || '').toUpperCase() as unknown as Prisma.LeadSource },
+        where: { source: (source || '').toUpperCase() as LeadSource },
         take: limit,
         orderBy: { createdAt: 'desc' },
       });
@@ -156,7 +155,7 @@ export class LeadRepository extends BaseRepository<Lead, CreateLeadInput, Update
   async countByStatus(status: string) {
     try {
       return await prisma.leads.count({
-        where: { status: (status || '').toUpperCase() as unknown as Prisma.LeadStatus },
+        where: { status: (status || '').toUpperCase() as LeadStatus },
       });
     } catch (error) {
       this.handleError(error, 'countByStatus');

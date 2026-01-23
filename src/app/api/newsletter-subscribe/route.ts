@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
     await prisma.newsletter_subscribers.create({
       data: {
         email,
-        source,
-        status: 'ACTIVE',
-        metadata,
+        source: source || 'web',
+        status: 'active',
+        isActive: true,
       },
     });
 
@@ -88,14 +88,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create associated lead record for CRM
-    await prisma.lead.create({
+    await prisma.leads.create({
       data: {
         email,
-        type: 'NEWSLETTER',
-        source,
+        source: 'WEBSITE',
         status: 'NEW',
-        leadScore: 20,
-        metadata,
+        score: 20,
       },
     });
 

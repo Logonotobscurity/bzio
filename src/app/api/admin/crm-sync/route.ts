@@ -31,29 +31,29 @@ export async function GET() {
       totalSubscribers,
     ] = await Promise.all([
       // Last 50 leads
-      prisma.lead.findMany({
+      prisma.leads.findMany({
         take: 50,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           email: true,
-          name: true,
-          type: true,
+          firstName: true,
+          lastName: true,
           status: true,
-          leadScore: true,
+          score: true,
           createdAt: true,
         },
       }),
       // Last 50 form submissions
       prisma.form_submissions.findMany({
         take: 50,
-        orderBy: { submittedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           formType: true,
           data: true,
           status: true,
-          submittedAt: true,
+          createdAt: true,
         },
       }),
       // Last 50 newsletter subscribers
@@ -68,7 +68,7 @@ export async function GET() {
         },
       }),
       // Unread notifications for BZION_HUB
-      prisma.notifications.findMany({
+      prisma.crm_notifications.findMany({
         where: {
           read: false,
           targetSystem: 'BZION_HUB',
@@ -84,7 +84,7 @@ export async function GET() {
         },
       }),
       // Count total leads
-      prisma.lead.count(),
+      prisma.leads.count(),
       // Count total form submissions
       prisma.form_submissions.count(),
       // Count total newsletter subscribers

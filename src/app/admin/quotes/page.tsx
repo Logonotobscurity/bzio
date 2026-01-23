@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { USER_ROLES } from '@/lib/auth-constants';
 import QuotesClient from './QuotesClient';
 
@@ -13,30 +13,30 @@ async function getQuotesData() {
           firstName: true,
           lastName: true,
           email: true,
-          companies: { select: { name: true } },
+          organization: { select: { name: true } },
         },
       },
-      quoteLines: {
+      quote_lines: {
         include: {
-          product: { select: { name: true, sku: true } },
+          products: { select: { name: true, sku: true } },
         },
       },
     },
   });
 
-  return quotes.map((quote) => ({
+  return quotes.map((quote: any) => ({
     id: quote.id.toString(),
     reference: quote.reference,
     status: quote.status,
     totalAmount: parseFloat(quote.totalAmount.toString()),
     createdAt: quote.createdAt,
     updatedAt: quote.updatedAt,
-    user: quote.user,
-    quote_lines: quote.quoteLines.map((line) => ({
+    user: quote.users,
+    quote_lines: (quote.quote_lines || []).map((line: any) => ({
       id: line.id.toString(),
       quantity: line.quantity,
-      unitPrice: parseFloat(line.unitPrice.toString()),
-      product: line.product,
+      unitPrice: parseFloat(line.unitPrice?.toString() || '0'),
+      product: line.products,
     })),
   }));
 }

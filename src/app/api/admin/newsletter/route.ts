@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAdminRoute } from '@/lib/guards';
 import { newsletterService, analyticsService } from '@/services';
 
 /**
@@ -10,21 +10,25 @@ import { newsletterService, analyticsService } from '@/services';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const body = await request.json();
     const { action, id, ...data } = body;
 
     // Unsubscribe
     if (action === 'unsubscribe' && id) {
-      await newsletterService.unsubscribe(id);
+      if (typeof id === 'number' || !isNaN(Number(id))) {
+        await newsletterService.updateSubscriber(Number(id), {
+          status: 'unsubscribed',
+          unsubscribedAt: new Date(),
+        });
+      } else {
+        await newsletterService.unsubscribe(String(id));
+      }
 
       await analyticsService.trackEvent({
         eventType: 'newsletter_unsubscribed',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { subscriberId: id },
       });
 
@@ -33,13 +37,13 @@ export async function POST(request: NextRequest) {
 
     // Resubscribe
     if (action === 'resubscribe' && id) {
-      const subscriber = await newsletterService.updateSubscriber(id, {
+      const subscriber = await newsletterService.updateSubscriber(Number(id), {
         status: 'active',
       });
 
       await analyticsService.trackEvent({
         eventType: 'newsletter_resubscribed',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { subscriberId: id },
       });
 
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
 
       await analyticsService.trackEvent({
         eventType: 'newsletter_campaign_sent',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: {
           recipientCount: subscribers.length,
           subject,
@@ -92,7 +96,7 @@ export async function POST(request: NextRequest) {
 
       await analyticsService.trackEvent({
         eventType: 'newsletter_exported',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { format, count: subscribers.length },
       });
 
@@ -135,10 +139,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
@@ -147,11 +148,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Subscriber ID required' }, { status: 400 });
     }
 
-    await newsletterService.deleteSubscriber(id);
+    await newsletterService.deleteSubscriber(Number(id));
 
     await analyticsService.trackEvent({
       eventType: 'newsletter_deleted',
-      userId: session.user.id,
+      userId: Number(user.id),
       metadata: { subscriberId: id },
     });
 
