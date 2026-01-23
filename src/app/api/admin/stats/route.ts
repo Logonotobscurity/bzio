@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/auth-server';
+import { requireAdminRoute } from '@/lib/guards';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdminRoute();
 
     const [totalUsers, totalQuotes, totalProducts, recentActivities] = await Promise.all([
       prisma.users.count({ where: { role: 'CUSTOMER' } }),
@@ -24,10 +24,14 @@ export async function GET() {
       })
     ]);
 
-    const formattedActivities = recentActivities.map(activity => ({
-      id: activity.id,
-      type: activity.eventType,
-      description: `${activity.user?.firstName || 'User'} ${activity.eventType}`}));
+    const formattedActivities = recentActivities.map(activity => {
+      const user = (activity as any).users;
+      return {
+        id: activity.id,
+        type: activity.eventType,
+        description: `${user?.firstName || 'User'} ${activity.eventType}`
+      };
+    });
 
     return NextResponse.json({
       totalUsers,

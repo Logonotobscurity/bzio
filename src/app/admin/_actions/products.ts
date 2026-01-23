@@ -10,7 +10,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   price: z.coerce.number().min(0, 'Price must be a positive number'),
-  inStock: z.coerce.number().min(0).or(z.coerce.boolean()),
+  stockQuantity: z.coerce.number().min(0).default(0),
+  isActive: z.coerce.boolean().default(true),
 });
 
 // Normalize slug generation
@@ -25,7 +26,8 @@ function normalizePayload(payload: any) {
     name: String(payload.name),
     description: payload.description || null,
     price: Number(payload.price || 0),
-    inStock: Number(payload.stockQuantity ?? payload.inStock ?? 0),
+    stockQuantity: Number(payload.stockQuantity ?? payload.inStock ?? 0),
+    isActive: payload.isActive === 'on' || payload.isActive === true || payload.isActive === 'true',
     slug: payload.slug || makeSlug(String(payload.name)),
   } as any;
 }
@@ -50,14 +52,27 @@ export async function createProduct(arg1: unknown, arg2?: unknown) {
       name: data.name,
       description: data.description,
       price: data.price,
-      inStock: data.inStock,
+      stockQuantity: data.stockQuantity,
+      isActive: data.isActive,
     });
 
     if (!validation.success) {
       return { success: false, error: 'Validation failed', details: validation.error.formErrors.fieldErrors };
     }
 
-    await prisma.products.create({ data });
+    await prisma.products.create({
+      data: {
+        sku: data.sku,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        stockQuantity: data.stockQuantity,
+        isActive: data.isActive,
+        slug: data.slug,
+        brandId: Number(payload.brandId) || 1,
+        categoryId: Number(payload.categoryId) || 1,
+      }
+    });
 
     // For client calls we return a result object instead of redirecting.
     if (arg2 === undefined) {
@@ -91,14 +106,26 @@ export async function updateProduct(id: number, ...rest: any[]) {
       name: data.name,
       description: data.description,
       price: data.price,
-      inStock: data.inStock,
+      stockQuantity: data.stockQuantity,
+      isActive: data.isActive,
     });
 
     if (!validation.success) {
       return { success: false, error: 'Validation failed', details: validation.error.formErrors.fieldErrors };
     }
 
-    await prisma.products.update({ where: { id }, data });
+    await prisma.products.update({
+      where: { id },
+      data: {
+        sku: data.sku,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        stockQuantity: data.stockQuantity,
+        isActive: data.isActive,
+        slug: data.slug,
+      }
+    });
 
     if (rest.length === 1) {
       revalidatePath('/admin/products');
@@ -117,11 +144,12 @@ export async function toggleProductStatus(id: number) {
   try {
     const product = await prisma.products.findUnique({ where: { id } });
     if (!product) return { success: false, error: 'Not found' };
-    await prisma.products.update({ where: { id }, data: { inStock: product.inStock, /* keep inStock same */ } });
-    // If you want to toggle active status, update isActive if present
-    if ((product as any).isActive !== undefined) {
-      await prisma.products.update({ where: { id }, data: { isActive: !(product as any).isActive } as any });
-    }
+
+    await prisma.products.update({
+      where: { id },
+      data: { isActive: !product.isActive }
+    });
+
     revalidatePath('/admin/products');
     return { success: true };
   } catch (err) {
@@ -131,8 +159,11 @@ export async function toggleProductStatus(id: number) {
 
 export async function updateStock(id: number, newStock: number, reason?: string) {
   try {
-    await prisma.products.update({ where: { id }, data: { inStock: newStock } as any });
-    // Optionally log reason in an audit table if available
+    await prisma.products.update({
+      where: { id },
+      data: { stockQuantity: newStock }
+    });
+
     revalidatePath('/admin/products');
     return { success: true };
   } catch (err) {
@@ -143,8 +174,7 @@ export async function updateStock(id: number, newStock: number, reason?: string)
 export async function deleteProduct(id: number, soft = true) {
   try {
     if (soft) {
-      // mark inactive if isActive field exists
-      await prisma.products.update({ where: { id }, data: { isActive: false } as any });
+      await prisma.products.update({ where: { id }, data: { isActive: false } });
     } else {
       await prisma.products.delete({ where: { id } });
     }

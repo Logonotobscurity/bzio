@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAdminRoute } from '@/lib/guards';
 import { analyticsService } from '@/services';
 
 /**
@@ -13,10 +13,7 @@ import { analyticsService } from '@/services';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const body = await request.json();
     const { action, id, reason, ...data } = body;
@@ -25,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (action === 'approve' && id) {
       await analyticsService.trackEvent({
         eventType: 'quote_approved',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { quoteId: id },
       });
 
@@ -36,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (action === 'reject' && id) {
       await analyticsService.trackEvent({
         eventType: 'quote_rejected',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { quoteId: id, reason },
       });
 
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (action === 'update-status' && id) {
       await analyticsService.trackEvent({
         eventType: 'quote_status_updated',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { quoteId: id, newStatus: data.status },
       });
 
@@ -66,10 +63,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
@@ -80,7 +74,7 @@ export async function DELETE(request: NextRequest) {
 
     await analyticsService.trackEvent({
       eventType: 'quote_deleted',
-      userId: session.user.id,
+      userId: Number(user.id),
       metadata: { quoteId: id },
     });
 

@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/lib/auth/config';
+import { requireAdminAction } from '@/lib/guards';
 
 /**
  * Approve a quote request
@@ -10,16 +10,13 @@ import { auth } from '@/lib/auth/config';
  */
 export async function approveQuote(quoteId: string, notes?: string) {
   try {
-    // Verify admin session
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return { error: 'Unauthorized: Admin access required' };
-    }
+    const { user } = await requireAdminAction();
+    const id = Number(quoteId);
 
     const quote = await prisma.quotes.update({
-      where: { id: quoteId },
+      where: { id },
       data: {
-        status: 'accepted',
+        status: 'ACCEPTED',
         updatedAt: new Date(),
       },
     });
@@ -27,7 +24,7 @@ export async function approveQuote(quoteId: string, notes?: string) {
     // Log activity
     await prisma.analytics_events.create({
       data: {
-        userId: parseInt(session.user.id, 10),
+        userId: Number(user.id),
         eventType: 'quote_approved',
         eventData: { quoteId, notes },
       },
@@ -47,15 +44,15 @@ export async function approveQuote(quoteId: string, notes?: string) {
  */
 export async function rejectQuote(quoteId: string, reason: string) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return { error: 'Unauthorized: Admin access required' };
-    }
+    const { user } = await requireAdminAction();
+    const id = Number(quoteId);
 
     const quote = await prisma.quotes.update({
-      where: { id: quoteId },
+      where: { id },
       data: {
-        status: 'rejected',
+        status: 'REJECTED',
+        rejectionReason: reason,
+        rejectedAt: new Date(),
         updatedAt: new Date(),
       },
     });
@@ -63,7 +60,7 @@ export async function rejectQuote(quoteId: string, reason: string) {
     // Log activity
     await prisma.analytics_events.create({
       data: {
-        userId: parseInt(session.user.id, 10),
+        userId: Number(user.id),
         eventType: 'quote_rejected',
         eventData: { quoteId, reason },
       },
@@ -83,20 +80,19 @@ export async function rejectQuote(quoteId: string, reason: string) {
  */
 export async function updateQuoteStatus(quoteId: string, status: string) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return { error: 'Unauthorized: Admin access required' };
-    }
+    const { user } = await requireAdminAction();
+    const id = Number(quoteId);
 
-    const validStatuses = ['draft', 'pending', 'negotiating', 'accepted', 'rejected', 'completed'];
-    if (!validStatuses.includes(status)) {
+    const validStatuses = ['DRAFT', 'PENDING', 'NEGOTIATING', 'ACCEPTED', 'REJECTED', 'EXPIRED'];
+    if (!validStatuses.includes(status.toUpperCase())) {
       return { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
     }
 
     const quote = await prisma.quotes.update({
-      where: { id: quoteId },
+      where: { id },
       data: {
-        status,
+        status: status.toUpperCase() as any,
+        updatedAt: new Date(),
       },
     });
 
@@ -114,14 +110,12 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
  */
 export async function sendQuote(quoteId: string, customerEmail: string) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return { error: 'Unauthorized: Admin access required' };
-    }
+    const { user } = await requireAdminAction();
+    const id = Number(quoteId);
 
     const quote = await prisma.quotes.findUnique({
-      where: { id: quoteId },
-      include: { user: true },
+      where: { id },
+      include: { users: true },
     });
 
     if (!quote) {
@@ -131,10 +125,9 @@ export async function sendQuote(quoteId: string, customerEmail: string) {
     // Log email activity
     await prisma.analytics_events.create({
       data: {
-        userId: parseInt(session.user.id, 10),
+        userId: Number(user.id),
         eventType: 'quote_sent',
-        data: JSON.stringify({ quoteId, customerEmail }),
-        source: 'admin-dashboard',
+        eventData: { quoteId, customerEmail },
       },
     });
 
@@ -153,27 +146,28 @@ export async function sendQuote(quoteId: string, customerEmail: string) {
 }
 
 /**
- * Delete a quote
+ * Delete a quote (Soft Delete)
  * Admin action to delete quotes
  */
 export async function deleteQuote(quoteId: string) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return { error: 'Unauthorized: Admin access required' };
-    }
+    const { user } = await requireAdminAction();
+    const id = Number(quoteId);
 
-    await prisma.quotes.delete({
-      where: { id: quoteId },
+    await prisma.quotes.update({
+      where: { id },
+      data: {
+          deletedAt: new Date(),
+          updatedAt: new Date(),
+      }
     });
 
     // Log activity
     await prisma.analytics_events.create({
       data: {
-        userId: parseInt(session.user.id, 10),
+        userId: Number(user.id),
         eventType: 'quote_deleted',
-        data: JSON.stringify({ quoteId }),
-        source: 'admin-dashboard',
+        eventData: { quoteId },
       },
     });
 

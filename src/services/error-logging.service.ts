@@ -27,7 +27,6 @@ export class ErrorLoggingService {
   /**
    * Log an error
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async logError(input: LogErrorInput): Promise<any> {
     // Validate input
     this.validateErrorInput(input);
@@ -40,10 +39,8 @@ export class ErrorLoggingService {
       userAgent: '',
       sessionId: '',
       userId: input.userId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       context: input.metadata as any,
       breadcrumbs: [],
-      sourceMap: {},
       environment: process.env.NODE_ENV || 'development',
       version: '1.0.0',
     });
@@ -52,7 +49,6 @@ export class ErrorLoggingService {
   /**
    * Get all error logs
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getAllErrors(limit?: number, skip?: number): Promise<any[]> {
     return errorLogRepository.findAll(limit, skip);
   }
@@ -60,7 +56,6 @@ export class ErrorLoggingService {
   /**
    * Get error by ID
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getErrorById(id: string | number): Promise<any> {
     return errorLogRepository.findById(id);
   }
@@ -68,7 +63,6 @@ export class ErrorLoggingService {
   /**
    * Get unresolved errors
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getUnresolvedErrors(): Promise<any[]> {
     const all = await errorLogRepository.findAll();
     return all.filter(e => e.severity === 'critical' || e.severity === 'high');
@@ -77,7 +71,6 @@ export class ErrorLoggingService {
   /**
    * Get errors by severity
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getErrorsBySeverity(severity: string): Promise<any[]> {
     return errorLogRepository.findBySeverity(severity);
   }
@@ -103,7 +96,6 @@ export class ErrorLoggingService {
    */
   async markResolved(
     id: string | number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
     return errorLogRepository.update(id, { severity: 'low' });
   }
@@ -111,7 +103,6 @@ export class ErrorLoggingService {
   /**
    * Update error log
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateError(id: string | number, input: UpdateErrorInput): Promise<any> {
     return errorLogRepository.update(id, {
       severity: input.status || undefined,
@@ -161,7 +152,6 @@ export class ErrorLoggingService {
   /**
    * Get errors by route
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getErrorsByRoute(route: string): Promise<any[]> {
     const all = await errorLogRepository.findAll();
     return all.filter(e => e.url === route);
@@ -170,7 +160,6 @@ export class ErrorLoggingService {
   /**
    * Get errors by user
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getErrorsByUser(userId: string): Promise<any[]> {
     const all = await errorLogRepository.findAll();
     return all.filter(e => e.userId === userId);
@@ -179,13 +168,12 @@ export class ErrorLoggingService {
   /**
    * Get recent errors
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getRecentErrors(hours: number = 24, limit?: number): Promise<any[]> {
     const cutoffTime = new Date();
     cutoffTime.setHours(cutoffTime.getHours() - hours);
 
     const all = await errorLogRepository.findAll(limit);
-    return all.filter(e => new Date(e.timestamp) >= cutoffTime);
+    return all.filter(e => new Date(e.createdAt) >= cutoffTime);
   }
 
   /**

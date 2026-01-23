@@ -1,13 +1,10 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '@/lib/auth/jwt-auth';
-import { prisma } from '@/lib/prisma';
+import { requireAdminRoute } from '@/lib/guards';
+import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await requireAdmin(request);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
+    await requireAdminRoute();
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -25,7 +22,7 @@ export async function GET(request: NextRequest) {
             email: true,
             firstName: true,
             lastName: true,
-            companies: {
+            organization: {
               select: {
                 name: true
               }
@@ -38,12 +35,13 @@ export async function GET(request: NextRequest) {
     // Transform events to activity format
     const activities = events.map(event => {
       const eventData = event.eventData as Record<string, unknown> | null;
+      const user = (event as any).users;
       return {
         id: event.id.toString(),
         type: event.eventType,
         actor: {
-          email: event.user?.email || 'Anonymous',
-          name: event.user ? `${event.user.firstName || ''} ${event.user.lastName || ''}`.trim() : undefined,
+          email: user?.email || 'Anonymous',
+          name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : undefined,
         },
         data: {
           reference: eventData?.reference,

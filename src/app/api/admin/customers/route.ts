@@ -1,18 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
-import prisma from '@/lib/prisma';
+import { requireAdminRoute } from '@/lib/guards';
+import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
-    }
+    await requireAdminRoute();
 
     const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get('limit') || '50');
@@ -20,17 +13,17 @@ export async function GET(req: Request) {
     const search = url.searchParams.get('search') || '';
 
     // Build search filter
-    const whereClause: Prisma.UserWhereInput = search
+    const whereClause: Prisma.usersWhereInput = search
       ? {
-          role: 'customer',
+          role: 'CUSTOMER',
           OR: [
-            { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            { firstName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            { lastName: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            { companyName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { companyName: { contains: search, mode: 'insensitive' } },
           ],
         }
-      : { role: 'customer' };
+      : { role: 'CUSTOMER' };
 
     const [customers, total] = await Promise.all([
       prisma.users.findMany({
@@ -49,7 +42,7 @@ export async function GET(req: Request) {
               id: true,
               reference: true,
               status: true,
-              total: true,
+              totalAmount: true,
               createdAt: true,
             },
             take: 5,
@@ -64,7 +57,7 @@ export async function GET(req: Request) {
                   id: true,
                   quantity: true,
                   unitPrice: true,
-                  product: {
+                  products: {
                     select: {
                       id: true,
                       name: true,

@@ -18,15 +18,14 @@ export const getBrandBySlug = async (slug: string): Promise<Brand | null> => {
 };
 
 export const getFeaturedBrands = async (limit: number = 10): Promise<Brand[]> => {
-  // Prisma schema may not expose `isFeatured` in the generated where input.
-  // Query for a reasonable set and filter at runtime to avoid type errors.
   const all = await prisma.brands.findMany({
+    where: { isFeatured: true },
+    take: limit,
     orderBy: { name: 'asc' },
   });
-  return (all.filter(b => (b as any).isFeatured) as Brand[]).slice(0, limit);
+  return all;
 };
 
 export const createBrand = async (data: CreateBrandInput): Promise<Brand> => {
-  // Ensure required timestamp fields are provided to satisfy Prisma input types.
   return prisma.brands.create({ data: { ...data, updatedAt: new Date() } });
 };

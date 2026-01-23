@@ -1,4 +1,3 @@
-import { auth } from '@/lib/auth';
 /**
  * Error Logging Endpoint
  * Client-side and server-side error logging for debugging and monitoring
@@ -7,8 +6,8 @@ import { auth } from '@/lib/auth';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-
-
+import { requireAdminRoute } from '@/lib/guards';
+import { auth } from '@/lib/auth/config';
 
 interface ErrorLogPayload {
   message: string;
@@ -20,15 +19,8 @@ interface ErrorLogPayload {
   sessionId?: string;
   userId?: string;
   breadcrumbs?: unknown[];
-  sourceMap?: Record<string, unknown>;
   environment?: string;
   version?: string;
-}
-
-interface AuthSession {
-  user?: {
-    id?: string;
-  };
 }
 
 /**
@@ -48,24 +40,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Get session info if available
-    const session = (await getServerSession(auth)) as AuthSession | null;
+    const session = await auth();
 
     // Create error log in database
     const errorLog = await prisma.error_logs.create({
       data: {
         message: body.message,
         stack: body.stack || null,
-        context: body.context ? JSON.stringify(body.context) : null,
+        context: (body.context as any) || null,
         severity: body.severity,
         url: body.url,
         userAgent: body.userAgent || request.headers.get('user-agent') || 'unknown',
-        sessionId: body.sessionId || request.cookies.get('next-auth.session-token')?.value || 'unknown',
+        sessionId: body.sessionId || 'unknown',
         userId: body.userId || session?.user?.id || null,
-        breadcrumbs: body.breadcrumbs ? JSON.stringify(body.breadcrumbs) : null,
-        sourceMap: body.sourceMap ? JSON.stringify(body.sourceMap) : null,
+        breadcrumbs: (body.breadcrumbs as any) || null,
         environment: body.environment || process.env.NODE_ENV || 'unknown',
         version: body.version || process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
-        timestamp: new Date(),
       },
     });
 
@@ -76,7 +66,7 @@ export async function POST(request: NextRequest) {
         severity: body.severity,
         message: body.message,
         url: body.url,
-        timestamp: errorLog.timestamp,
+        timestamp: errorLog.createdAt,
       });
     }
 
@@ -114,14 +104,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = (await getServerSession(auth)) as AuthSession | null;
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Login required' },
-        { status: 401 }
-      );
-    }
+    await requireAdminRoute();
 
     // Get query parameters
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '50');
@@ -129,7 +112,7 @@ export async function GET(request: NextRequest) {
     const hoursSince = parseInt(request.nextUrl.searchParams.get('hoursSince') || '24');
 
     const where = {
-      timestamp: {
+      createdAt: {
         gte: new Date(Date.now() - hoursSince * 60 * 60 * 1000),
       },
       ...(severity && { severity }),
@@ -138,7 +121,7 @@ export async function GET(request: NextRequest) {
     const [errorLogs, total] = await Promise.all([
       prisma.error_logs.findMany({
         where,
-        orderBy: { timestamp: 'desc' },
+        orderBy: { createdAt: 'desc' },
         take: Math.min(limit, 500), // Cap at 500
       }),
       prisma.error_logs.count({ where }),
@@ -182,14 +165,7 @@ export async function DELETE(
 ) {
   try {
     // Check authentication
-    const session = (await getServerSession(auth)) as AuthSession | null;
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Login required' },
-        { status: 401 }
-      );
-    }
+    await requireAdminRoute();
 
     const params = await context.params;
     const errorId = params?.id;
@@ -202,7 +178,7 @@ export async function DELETE(
     }
 
     await prisma.error_logs.delete({
-      where: { id: errorId },
+      where: { id: Number(errorId) },
     });
 
     return NextResponse.json({

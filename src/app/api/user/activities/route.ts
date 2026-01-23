@@ -17,20 +17,20 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const offset = parseInt(url.searchParams.get('offset') || '0');
-    const activityType = url.searchParams.get('type');
+    const eventType = url.searchParams.get('type');
 
     // Build where filter
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId };
-    if (activityType) {
-      where.activityType = activityType;
+    if (eventType) {
+      where.eventType = eventType;
     }
 
     // Get total count
-    const total = await prisma.user_activities.count({ where });
+    const total = await prisma.analytics_events.count({ where });
 
     // Get paginated activities
-    const activities = await prisma.user_activities.findMany({
+    const activities = await prisma.analytics_events.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -69,19 +69,19 @@ export async function POST(req: Request) {
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id, 10) : session.user.id;
     const body = await req.json();
 
-    const { activityType, title, description, referenceId, referenceType, metadata } = body;
+    const { eventType, title, description, referenceId, referenceType, metadata } = body;
 
-    if (!activityType || !description) {
+    if (!eventType || !description) {
       return NextResponse.json(
-        { error: 'Missing required fields: activityType, description' },
+        { error: 'Missing required fields: eventType, description' },
         { status: 400 }
       );
     }
 
-    const activity = await prisma.user_activities.create({
+    const activity = await prisma.analytics_events.create({
       data: {
         userId,
-        activityType,
+        eventType,
         title: title || null,
         description,
         referenceId: referenceId || null,

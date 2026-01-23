@@ -88,15 +88,12 @@ export const cache = {
   },
 };
 
-// Backwards-compatible aliases for commonly used keys elsewhere in the codebase
-// These map older constant names to the canonical keys above.
-/* (moved below after CACHE_KEYS definition) */
-
 export const CACHE_KEYS = {
   products: (id?: string) => id ? `products:${id}` : 'products:all',
   brands: 'brands:all',
   categories: 'categories:all',
-  companies: 'companies:all',
+  organization: 'organization:all',
+  companies: 'organization:all',
   user: (id: string) => `user:${id}`,
   // Dashboard cache keys
   dashboard: {
@@ -107,18 +104,12 @@ export const CACHE_KEYS = {
     newsletter: (offset: number = 0, limit: number = 20) => `dashboard:newsletter:${offset}:${limit}`,
     forms: (offset: number = 0, limit: number = 20) => `dashboard:forms:${offset}:${limit}`,
   },
-};
-
-// Backwards-compatible aliases for commonly used keys elsewhere in the codebase
-// These map older constant names to the canonical keys above.
-Object.assign(CACHE_KEYS, {
-  PRODUCTS_LIST: CACHE_KEYS.products(),
-  RECENT_USERS: CACHE_KEYS.dashboard.users(),
-  RECENT_QUOTES: CACHE_KEYS.dashboard.quotes(),
+  // Compatibility
+  PRODUCTS_LIST: 'products:all',
+  RECENT_USERS: 'dashboard:users:0:20',
+  RECENT_QUOTES: 'dashboard:quotes:0:20',
   NEWSLETTER_SUBSCRIBERS: 'newsletter:subscribers',
-});
-
-/* (moved below after CACHE_TTL definition) */
+};
 
 export const CACHE_TTL = {
   short: 60, // 1 minute
@@ -130,13 +121,12 @@ export const CACHE_TTL = {
     realtime: 10, // 10 seconds - real-time data
     stats: 30, // 30 seconds - less critical
   },
+  // Compatibility
+  SHORT: 60,
+  MEDIUM: 300,
+  LONG: 3600,
+  DAY: 86400,
 };
-
-// Backwards-compatible uppercase aliases (some modules use SHORT/MEDIUM etc.)
-Object.defineProperty(CACHE_TTL, 'SHORT', { get: () => CACHE_TTL.short, enumerable: true });
-Object.defineProperty(CACHE_TTL, 'MEDIUM', { get: () => CACHE_TTL.medium, enumerable: true });
-Object.defineProperty(CACHE_TTL, 'LONG', { get: () => CACHE_TTL.long, enumerable: true });
-Object.defineProperty(CACHE_TTL, 'DAY', { get: () => CACHE_TTL.day, enumerable: true });
 
 /**
  * Get or fetch query with automatic caching

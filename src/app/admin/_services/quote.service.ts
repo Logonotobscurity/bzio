@@ -1,12 +1,12 @@
 "use server";
 
-import { prisma } from '@/lib/prisma';
-import { getCachedQuery, CACHE_TTL, CACHE_KEYS, invalidateDashboardCache } from '@/lib/cache';
-import { QuoteStatus } from '@prisma/client';
+import { prisma } from '@/lib/db';
+import { getCachedQuery, CACHE_TTL, invalidateDashboardCache } from '@/lib/cache';
+import { QuoteStatus, Prisma } from '@prisma/client';
 
 export interface QuoteFilters {
   search?: string;
-  status?: string;
+  status?: QuoteStatus | string;
   dateFrom?: Date;
   dateTo?: Date;
   minAmount?: number;
@@ -27,7 +27,7 @@ export interface QuoteStats {
  */
 export async function getQuoteStats(): Promise<QuoteStats> {
   return getCachedQuery(
-    `${CACHE_KEYS.RECENT_QUOTES}:stats`,
+    "RECENT_QUOTES_STATS",
     async () => {
       const [total, pending, accepted, rejected, valueAgg] = await Promise.all([
         prisma.quotes.count(),
@@ -42,11 +42,11 @@ export async function getQuoteStats(): Promise<QuoteStats> {
         pending,
         accepted,
         rejected,
-        totalValue: parseFloat(valueAgg._sum.totalAmount?.toString() || '0'),
-        avgValue: parseFloat(valueAgg._avg.totalAmount?.toString() || '0'),
+        totalValue: Number(valueAgg._sum.totalAmount || 0),
+        avgValue: Number(valueAgg._avg.totalAmount || 0),
       };
     },
-    { ttl: CACHE_TTL.SHORT }
+    CACHE_TTL.short
   );
 }
 
@@ -54,29 +54,17 @@ export async function getQuoteStats(): Promise<QuoteStats> {
  * Get quotes with filters and pagination
  */
 export async function getQuotes(filters: QuoteFilters = {}, page = 1, limit = 20) {
-  const where: Record<string, unknown> = {};
+  const where: Prisma.quotesWhereInput = {};
 
   if (filters.search) {
     where.OR = [
       { reference: { contains: filters.search, mode: 'insensitive' } },
-      { user: { email: { contains: filters.search, mode: 'insensitive' } } },
+      { users: { email: { contains: filters.search, mode: 'insensitive' } } },
     ];
   }
 
   if (filters.status && filters.status !== 'all') {
-    where.status = filters.status;
-  }
-
-  if (filters.dateFrom || filters.dateTo) {
-    where.createdAt = {};
-    if (filters.dateFrom) (where.createdAt as Record<string, Date>).gte = filters.dateFrom;
-    if (filters.dateTo) (where.createdAt as Record<string, Date>).lte = filters.dateTo;
-  }
-
-  if (filters.minAmount !== undefined || filters.maxAmount !== undefined) {
-    where.totalAmount = {};
-    if (filters.minAmount !== undefined) (where.totalAmount as Record<string, number>).gte = filters.minAmount;
-    if (filters.maxAmount !== undefined) (where.totalAmount as Record<string, number>).lte = filters.maxAmount;
+    where.status = filters.status as QuoteStatus;
   }
 
   const [quotes, total] = await Promise.all([
@@ -87,9 +75,9 @@ export async function getQuotes(filters: QuoteFilters = {}, page = 1, limit = 20
       take: limit,
       include: {
         users: {
-          select: { firstName: true, lastName: true, email: true, companies: { select: { name: true } } },
+          select: { firstName: true, lastName: true, email: true, organization: { select: { name: true } } },
         },
-        quoteLines: { include: { product: { select: { name: true, sku: true } } } },
+        quote_lines: { include: { products: { select: { name: true, sku: true } } } },
       },
     }),
     prisma.quotes.count({ where }),
@@ -100,15 +88,15 @@ export async function getQuotes(filters: QuoteFilters = {}, page = 1, limit = 20
       id: quote.id.toString(),
       reference: quote.reference,
       status: quote.status,
-      totalAmount: parseFloat(quote.totalAmount.toString()),
+      totalAmount: Number(quote.totalAmount),
       createdAt: quote.createdAt,
       updatedAt: quote.updatedAt,
-      user: quote.user,
-      quote_lines: quote.quoteLines.map((line) => ({
+      user: quote.users,
+      quote_lines: quote.quote_lines.map((line) => ({
         id: line.id.toString(),
         quantity: line.quantity,
-        unitPrice: parseFloat(line.unitPrice.toString()),
-        product: line.product,
+        unitPrice: Number(line.unitPrice || 0),
+        product: line.products,
       })),
     })),
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -123,7 +111,7 @@ export async function updateQuoteStatus(quoteId: number, status: QuoteStatus) {
     where: { id: quoteId },
     data: { status , updatedAt: new Date()},
   });
-  await invalidateDashboardCache(CACHE_KEYS.RECENT_QUOTES);
+  await invalidateDashboardCache();
   return quote;
 }
 
@@ -138,8 +126,8 @@ export async function exportQuotesToCSV(filters: QuoteFilters = {}): Promise<str
     quote.reference,
     `${quote.user?.firstName || ''} ${quote.user?.lastName || ''}`.trim(),
     quote.user?.email || '',
-    quote.user?.company?.name || '',
-    quote.lines.length.toString(),
+    quote.user?.organization?.name || '',
+    quote.quote_lines.length.toString(),
     quote.totalAmount.toString(),
     quote.status,
     new Date(quote.createdAt).toISOString(),

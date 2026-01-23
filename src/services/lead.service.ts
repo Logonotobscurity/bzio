@@ -6,32 +6,32 @@
  */
 
 import { leadRepository } from '@/repositories';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, LeadSource, LeadStatus } from '@prisma/client';
 
 // Use repository type directly instead of domain type
-type Lead = Prisma.LeadGetPayload<{}>;
+type Lead = Prisma.leadsGetPayload<{}>;
 
 interface CreateLeadInput {
   email: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string; // For backward compatibility
   phone?: string;
   companyName?: string;
-  source: string;
-  status?: string;
-  type?: string;
-  metadata?: Prisma.InputJsonValue;
+  source: LeadSource | string;
+  status?: LeadStatus | string;
+  notes?: string;
 }
 
 interface UpdateLeadInput {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   companyName?: string;
-  source?: string;
-  status?: string;
-  type?: string;
-  assignedTo?: string;
-  convertedAt?: Date;
-  metadata?: Prisma.InputJsonValue;
+  source?: LeadSource | string;
+  status?: LeadStatus | string;
+  notes?: string;
+  score?: number;
 }
 
 export class LeadService {
@@ -48,15 +48,17 @@ export class LeadService {
       throw new Error('Lead with this email already exists');
     }
 
+    const [firstName, lastName] = input.name ? input.name.split(' ') : [input.firstName, input.lastName];
+
     return (await leadRepository.create({
       email: input.email,
-      name: input.name,
+      firstName: firstName || input.firstName,
+      lastName: lastName || input.lastName,
       phone: input.phone,
-      companyName: input.companyName,
-      type: input.type || 'prospect',
-      source: input.source,
-      status: input.status || 'new',
-      metadata: input.metadata,
+      company: input.companyName,
+      source: (input.source as LeadSource) || 'WEBSITE',
+      status: (input.status as LeadStatus) || 'NEW',
+      notes: input.notes,
     })) as unknown as Lead;
   }
 
@@ -135,7 +137,7 @@ export class LeadService {
    */
   async getLeadCountBySource(source: string): Promise<number> {
     const all = await leadRepository.findAll();
-    return all?.filter(l => l.source === source).length || 0;
+    return (all || []).filter(l => l.source === source).length;
   }
 
   /**
@@ -189,7 +191,7 @@ export class LeadService {
    * Convert lead to customer (placeholder for integration)
    */
   async convertLead(id: string | number): Promise<Lead> {
-    return (await leadRepository.update(id, { status: 'converted' })) as unknown as Lead;
+    return (await leadRepository.update(id, { status: 'CONVERTED' })) as unknown as Lead;
   }
 
   /**
@@ -199,11 +201,8 @@ export class LeadService {
     if (!input.email?.trim()) {
       throw new Error('Email is required');
     }
-    if (!input.name?.trim()) {
+    if (!input.name?.trim() && !input.firstName?.trim()) {
       throw new Error('Name is required');
-    }
-    if (!input.source?.trim()) {
-      throw new Error('Lead source is required');
     }
 
     // Validate email format

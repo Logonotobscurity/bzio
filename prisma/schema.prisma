@@ -24,9 +24,9 @@ model addresses {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   userId        Int?
-  companyId     Int?
-  companies     BusinessAccount?  @relation(fields: [companyId], references: [id])
-  users         users?            @relation(fields: [userId], references: [id])
+  organizationId Int?
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
+  users         users?         @relation(fields: [userId], references: [id])
 }
 
 model admin_notifications {
@@ -48,14 +48,18 @@ model admin_notifications {
 }
 
 model analytics_events {
-  id        Int      @id @default(autoincrement())
-  eventType String
-  eventData Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  userId    Int?
-  users     users?   @relation(fields: [userId], references: [id])
+  id            Int      @id @default(autoincrement())
+  eventType     String
+  eventData     Json?
+  title         String?
+  description   String?
+  referenceId   String?
+  referenceType String?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  userId        Int?
+  users         users?   @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([eventType])
@@ -71,6 +75,8 @@ model brands {
   website     String?
   isActive    Boolean    @default(true)
   isFeatured  Boolean    @default(false)
+  companyId   Int?
+  company     Company?   @relation(fields: [companyId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   products    products[]
@@ -109,7 +115,22 @@ model categories {
   products         products[]
 }
 
-model BusinessAccount {
+model Company {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  slug               String      @unique
+  description        String?
+  logo               String?
+  website            String?
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  brands             brands[]
+
+  @@map("companies")
+}
+
+model Organization {
   id                 Int         @id @default(autoincrement())
   name               String
   slug               String?     @unique
@@ -125,7 +146,7 @@ model BusinessAccount {
   addresses          addresses[]
   users              users[]
 
-  @@map("companies")
+  @@map("organizations")
 }
 
 model form_submissions {
@@ -289,6 +310,7 @@ model quotes {
   acceptedAt      DateTime?
   rejectedAt      DateTime?
   rejectionReason String?
+  deletedAt       DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   userId          Int?
@@ -299,6 +321,7 @@ model quotes {
   @@index([createdAt])
   @@index([status])
   @@index([userId])
+  @@index([deletedAt])
 }
 
 model search_queries {
@@ -326,7 +349,7 @@ model users {
   email                    String                    @unique
   password                 String
   firstName                String?
-  lastName                 String?
+  lastName                String?
   companyName              String?
   companyPhone             String?
   businessType             String?
@@ -342,7 +365,7 @@ model users {
   lastLogin                DateTime?
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
-  companyId                Int?
+  organizationId           Int?
   addresses                addresses[]
   analytics_events         analytics_events[]
   cart_items               cart_items[]
@@ -352,8 +375,7 @@ model users {
   product_views            product_views[]
   quotes                   quotes[]
   search_queries           search_queries[]
-  companies                BusinessAccount?          @relation(fields: [companyId], references: [id])
-  user_activities          user_activities[]
+  organization             Organization?             @relation(fields: [organizationId], references: [id])
   carts                    carts[]
 
   @@index([createdAt])
@@ -379,22 +401,6 @@ model error_logs {
 
   @@index([createdAt])
   @@index([severity])
-}
-
-model user_activities {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  activityType  String
-  title         String?
-  description   String
-  metadata      Json?
-  referenceId   String?
-  referenceType String?
-  createdAt     DateTime @default(now())
-  users         users    @relation(fields: [userId], references: [id])
-
-  @@index([createdAt])
-  @@index([userId])
 }
 
 model crm_notifications {

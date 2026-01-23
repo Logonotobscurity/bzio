@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAdminRoute } from '@/lib/guards';
 import { formService, analyticsService } from '@/services';
 
 /**
@@ -13,10 +13,7 @@ import { formService, analyticsService } from '@/services';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const body = await request.json();
     const { action, id, response, ...data } = body;
@@ -24,14 +21,12 @@ export async function POST(request: NextRequest) {
     // Mark as responded
     if (action === 'respond' && id && response) {
       const submission = await formService.respondToSubmission(
-        id,
-        response,
-        session.user.email || 'admin'
+        Number(id)
       );
 
       await analyticsService.trackEvent({
         eventType: 'form_responded',
-        userId: session.user.id,
+        userId: Number(user.id),
         metadata: { formId: id },
       });
 
@@ -40,14 +35,14 @@ export async function POST(request: NextRequest) {
 
     // Mark as spam
     if (action === 'spam' && id) {
-      const submission = await formService.deleteSubmission(id);
+      const submission = await formService.deleteSubmission(Number(id));
 
       return NextResponse.json({ success: true, submission }, { status: 200 });
     }
 
     // Update status
     if (action === 'update-status' && id && data.status) {
-      const submission = await formService.updateSubmission(id, {
+      const submission = await formService.updateSubmission(Number(id), {
         status: data.status,
       });
 
@@ -56,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Archive submission
     if (action === 'archive' && id) {
-      const submission = await formService.updateSubmission(id, {
+      const submission = await formService.updateSubmission(Number(id), {
         status: 'archived',
       });
 
@@ -75,10 +70,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user } = await requireAdminRoute();
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
@@ -87,11 +79,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Form ID required' }, { status: 400 });
     }
 
-    await formService.deleteSubmission(id);
+    await formService.deleteSubmission(Number(id));
 
     await analyticsService.trackEvent({
       eventType: 'form_deleted',
-      userId: session.user.id,
+      userId: Number(user.id),
       metadata: { formId: id },
     });
 

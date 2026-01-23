@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from "@/lib/auth";
+import { requireAdminRoute } from '@/lib/guards';
 import { prisma } from '@/lib/db';
 
 /**
@@ -9,13 +9,7 @@ import { prisma } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // ✅ CRITICAL: Verify admin access
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
-    }
+    await requireAdminRoute();
 
     const quoteId = request.nextUrl.searchParams.get('quoteId');
 
@@ -27,13 +21,13 @@ export async function GET(request: NextRequest) {
     }
 
     const messages = await prisma.quote_messages.findMany({
-      where: { quoteId },
+      where: { quoteId: Number(quoteId) },
       orderBy: { createdAt: 'asc' },
     });
 
     // Mark messages as read
     await prisma.quote_messages.updateMany({
-      where: { quoteId, senderRole: 'customer' },
+      where: { quoteId: Number(quoteId), senderRole: 'customer' },
       data: { isRead: true },
     });
 
@@ -54,24 +48,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // ✅ CRITICAL: Verify admin access
-    const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
-    }
+    const { user } = await requireAdminRoute();
 
     const body = await request.json();
     const { quoteId, message, senderRole } = body;
 
     const newMessage = await prisma.quote_messages.create({
       data: {
-        quoteId,
+        quoteId: Number(quoteId),
         message,
         senderRole: senderRole || 'admin',
-        senderEmail: session.user?.email || 'system',
-        senderName: session.user?.name || 'Admin',
+        senderEmail: user.email || 'system',
+        senderName: user.name || 'Admin',
       },
     });
 

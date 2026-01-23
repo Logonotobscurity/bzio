@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db';
+import { NotificationType } from '@prisma/client';
 
 export async function trackCheckoutEvent(data: {
   userId?: number;
@@ -94,9 +95,6 @@ export async function trackNewsletterSignup(data: {
         email: data.email,
         source: data.source,
         status: 'active',
-        metadata: {
-          signupDate: new Date().toISOString(),
-        },
       },
     });
 
@@ -160,7 +158,6 @@ export async function trackProductView(data: {
       data: {
         productId: data.productId,
         userId: data.userId,
-        ipAddress: data.ipAddress,
       },
     });
 
@@ -211,7 +208,7 @@ export async function trackSearchQuery(data: {
 // Notification tracking
 export async function createNotification(data: {
   userId: number;
-  type: string;
+  type: NotificationType;
   message: string;
   link?: string;
 }) {

@@ -1,11 +1,12 @@
 "use server";
 
-import { prisma } from '@/lib/prisma';
-import { getCachedQuery, CACHE_TTL, CACHE_KEYS, invalidateDashboardCache } from '@/lib/cache';
+import { prisma } from '@/lib/db';
+import { getCachedQuery, CACHE_TTL, invalidateDashboardCache } from '@/lib/cache';
+import { UserRole, Prisma } from '@prisma/client';
 
 export interface UserFilters {
   search?: string;
-  role?: 'ADMIN' | 'CUSTOMER' | 'all';
+  role?: UserRole | 'all';
   verified?: 'verified' | 'unverified' | 'all';
   dateFrom?: Date;
   dateTo?: Date;
@@ -25,7 +26,7 @@ export interface UserStats {
  */
 export async function getUserStats(): Promise<UserStats> {
   return getCachedQuery(
-    `${CACHE_KEYS.RECENT_USERS}:stats`,
+    "RECENT_USERS_STATS",
     async () => {
       const now = new Date();
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -42,7 +43,7 @@ export async function getUserStats(): Promise<UserStats> {
 
       return { total, admins, customers, verified, newThisWeek, newThisMonth };
     },
-    { ttl: CACHE_TTL.SHORT }
+    CACHE_TTL.short
   );
 }
 
@@ -50,7 +51,7 @@ export async function getUserStats(): Promise<UserStats> {
  * Get users with filters and pagination
  */
 export async function getUsers(filters: UserFilters = {}, page = 1, limit = 20) {
-  const where: Record<string, unknown> = {};
+  const where: Prisma.usersWhereInput = {};
 
   if (filters.search) {
     where.OR = [
@@ -61,19 +62,13 @@ export async function getUsers(filters: UserFilters = {}, page = 1, limit = 20) 
   }
 
   if (filters.role && filters.role !== 'all') {
-    where.role = filters.role;
+    where.role = filters.role as UserRole;
   }
 
   if (filters.verified === 'verified') {
     where.emailVerified = { not: null };
   } else if (filters.verified === 'unverified') {
     where.emailVerified = null;
-  }
-
-  if (filters.dateFrom || filters.dateTo) {
-    where.createdAt = {};
-    if (filters.dateFrom) (where.createdAt as Record<string, Date>).gte = filters.dateFrom;
-    if (filters.dateTo) (where.dateTo as Record<string, Date>).lte = filters.dateTo;
   }
 
   const [users, total] = await Promise.all([
@@ -83,7 +78,7 @@ export async function getUsers(filters: UserFilters = {}, page = 1, limit = 20) 
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        companies: { select: { name: true } },
+        organization: { select: { name: true } },
         _count: { select: { quotes: true } },
       },
     }),
@@ -98,9 +93,9 @@ export async function getUsers(filters: UserFilters = {}, page = 1, limit = 20) 
       lastName: user.lastName,
       role: user.role,
       emailVerified: !!user.emailVerified,
-      company: user.company?.name || null,
+      company: user.organization?.name || null,
       quotesCount: user._count.quotes,
-      ordersCount: 0, // Orders not in schema yet
+      ordersCount: 0,
       createdAt: user.createdAt,
       lastLogin: user.lastLogin,
     })),
@@ -116,12 +111,12 @@ export async function getUsers(filters: UserFilters = {}, page = 1, limit = 20) 
 /**
  * Update user role
  */
-export async function updateUserRole(userId: number, role: 'ADMIN' | 'CUSTOMER') {
+export async function updateUserRole(userId: number, role: UserRole) {
   const user = await prisma.users.update({
     where: { id: userId },
     data: { role , updatedAt: new Date()},
   });
-  await invalidateDashboardCache(CACHE_KEYS.RECENT_USERS);
+  await invalidateDashboardCache();
   return user;
 }
 
@@ -136,7 +131,7 @@ export async function toggleUserStatus(userId: number) {
     where: { id: userId },
     data: { isActive: !user.isActive , updatedAt: new Date()},
   });
-  await invalidateDashboardCache(CACHE_KEYS.RECENT_USERS);
+  await invalidateDashboardCache();
   return updated;
 }
 
@@ -146,7 +141,7 @@ export async function toggleUserStatus(userId: number) {
 export async function exportUsersToCSV(filters: UserFilters = {}): Promise<string> {
   const { users } = await getUsers(filters, 1, 10000);
   
-  const headers = ['ID', 'Email', 'First Name', 'Last Name', 'Role', 'Company', 'Verified', 'Quotes', 'Orders', 'Created At', 'Last Login'];
+  const headers = ['ID', 'Email', 'First Name', 'Last Name', 'Role', 'Company', 'Verified', 'Quotes', 'Created At', 'Last Login'];
   const rows = users.map((user) => [
     user.id,
     user.email,
@@ -156,7 +151,6 @@ export async function exportUsersToCSV(filters: UserFilters = {}): Promise<strin
     user.company || '',
     user.emailVerified ? 'Yes' : 'No',
     user.quotesCount.toString(),
-    user.ordersCount.toString(),
     new Date(user.createdAt).toISOString(),
     user.lastLogin ? new Date(user.lastLogin).toISOString() : '',
   ]);

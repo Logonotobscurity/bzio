@@ -66,10 +66,10 @@ async function trackActivity(
   eventType: string,
   metadata?: Record<string, unknown>
 ) {
-  await prisma.user_activities.create({
+  await prisma.analytics_events.create({
     data: {
       userId,
-      activityType: eventType,
+      eventType: eventType,
       description: eventType,
       metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
     },

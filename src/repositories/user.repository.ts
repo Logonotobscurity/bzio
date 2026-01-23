@@ -6,6 +6,7 @@
 
 import { prisma } from '@/lib/db';
 import { BaseRepository } from './base.repository';
+import type { users as UserRow, UserRole } from '@prisma/client';
 import type { User } from '@/lib/types/domain';
 import { mapUserRow, mapArrayIds } from './db/adapter';
 
@@ -16,7 +17,7 @@ interface CreateUserInput {
   companyName?: string;
   phone?: string;
   password?: string;
-  role?: string;
+  role?: UserRole | string;
 }
 
 interface UpdateUserInput {
@@ -24,7 +25,7 @@ interface UpdateUserInput {
   lastName?: string;
   companyName?: string;
   phone?: string;
-  role?: string;
+  role?: UserRole | string;
   isActive?: boolean;
   lastLogin?: Date;
 }
@@ -67,7 +68,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByPhone(phone: string): Promise<User | null> {
     try {
-      const row = await prisma.users.findUnique({
+      const row = await prisma.users.findFirst({
         where: { phone },
       });
       return row ? (mapUserRow(row) as User) : null;
@@ -85,8 +86,8 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
           lastName: data.lastName,
           companyName: data.companyName,
           phone: data.phone,
-          password: data.password,
-          role: data.role || 'customer',
+          password: data.password || '',
+          role: (data.role as UserRole) || 'CUSTOMER',
         },
       });
       return mapUserRow(row) as User;
@@ -99,7 +100,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
     try {
       const row = await prisma.users.update({
         where: { id: Number(id) },
-        data,
+        data: {
+          ...data,
+          role: (data.role as UserRole) || undefined,
+        },
       });
       return mapUserRow(row) as User;
     } catch (error) {

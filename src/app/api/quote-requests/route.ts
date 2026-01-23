@@ -1,14 +1,12 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 import { z } from 'zod';
-import { Resend } from 'resend';
 import { requireAuthRoute, getSession } from '@/lib/guards';
 import { logActivity } from '@/lib/activity-service';
 import { trackQuoteRequest } from '@/app/admin/_actions/tracking';
 import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 import { USER_ROLES } from '@/lib/auth-constants';
+import { generateQuoteRequestWhatsAppURL } from '@/lib/api/whatsapp';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +15,7 @@ const quoteRequestSchema = z.object({
   email: z.string().email(),
   phone: z.string(),
   company: z.string().optional(),
+  address: z.string().optional().default('N/A'),
   message: z.string(),
   items: z.array(z.object({
     id: z.string(),
@@ -27,18 +26,19 @@ const quoteRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const session = await getSession();
     
     const json = await req.json();
+    const validated = quoteRequestSchema.parse(json);
     const {
       name,
       email,
       phone,
       company,
+      address,
       message,
       items,
-    } = quoteRequestSchema.parse(json);
+    } = validated;
 
     let quoteId: number | null = null;
     let quoteReference: string | null = null;
@@ -64,6 +64,16 @@ export async function POST(req: Request) {
       console.warn('[QUOTE_DB_SAVE_WARNING]', dbError);
     }
 
+    // Generate WhatsApp URL
+    const whatsappUrl = generateQuoteRequestWhatsAppURL({
+        name,
+        email,
+        phone,
+        company,
+        address: address || 'N/A',
+        items: items.map(i => ({ id: i.id, name: i.name, quantity: i.quantity }))
+    });
+
     try {
       if (quoteId && quoteReference) {
         await trackQuoteRequest({
@@ -80,7 +90,7 @@ export async function POST(req: Request) {
     try {
       if (quoteId && quoteReference) {
         await broadcastAdminNotification(
-          'NEW_QUOTE' as any,
+          'INFO',
           `New Quote Request: ${quoteReference}`,
           `Quote from ${name} (${email}) with ${items.length} items`,
           {
@@ -96,8 +106,6 @@ export async function POST(req: Request) {
     } catch (notificationError) {
       console.error('❌ Failed to send admin notifications:', notificationError);
     }
-
-    // WhatsApp generation...
 
     if (session?.user?.id) {
       try {
@@ -115,7 +123,8 @@ export async function POST(req: Request) {
       success: true,
       message: 'Quote request submitted successfully.',
       quoteId,
-      quoteReference
+      quoteReference,
+      whatsappUrl
     }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

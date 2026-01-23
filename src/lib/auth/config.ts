@@ -3,29 +3,25 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import EmailProvider from "next-auth/providers/email";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
-import type { AuthOptions as NextAuthOptions } from "next-auth";
+import type { NextAuthConfig, DefaultSession } from "next-auth";
 import * as bcrypt from "bcryptjs";
-import type { Adapter } from "next-auth/adapters";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role?: string;
-      firstName?: string | null;
-      lastName?: string | null;
-      companyName?: string | null;
-      phone?: string | null;
-      isNewUser?: boolean;
-      lastLogin?: Date | null;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    };
+      role: string;
+      firstName: string | null;
+      lastName: string | null;
+      companyName: string | null;
+      phone: string | null;
+      isNewUser: boolean;
+      lastLogin: Date | null;
+    } & DefaultSession["user"];
   }
 
   interface User {
-    id: string;
+    id?: string;
     role?: string;
     firstName?: string | null;
     lastName?: string | null;
@@ -49,8 +45,8 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
+export const authConfig: NextAuthConfig = {
+  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -68,7 +64,6 @@ export const authOptions: NextAuthOptions = {
         },
       },
       from: process.env.EMAIL_FROM,
-      maxAge: 10 * 60,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -82,11 +77,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.users.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
         });
 
-        if (user?.password && (await bcrypt.compare(credentials.password, user.password))) {
-          // Exclude password from returned user object
+        if (user?.password && (await bcrypt.compare(credentials.password as string, user.password))) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password: _, ...userWithoutPassword } = user;
           return { ...userWithoutPassword, id: user.id.toString() };
@@ -99,16 +93,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
         token.role = user.role;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.companyName = user.companyName;
         token.phone = user.phone;
-        token.isNewUser = user.isNewUser;
-        token.lastLogin = user.lastLogin;
+        token.isNewUser = user.isNewUser || false;
+        token.lastLogin = user.lastLogin || null;
 
-        const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+        const userId = parseInt(token.id, 10);
         if (user.isNewUser || !user.lastLogin) {
           try {
             await prisma.users.update({
@@ -130,13 +124,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-        session.user.companyName = token.companyName;
-        session.user.phone = token.phone;
-        session.user.isNewUser = token.isNewUser;
-        session.user.lastLogin = token.lastLogin;
+        session.user.role = token.role || 'CUSTOMER';
+        session.user.firstName = token.firstName || null;
+        session.user.lastName = token.lastName || null;
+        session.user.companyName = token.companyName || null;
+        session.user.phone = token.phone || null;
+        session.user.isNewUser = token.isNewUser || false;
+        session.user.lastLogin = token.lastLogin || null;
         session.user.name = [token.firstName, token.lastName]
           .filter(Boolean)
           .join(" ");
@@ -146,10 +140,5 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const handler = NextAuth(authOptions);
-
-export const handlers = { GET: handler, POST: handler };
-export { handler as GET, handler as POST };
-export const auth = handler.auth;
-export const signIn = handler.signIn;
-export const signOut = handler.signOut;
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+export const { GET, POST } = handlers;
