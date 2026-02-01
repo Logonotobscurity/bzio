@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { errorLoggingService } from '@/services/error-logging.service';
 import { getServerSession } from 'next-auth/next';
 import { auth } from '~/auth';
 
@@ -49,23 +49,20 @@ export async function POST(request: NextRequest) {
     // Get session info if available
     const session = (await getServerSession(auth)) as AuthSession | null;
 
-    // Create error log in database
-    const errorLog = await prisma.errorLog.create({
-      data: {
-        message: body.message,
-        stack: body.stack || null,
-        context: body.context ? JSON.stringify(body.context) : null,
-        severity: body.severity,
-        url: body.url,
-        userAgent: body.userAgent || request.headers.get('user-agent') || 'unknown',
-        sessionId: body.sessionId || request.cookies.get('next-auth.session-token')?.value || 'unknown',
-        userId: body.userId || session?.user?.id || null,
-        breadcrumbs: body.breadcrumbs ? JSON.stringify(body.breadcrumbs) : null,
-        sourceMap: body.sourceMap ? JSON.stringify(body.sourceMap) : null,
-        environment: body.environment || process.env.NODE_ENV || 'unknown',
-        version: body.version || process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
-        timestamp: new Date(),
-      },
+    // Create error log using centralized service
+    const errorLog = await errorLoggingService.logError({
+      message: body.message,
+      stack: body.stack,
+      severity: body.severity,
+      route: body.url,
+      userAgent: body.userAgent || request.headers.get('user-agent') || undefined,
+      sessionId: body.sessionId || request.cookies.get('next-auth.session-token')?.value || undefined,
+      userId: body.userId || session?.user?.id || undefined,
+      breadcrumbs: body.breadcrumbs,
+      sourceMap: body.sourceMap,
+      environment: body.environment,
+      version: body.version,
+      metadata: body.context as Record<string, unknown>,
     });
 
     // Log to console in development
@@ -134,14 +131,11 @@ export async function GET(request: NextRequest) {
       ...(severity && { severity }),
     };
 
-    const [errorLogs, total] = await Promise.all([
-      prisma.errorLog.findMany({
-        where,
-        orderBy: { timestamp: 'desc' },
-        take: Math.min(limit, 500), // Cap at 500
-      }),
-      prisma.errorLog.count({ where }),
-    ]);
+    const errorLogs = await errorLoggingService.findErrors({
+      severity: severity || undefined,
+      limit: Math.min(limit, 500),
+    });
+    const total = errorLogs.length;
 
     // Group by severity
     const grouped = {
@@ -200,9 +194,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.errorLog.delete({
-      where: { id: errorId },
-    });
+    await errorLoggingService.deleteError(errorId);
 
     return NextResponse.json({
       success: true,

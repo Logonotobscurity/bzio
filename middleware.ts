@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequestWithAuth } from "next-auth/middleware";
-import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth-constants";
+import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth/constants";
 
 const isDev = process.env.NODE_ENV === 'development';
 

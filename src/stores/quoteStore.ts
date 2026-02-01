@@ -22,7 +22,7 @@ interface QuoteState {
 }
 
 export const useQuoteStore = create<QuoteState>()(persist((set, get) => ({
-  items: [],
+  items: [] as any[],
   isOpen: false,
   setOpen: (isOpen) => set({ isOpen }),
   toggleDrawer: () => set((state) => ({ isOpen: !state.isOpen })),

@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/config';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
 import AdminLoginPageContent from './admin-login-content';
 
 /**

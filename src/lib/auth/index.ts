@@ -25,7 +25,6 @@ export {
   ROLE_METADATA,
   LOGIN_ROLE_CONFIG,
   SESSION_CONFIG,
-  getUserDashboardPath,
   type UserRole,
 } from './constants';
 
@@ -57,6 +56,7 @@ export {
 // Role utilities
 export {
   isValidRole,
+  getUserDashboardPath,
   getRoleMetadata,
   getLoginConfig,
   canBeAdmin,
@@ -66,7 +66,6 @@ export {
   getRoleLabel,
   getRoleDescription,
   getLoginPath,
-  getDashboardPath,
   requiresSpecialAuth,
   getRoleFeatures,
   canPerformAction,

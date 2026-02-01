@@ -11,7 +11,8 @@
  */
 
 import { getServerSession } from 'next-auth/next';
-import { USER_ROLES, REDIRECT_PATHS, getUserDashboardPath } from './constants';
+import { USER_ROLES, REDIRECT_PATHS } from './constants';
+import { getUserDashboardPath } from './roles';
 import { redirect } from 'next/navigation';
 import type { Session } from 'next-auth';
 

@@ -34,7 +34,7 @@ interface QuoteState {
 }
 
 export const useQuoteStore = create<QuoteState>()(persist((set, get) => ({
-  items: [],
+  items: [] as any[],
   isOpen: false,
   isLoading: false,
   buyer: {
@@ -129,7 +129,7 @@ export const useQuoteStore = create<QuoteState>()(persist((set, get) => ({
 
       if (response.ok) {
         set({
-          items: [],
+          items: [] as any[],
           buyer: { name: '', email: '', companyName: '', phone: '' },
           isOpen: false,
         });

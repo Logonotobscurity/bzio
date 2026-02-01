@@ -39,6 +39,21 @@ const nextConfig = {
         destination: '/products/category/:slug*',
         permanent: true,
       },
+      {
+        source: '/admin/login',
+        destination: '/auth/admin/login',
+        permanent: true,
+      },
+      {
+        source: '/login/customer',
+        destination: '/auth/customer/login',
+        permanent: true,
+      },
+      {
+        source: '/dashboard',
+        destination: '/account',
+        permanent: true,
+      },
     ];
   },
   images: {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { Bell, Home, Package2, ShoppingCart, Users, FileText, Mail, BarChart3 } from "lucide-react";
-import { USER_ROLES } from "@/lib/auth-constants";
+import { USER_ROLES } from "@/lib/auth/constants";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

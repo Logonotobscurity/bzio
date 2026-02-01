@@ -4,7 +4,7 @@
  */
 
 import * as userService from '../userService';
-import { createMockUser, createMockPrismaClient } from '../__tests__/setup';
+import { createMockUser, createMockPrismaClient } from '../../__tests__/setup';
 
 jest.mock('@/lib/db', () => ({
   prisma: createMockPrismaClient(),

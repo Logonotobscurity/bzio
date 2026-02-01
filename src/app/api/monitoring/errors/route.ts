@@ -26,8 +26,17 @@ export async function POST(request: NextRequest) {
       const storedError = await errorLoggingService.logError({
         message: errorLog.message,
         stack: errorLog.stack,
-        severity: errorLog.severity as 'low' | 'medium' | 'high' | 'critical',
+        severity: errorLog.severity === 'info' ? 'low' :
+                  errorLog.severity === 'warning' ? 'medium' :
+                  errorLog.severity as 'low' | 'medium' | 'high' | 'critical',
         userId: errorLog.userId,
+        route: errorLog.url,
+        userAgent: errorLog.userAgent,
+        sessionId: errorLog.sessionId,
+        breadcrumbs: errorLog.breadcrumbs,
+        sourceMap: errorLog.sourceMap,
+        environment: errorLog.environment,
+        version: errorLog.version,
         metadata: errorLog.context as Record<string, unknown>,
       });
       if (storedError && errorLog.severity === 'critical') {

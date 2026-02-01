@@ -26,7 +26,7 @@ class MockIntersectionObserver implements IntersectionObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-  takeRecords() {
+  takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
 }
@@ -48,7 +48,7 @@ jest.mock('next/image', () => ({
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
-  useSession: () => ({
+  useSession: (): any => ({
     data: null,
     status: 'unauthenticated',
   }),

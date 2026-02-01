@@ -3,8 +3,8 @@
  * Unit tests for analytics service
  */
 
-import * as analyticsService from '../analyticsService';
-import { createMockPrismaClient } from '../__tests__/setup';
+import * as analyticsService from '../analytics.service';
+import { createMockPrismaClient } from '../../__tests__/setup';
 
 jest.mock('@/lib/db', () => ({
   prisma: createMockPrismaClient(),

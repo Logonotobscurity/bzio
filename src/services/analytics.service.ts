@@ -3,11 +3,13 @@
  *
  * Business logic layer for analytics and event tracking.
  * Handles event tracking, aggregation, and reporting.
+ *
+ * This service now wraps the centralized analytics tracking in @/lib/analytics
+ * to ensure backward compatibility while migrating to the fire-and-forget pattern.
  */
 
-import { analyticsEventRepository } from '@/repositories';
+import * as analytics from '@/lib/analytics';
 import type { AnalyticsEvent } from '@/lib/types/domain';
-import { Prisma } from '@prisma/client';
 
 interface TrackEventInput {
   eventType: string;
@@ -21,99 +23,56 @@ export class AnalyticsService {
   /**
    * Track a new event
    */
-  async trackEvent(input: TrackEventInput): Promise<AnalyticsEvent> {
-    this.validateEventInput(input);
-
-    const result = await analyticsEventRepository.track({
-      eventType: input.eventType,
-      userId: input.userId,
-      data: (input.metadata as Prisma.InputJsonValue) ?? {},
-      source: 'B2B_PLATFORM',
-    });
-
-    return result as AnalyticsEvent;
-  }
-
-  async getEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findAll(limit, skip) as Promise<AnalyticsEvent[]>;
-  }
-
-  async getEventById(id: string | number): Promise<AnalyticsEvent | null> {
-    return analyticsEventRepository.findById(id) as Promise<AnalyticsEvent | null>;
-  }
-
-  async getEventsByType(eventType: string): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findByEventType(eventType) as Promise<AnalyticsEvent[]>;
-  }
-
-  async getEventsByUser(userId: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findByUserId(userId) as Promise<AnalyticsEvent[]>;
-  }
-
-  async getEventTypeStats(eventType: string): Promise<number> {
-    return analyticsEventRepository.countByEventType(eventType);
-  }
-
-  async getUserActivityStats(userId: number): Promise<number> {
-    return analyticsEventRepository.count({ userId });
-  }
-
-  async getAllEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
-    return analyticsEventRepository.findAll(limit, skip) as Promise<AnalyticsEvent[]>;
-  }
-
-  async getEventCount(): Promise<number> {
-    return analyticsEventRepository.count();
-  }
-
-  async deleteEvent(id: string | number): Promise<boolean> {
-    return analyticsEventRepository.delete(id);
-  }
-
-  async getEventsByDateRange(startDate: Date, endDate: Date): Promise<AnalyticsEvent[]> {
-    const all = await analyticsEventRepository.findAll() as AnalyticsEvent[];
-    return all.filter(
-      e => new Date(e.timestamp) >= startDate && new Date(e.timestamp) <= endDate
+  async trackEvent(input: TrackEventInput): Promise<any> {
+    return analytics.trackEvent(
+      input.eventType,
+      input.userId,
+      input.metadata || {}
     );
   }
 
+  async getEvents(limit?: number, skip?: number): Promise<any[]> {
+    return analytics.getEvents(limit, skip);
+  }
+
+  async getEventById(id: string | number): Promise<any> {
+    return analytics.getEventById(id);
+  }
+
+  async getEventsByType(eventType: string): Promise<any[]> {
+    return analytics.getEventsByType(eventType);
+  }
+
+  async getEventsByUser(userId: number): Promise<any[]> {
+    return analytics.getEventsByUser(userId);
+  }
+
+  async getEventTypeStats(eventType: string): Promise<number> {
+    return analytics.getEventTypeStats(eventType);
+  }
+
+  async getUserActivityStats(userId: number): Promise<number> {
+    return analytics.getUserActivityStats(userId);
+  }
+
+  async getAllEvents(limit?: number, skip?: number): Promise<any[]> {
+    return analytics.getEvents(limit, skip);
+  }
+
+  async getEventCount(): Promise<number> {
+    return analytics.getEventCount();
+  }
+
+  async deleteEvent(id: string | number): Promise<boolean> {
+    return analytics.deleteEvent(id);
+  }
+
   async getPopularEvents(limit: number = 10): Promise<Array<{ type: string; count: number }>> {
-    const all = await analyticsEventRepository.findAll();
-    const counts = new Map<string, number>();
-
-    all.forEach(event => {
-      counts.set(event.eventType, (counts.get(event.eventType) || 0) + 1);
-    });
-
-    return Array.from(counts.entries())
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
+    return analytics.getPopularEvents(limit);
   }
 
-  async getActiveUsers(limit?: number): Promise<Array<{ userId: number; eventCount: number }>> {
-    const all = await analyticsEventRepository.findAll();
-    const userCounts = new Map<number, number>();
-
-    all.forEach(event => {
-      if (event.userId) {
-        userCounts.set(event.userId, (userCounts.get(event.userId) || 0) + 1);
-      }
-    });
-
-    return Array.from(userCounts.entries())
-      .map(([userId, eventCount]) => ({ userId, eventCount }))
-      .sort((a, b) => b.eventCount - a.eventCount)
-      .slice(0, limit);
-  }
-
-  /**
-   * Validate event input
-   */
-  private validateEventInput(input: TrackEventInput): void {
-    if (!input.eventType?.trim()) {
-      throw new Error('Event type is required');
-    }
+  async getActiveUsers(limit: number = 10): Promise<Array<{ userId: number; eventCount: number }>> {
+    return analytics.getActiveUsers(limit);
   }
 }
 

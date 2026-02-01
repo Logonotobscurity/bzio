@@ -33,29 +33,25 @@ export const ADMIN_EMAILS = {
  * Redirect paths for role-based navigation
  */
 export const REDIRECT_PATHS = {
+  // Authenticated dashboard paths
   USER_DASHBOARD: '/account',
   ADMIN_DASHBOARD: '/admin',
-  LOGIN: '/auth/customer/login',
-  ADMIN_LOGIN: '/auth/admin/login',
+
+  // Authentication pages
+  LOGIN: '/login',
+  ADMIN_LOGIN: '/admin/login',
+  CUSTOMER_LOGIN: '/auth/customer/login',
+  ADMIN_LOGIN_PAGE: '/auth/admin/login', // Avoid collision
   ROLE_SELECTION: '/auth/role-selection',
   VERIFY_REQUEST: '/auth/verify-request',
-  UNAUTHORIZED: '/auth/unauthorized',
-  ERROR: '/auth/error',
-} as const;
+  REGISTER: '/register',
 
-/**
- * Get dashboard path based on user role
- */
-export function getUserDashboardPath(role: UserRole): string {
-  switch (role) {
-    case USER_ROLES.ADMIN:
-      return REDIRECT_PATHS.ADMIN_DASHBOARD;
-    case USER_ROLES.USER:
-      return REDIRECT_PATHS.USER_DASHBOARD;
-    default:
-      return REDIRECT_PATHS.USER_DASHBOARD;
-  }
-}
+  // Error and feedback pages
+  UNAUTHORIZED: '/unauthorized',
+  AUTH_UNAUTHORIZED: '/auth/unauthorized',
+  ERROR: '/auth/error',
+  NOT_FOUND: '/404',
+} as const;
 
 /**
  * Role Metadata - Provides UI/UX information for each role
@@ -68,7 +64,7 @@ export const ROLE_METADATA = {
     subtitle: 'Manage the platform, monitor operations, and analyze metrics',
     icon: 'ShieldCheck',
     color: 'amber',
-    loginPath: '/auth/admin/login',
+    loginPath: '/admin/login',
     dashboardPath: '/admin',
     targetAudience: 'BZION Hub staff',
     features: [
@@ -84,7 +80,7 @@ export const ROLE_METADATA = {
     subtitle: 'Browse catalog, request quotes, manage orders',
     icon: 'Building2',
     color: 'blue',
-    loginPath: '/auth/customer/login',
+    loginPath: '/login',
     dashboardPath: '/account',
     targetAudience: 'Business customers',
     features: [

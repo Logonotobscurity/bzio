@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
-import { USER_ROLES } from '@/lib/auth-constants';
+import { USER_ROLES } from '@/lib/auth/constants';
 
 /**
  * POST /api/admin/setup
