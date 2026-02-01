@@ -42,7 +42,7 @@ export class NotificationService {
   /**
    * Create bulk notifications for multiple admins
    */
-  async createBulkNotifications(g
+  async createBulkNotifications(
     adminIds: number[],
     input: Omit<CreateNotificationInput, 'adminId'>
   ): Promise<AdminNotification[]> {
