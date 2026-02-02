@@ -9,7 +9,9 @@
  */
 
 import * as analytics from '@/lib/analytics';
-import type { AnalyticsEvent } from '@/lib/types/domain';
+import type { Prisma } from '@prisma/client';
+
+type AnalyticsEvent = Prisma.AnalyticsEventGetPayload<{}>;
 
 interface TrackEventInput {
   eventType: string;
@@ -23,7 +25,7 @@ export class AnalyticsService {
   /**
    * Track a new event
    */
-  async trackEvent(input: TrackEventInput): Promise<any> {
+  async trackEvent(input: TrackEventInput): Promise<void> {
     return analytics.trackEvent(
       input.eventType,
       input.userId,
@@ -31,20 +33,20 @@ export class AnalyticsService {
     );
   }
 
-  async getEvents(limit?: number, skip?: number): Promise<any[]> {
-    return analytics.getEvents(limit, skip);
+  async getEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
+    return analytics.getEvents(limit, skip) as Promise<AnalyticsEvent[]>;
   }
 
-  async getEventById(id: string | number): Promise<any> {
-    return analytics.getEventById(id);
+  async getEventById(id: string | number): Promise<AnalyticsEvent | null> {
+    return analytics.getEventById(id) as Promise<AnalyticsEvent | null>;
   }
 
-  async getEventsByType(eventType: string): Promise<any[]> {
-    return analytics.getEventsByType(eventType);
+  async getEventsByType(eventType: string): Promise<AnalyticsEvent[]> {
+    return analytics.getEventsByType(eventType) as Promise<AnalyticsEvent[]>;
   }
 
-  async getEventsByUser(userId: number): Promise<any[]> {
-    return analytics.getEventsByUser(userId);
+  async getEventsByUser(userId: number): Promise<AnalyticsEvent[]> {
+    return analytics.getEventsByUser(userId) as Promise<AnalyticsEvent[]>;
   }
 
   async getEventTypeStats(eventType: string): Promise<number> {
@@ -55,8 +57,8 @@ export class AnalyticsService {
     return analytics.getUserActivityStats(userId);
   }
 
-  async getAllEvents(limit?: number, skip?: number): Promise<any[]> {
-    return analytics.getEvents(limit, skip);
+  async getAllEvents(limit?: number, skip?: number): Promise<AnalyticsEvent[]> {
+    return analytics.getEvents(limit, skip) as Promise<AnalyticsEvent[]>;
   }
 
   async getEventCount(): Promise<number> {

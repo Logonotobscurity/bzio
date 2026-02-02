@@ -6,6 +6,9 @@
  */
 
 import { errorLogRepository } from '@/repositories';
+import type { Prisma } from '@prisma/client';
+
+type ErrorLog = Prisma.ErrorLogGetPayload<{}>;
 
 interface LogErrorInput {
   message: string;
@@ -33,7 +36,7 @@ export class ErrorLoggingService {
   /**
    * Log an error
    */
-  async logError(input: LogErrorInput): Promise<any> {
+  async logError(input: LogErrorInput): Promise<ErrorLog> {
     // Validate input
     this.validateErrorInput(input);
 
@@ -45,26 +48,26 @@ export class ErrorLoggingService {
       userAgent: input.userAgent || '',
       sessionId: input.sessionId || '',
       userId: input.userId,
-      context: input.metadata as any,
-      breadcrumbs: input.breadcrumbs || [],
-      sourceMap: input.sourceMap || {},
+      context: input.metadata as Prisma.InputJsonValue,
+      breadcrumbs: input.breadcrumbs as Prisma.InputJsonValue || [],
+      sourceMap: input.sourceMap as Prisma.InputJsonValue || {},
       environment: input.environment || process.env.NODE_ENV || 'development',
       version: input.version || process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
-    });
+    }) as Promise<ErrorLog>;
   }
 
   /**
    * Get all error logs
    */
-  async getAllErrors(limit?: number, skip?: number): Promise<any[]> {
-    return errorLogRepository.findAll(limit, skip);
+  async getAllErrors(limit?: number, skip?: number): Promise<ErrorLog[]> {
+    return errorLogRepository.findAll(limit, skip) as Promise<ErrorLog[]>;
   }
 
   /**
    * Get error by ID
    */
-  async getErrorById(id: string | number): Promise<any> {
-    return errorLogRepository.findById(id);
+  async getErrorById(id: string | number): Promise<ErrorLog | null> {
+    return errorLogRepository.findById(id) as Promise<ErrorLog | null>;
   }
 
   /**
@@ -77,23 +80,55 @@ export class ErrorLoggingService {
     environment?: string;
     limit?: number;
     skip?: number;
-  }): Promise<any[]> {
-    const all = await errorLogRepository.findAll(criteria.limit, criteria.skip);
-    return all.filter(e => {
-      if (criteria.severity && e.severity !== criteria.severity) return false;
-      if (criteria.userId && e.userId !== criteria.userId) return false;
-      if (criteria.route && e.url !== criteria.route) return false;
-      if (criteria.environment && e.environment !== criteria.environment) return false;
-      return true;
-    });
+    hoursSince?: number;
+  }): Promise<ErrorLog[]> {
+    const where: Prisma.ErrorLogWhereInput = {
+      ...(criteria.severity && { severity: criteria.severity }),
+      ...(criteria.userId && { userId: criteria.userId }),
+      ...(criteria.route && { url: criteria.route }),
+      ...(criteria.environment && { environment: criteria.environment }),
+      ...(criteria.hoursSince && {
+        timestamp: {
+          gte: new Date(Date.now() - criteria.hoursSince * 60 * 60 * 1000),
+        },
+      }),
+    };
+
+    return errorLogRepository.findAll(criteria.limit, criteria.skip, where) as Promise<ErrorLog[]>;
+  }
+
+  /**
+   * Get total count matching criteria
+   */
+  async getCount(criteria: {
+    severity?: string;
+    userId?: string;
+    route?: string;
+    environment?: string;
+    hoursSince?: number;
+  }): Promise<number> {
+    const where: Prisma.ErrorLogWhereInput = {
+      ...(criteria.severity && { severity: criteria.severity }),
+      ...(criteria.userId && { userId: criteria.userId }),
+      ...(criteria.route && { url: criteria.route }),
+      ...(criteria.environment && { environment: criteria.environment }),
+      ...(criteria.hoursSince && {
+        timestamp: {
+          gte: new Date(Date.now() - criteria.hoursSince * 60 * 60 * 1000),
+        },
+      }),
+    };
+
+    return errorLogRepository.count(where) as Promise<number>;
   }
 
   /**
    * Get unresolved errors
    */
-  async getUnresolvedErrors(): Promise<any[]> {
-    const all = await errorLogRepository.findAll();
-    return all.filter(e => e.severity === 'critical' || e.severity === 'high');
+  async getUnresolvedErrors(): Promise<ErrorLog[]> {
+    return errorLogRepository.findAll(undefined, undefined, {
+      severity: { in: ['critical', 'high'] },
+    }) as Promise<ErrorLog[]>;
   }
 
   /**
@@ -103,11 +138,11 @@ export class ErrorLoggingService {
     id: string | number,
     resolvedBy: string,
     notes?: string
-  ): Promise<any> {
+  ): Promise<ErrorLog> {
     return errorLogRepository.update(id, {
       severity: 'low',
-      context: notes ? { notes, resolvedBy } : undefined
-    });
+      context: notes ? ({ notes, resolvedBy } as any) : undefined
+    }) as Promise<ErrorLog>;
   }
 
   /**

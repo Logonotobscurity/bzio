@@ -31,9 +31,10 @@ interface UpdateErrorLogInput {
 }
 
 export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogInput, UpdateErrorLogInput> {
-  async findAll(limit?: number, skip?: number) {
+  async findAll(limit?: number, skip?: number, where?: Prisma.ErrorLogWhereInput) {
     try {
       return await prisma.errorLog.findMany({
+        where,
         take: limit,
         skip,
         orderBy: { timestamp: 'desc' },
@@ -98,9 +99,9 @@ export class ErrorLogRepository extends BaseRepository<ErrorLog, CreateErrorLogI
     }
   }
 
-  async count() {
+  async count(where?: Prisma.ErrorLogWhereInput) {
     try {
-      return await prisma.errorLog.count();
+      return await prisma.errorLog.count({ where });
     } catch (error) {
       this.handleError(error, 'count');
     }

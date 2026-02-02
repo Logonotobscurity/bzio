@@ -121,28 +121,29 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '50');
+    const skip = parseInt(request.nextUrl.searchParams.get('skip') || '0');
     const severity = request.nextUrl.searchParams.get('severity');
     const hoursSince = parseInt(request.nextUrl.searchParams.get('hoursSince') || '24');
 
-    const where = {
-      timestamp: {
-        gte: new Date(Date.now() - hoursSince * 60 * 60 * 1000),
-      },
-      ...(severity && { severity }),
+    const criteria = {
+      severity: severity || undefined,
+      hoursSince,
     };
 
     const errorLogs = await errorLoggingService.findErrors({
-      severity: severity || undefined,
+      ...criteria,
       limit: Math.min(limit, 500),
+      skip,
     });
-    const total = errorLogs.length;
 
-    // Group by severity
+    const total = await errorLoggingService.getCount(criteria);
+
+    // Group by severity for the current timeframe (optimized)
     const grouped = {
-      critical: errorLogs.filter(e => e.severity === 'critical').length,
-      high: errorLogs.filter(e => e.severity === 'high').length,
-      medium: errorLogs.filter(e => e.severity === 'medium').length,
-      low: errorLogs.filter(e => e.severity === 'low').length,
+      critical: await errorLoggingService.getCount({ ...criteria, severity: 'critical' }),
+      high: await errorLoggingService.getCount({ ...criteria, severity: 'high' }),
+      medium: await errorLoggingService.getCount({ ...criteria, severity: 'medium' }),
+      low: await errorLoggingService.getCount({ ...criteria, severity: 'low' }),
     };
 
     return NextResponse.json({
