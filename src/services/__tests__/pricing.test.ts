@@ -4,7 +4,7 @@
  */
 
 import * as pricingService from '../pricing';
-import { createMockProduct } from '../../__tests__/setup';
+import { createMockProduct } from '@/__tests__/setup';
 
 describe('pricingService', () => {
   beforeEach(() => {

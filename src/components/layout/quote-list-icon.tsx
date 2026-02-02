@@ -2,7 +2,7 @@
 
 import { useQuoteStore } from "@/stores/quoteStore";
 import { ShoppingBag } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 export const QuoteListIcon = () => {
     const { items, toggleDrawer } = useQuoteStore();

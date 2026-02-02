@@ -14,6 +14,7 @@ interface CreateNotificationInput {
   type: string;
   title: string;
   message: string;
+  actionUrl?: string;
   data?: Prisma.InputJsonValue;
 }
 
@@ -22,7 +23,7 @@ interface UpdateNotificationInput {
   data?: Prisma.InputJsonValue;
 }
 
-export class NotificationService {
+export class AdminNotificationService {
   /**
    * Create a new notification for an admin
    */
@@ -35,6 +36,7 @@ export class NotificationService {
       type: input.type,
       title: input.title,
       message: input.message,
+      actionUrl: input.actionUrl,
       data: input.data,
     })) as unknown as AdminNotification;
   }
@@ -151,4 +153,4 @@ export class NotificationService {
   }
 }
 
-export const notificationService = new NotificationService();
+export const adminNotificationService = new AdminNotificationService();

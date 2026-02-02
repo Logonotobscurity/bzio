@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
-import { newsletterService, analyticsService } from '@/services';
+import { newsletterService } from '@/services';
+import { trackEvent } from '@/lib/analytics';
 
 /**
  * Newsletter Management API
@@ -22,10 +23,8 @@ export async function POST(request: NextRequest) {
     if (action === 'unsubscribe' && id) {
       await newsletterService.unsubscribe(id);
 
-      await analyticsService.trackEvent({
-        eventType: 'newsletter_unsubscribed',
-        userId: session.user.id,
-        metadata: { subscriberId: id },
+      await trackEvent('newsletter_unsubscribed', session.user.id, {
+        subscriberId: id,
       });
 
       return NextResponse.json({ success: true }, { status: 200 });
@@ -37,10 +36,8 @@ export async function POST(request: NextRequest) {
         status: 'active',
       });
 
-      await analyticsService.trackEvent({
-        eventType: 'newsletter_resubscribed',
-        userId: session.user.id,
-        metadata: { subscriberId: id },
+      await trackEvent('newsletter_resubscribed', session.user.id, {
+        subscriberId: id,
       });
 
       return NextResponse.json({ success: true, subscriber }, { status: 200 });
@@ -59,14 +56,10 @@ export async function POST(request: NextRequest) {
 
       const subscribers = await newsletterService.getActiveSubscribers();
 
-      await analyticsService.trackEvent({
-        eventType: 'newsletter_campaign_sent',
-        userId: session.user.id,
-        metadata: {
-          recipientCount: subscribers.length,
-          subject,
-          filter: recipientFilter,
-        },
+      await trackEvent('newsletter_campaign_sent', session.user.id, {
+        recipientCount: subscribers.length,
+        subject,
+        filter: recipientFilter,
       });
 
       // TODO: Integrate with email service (SendGrid, etc.)
@@ -90,10 +83,9 @@ export async function POST(request: NextRequest) {
       const format = data.format || 'csv';
       const subscribers = await newsletterService.getAllSubscribers();
 
-      await analyticsService.trackEvent({
-        eventType: 'newsletter_exported',
-        userId: session.user.id,
-        metadata: { format, count: subscribers.length },
+      await trackEvent('newsletter_exported', session.user.id, {
+        format,
+        count: subscribers.length,
       });
 
       if (format === 'json') {
@@ -149,10 +141,8 @@ export async function DELETE(request: NextRequest) {
 
     await newsletterService.deleteSubscriber(id);
 
-    await analyticsService.trackEvent({
-      eventType: 'newsletter_deleted',
-      userId: session.user.id,
-      metadata: { subscriberId: id },
+    await trackEvent('newsletter_deleted', session.user.id, {
+      subscriberId: id,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });

@@ -115,7 +115,7 @@ export default function ProductsView({ title = 'All Products' }: ProductsViewPro
               ))}
               {activeFilter === 'brand' && brands.map(brand => {
                   const stats = brandStats[brand.name] || { productCount: 0, categoryCount: 0 };
-                  return <BrandCard key={String(brand.id)} brand={{...brand, imageUrl: brand.imageUrl || undefined}} productCount={stats.productCount} categoryCount={stats.categoryCount} />;
+                  return <BrandCard key={String(brand.id)} brand={{...brand, imageUrl: brand.imageUrl || undefined, productCount: stats.productCount}} variant="minimal" />;
               })}
               {activeFilter === 'category' && categories.map(category => (
                   <SimplifiedCategoryCard key={category.id} category={category} />

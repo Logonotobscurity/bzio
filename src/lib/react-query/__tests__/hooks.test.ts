@@ -7,7 +7,7 @@ import {
   createQuoteRequest,
   submitContactForm,
   subscribeNewsletter,
-} from '../hooks';
+} from '@/hooks';
 
 // Mock axios
 jest.mock('axios');

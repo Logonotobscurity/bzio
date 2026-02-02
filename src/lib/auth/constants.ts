@@ -39,9 +39,8 @@ export const REDIRECT_PATHS = {
 
   // Authentication pages
   LOGIN: '/login',
-  ADMIN_LOGIN: '/admin/login',
+  ADMIN_LOGIN: '/auth/admin/login',
   CUSTOMER_LOGIN: '/auth/customer/login',
-  ADMIN_LOGIN_PAGE: '/auth/admin/login', // Avoid collision
   ROLE_SELECTION: '/auth/role-selection',
   VERIFY_REQUEST: '/auth/verify-request',
   REGISTER: '/register',

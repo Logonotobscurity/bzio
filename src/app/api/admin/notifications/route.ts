@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '~/auth';
-import { prisma } from '@/lib/db';
+import { adminNotificationService } from '@/services';
 
 // GET /api/admin/notifications
 export async function GET(request: NextRequest) {
@@ -11,18 +11,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const adminId = session.user.id;
+    const adminId = Number(session.user.id);
 
     // Fetch notifications for this admin
     const [notifications, unreadCount] = await Promise.all([
-      prisma.adminNotification.findMany({
-        where: { adminId },
-        orderBy: { createdAt: 'desc' },
-        take: 50,
-      }),
-      prisma.adminNotification.count({
-        where: { adminId, read: false },
-      }),
+      adminNotificationService.getAdminNotifications(adminId, 50),
+      adminNotificationService.getUnreadCount(adminId),
     ]);
 
     return NextResponse.json({
@@ -58,16 +52,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const notification = await prisma.adminNotification.create({
-      data: {
-        adminId,
-        type,
-        title,
-        message,
-        data: data || {},
-        actionUrl: actionUrl || null,
-        read: false,
-      },
+    const notification = await adminNotificationService.createNotification({
+      adminId: Number(adminId),
+      type,
+      title,
+      message,
+      actionUrl,
+      data: data || {},
     });
 
     return NextResponse.json(notification, { status: 201 });

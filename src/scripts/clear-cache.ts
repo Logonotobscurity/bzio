@@ -1,4 +1,4 @@
-import { cache } from '../lib/cache';
+import { cache } from '@/lib/cache';
 
 async function clearCache() {
   console.log('Clearing companies cache...');

@@ -100,7 +100,7 @@ export default function LoginSelectionContent() {
                 </li>
               </ul>
               <Button
-                onClick={() => router.push('/login/customer')}
+                onClick={() => router.push(REDIRECT_PATHS.CUSTOMER_LOGIN)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 text-lg"
               >
                 Continue as Customer
@@ -158,7 +158,7 @@ export default function LoginSelectionContent() {
                 </li>
               </ul>
               <Button
-                onClick={() => router.push('/admin/login')}
+                onClick={() => router.push(REDIRECT_PATHS.ADMIN_LOGIN)}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-6 text-lg"
               >
                 Continue as Admin

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
-import { formService, analyticsService } from '@/services';
+import { formService } from '@/services';
+import { trackEvent } from '@/lib/analytics';
 
 /**
  * Form Submissions Management API
@@ -29,10 +30,8 @@ export async function POST(request: NextRequest) {
         session.user.email || 'admin'
       );
 
-      await analyticsService.trackEvent({
-        eventType: 'form_responded',
-        userId: session.user.id,
-        metadata: { formId: id },
+      await trackEvent('form_responded', session.user.id, {
+        formId: id,
       });
 
       return NextResponse.json({ success: true, submission }, { status: 200 });
@@ -89,10 +88,8 @@ export async function DELETE(request: NextRequest) {
 
     await formService.deleteSubmission(id);
 
-    await analyticsService.trackEvent({
-      eventType: 'form_deleted',
-      userId: session.user.id,
-      metadata: { formId: id },
+    await trackEvent('form_deleted', session.user.id, {
+      formId: id,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });

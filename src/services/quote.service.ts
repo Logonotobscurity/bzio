@@ -5,7 +5,7 @@
  * Handles quote management, validation, and workflows
  */
 
-import { QuoteRepository } from '@/repositories';
+import { QuoteRepository, prisma } from '@/repositories';
 import { errorLoggingService } from './error-logging.service';
 
 const quoteRepository = new QuoteRepository();
@@ -227,10 +227,13 @@ export class QuoteService {
   }
 
   /**
-   * Create a new quote
+   * Create a new quote with line items and an initial event log.
+   * This operation is performed within a transaction to ensure data consistency.
    */
   async createQuote(data: {
-    reference: string;
+    reference?: string;
+    userId?: number;
+    actorId?: string;
     buyerContactEmail: string;
     buyerContactPhone?: string;
     buyerCompanyId?: string;
@@ -244,18 +247,51 @@ export class QuoteService {
       description?: string;
     }>;
   }) {
+    const reference = data.reference || `Q-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
     try {
-      if (!data.reference || !data.buyerContactEmail || !data.lines) {
-        throw new Error('Quote reference, email, and line items are required');
+      if (!data.buyerContactEmail || !data.lines) {
+        throw new Error('Buyer contact email and line items are required');
       }
 
-      const quote = await quoteRepository.create({
-        reference: data.reference,
-        buyerContactEmail: data.buyerContactEmail,
-        buyerContactPhone: data.buyerContactPhone,
-        buyerCompanyId: data.buyerCompanyId,
-        status: data.status || 'draft',
-        lines: data.lines,
+      const quote = await prisma.$transaction(async (tx) => {
+        // Create the quote
+        const newQuote = await tx.quote.create({
+          data: {
+            reference,
+            userId: data.userId,
+            buyerContactEmail: data.buyerContactEmail,
+            buyerContactPhone: data.buyerContactPhone,
+            buyerCompanyId: data.buyerCompanyId,
+            status: data.status || 'draft',
+            lines: {
+              create: data.lines.map((line) => ({
+                productId: line.productId,
+                productName: line.productName,
+                productSku: line.productSku,
+                qty: line.qty,
+                unitPrice: line.unitPrice,
+                description: line.description,
+              })),
+            },
+          },
+          include: { lines: true },
+        });
+
+        // Log the creation event
+        await tx.quoteEvent.create({
+          data: {
+            quoteId: newQuote.id,
+            actorId: data.actorId || 'system',
+            eventType: 'created',
+            payload: {
+              status: newQuote.status,
+              itemCount: (newQuote as any).lines?.length || 0,
+            },
+          },
+        });
+
+        return newQuote;
       });
 
       return quote;
@@ -265,7 +301,7 @@ export class QuoteService {
         severity: 'high',
         metadata: {
           context: 'QuoteService.createQuote',
-          reference: data.reference,
+          reference,
         },
       });
       throw error;

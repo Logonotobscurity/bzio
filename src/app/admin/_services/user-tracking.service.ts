@@ -6,7 +6,7 @@
 
 import { prisma } from '@/lib/db';
 import { logActivity } from '@/lib/activity-service';
-import { broadcastAdminNotification } from '../_actions/notifications';
+import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 
 export interface UserRegistrationData {
   userId: number;

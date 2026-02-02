@@ -7,6 +7,7 @@
 
 import { errorLogRepository } from '@/repositories';
 import type { Prisma } from '@prisma/client';
+import * as Sentry from "@sentry/nextjs";
 
 type ErrorLog = Prisma.ErrorLogGetPayload<{}>;
 
@@ -39,6 +40,23 @@ export class ErrorLoggingService {
   async logError(input: LogErrorInput): Promise<ErrorLog> {
     // Validate input
     this.validateErrorInput(input);
+
+    // Send to Sentry if available
+    try {
+      Sentry.captureException(new Error(input.message), {
+        extra: input.metadata,
+        level: input.severity === 'critical' ? 'fatal' :
+               input.severity === 'high' ? 'error' :
+               input.severity === 'medium' ? 'warning' : 'info',
+        tags: {
+          route: input.route,
+          environment: input.environment || process.env.NODE_ENV,
+        },
+        user: input.userId ? { id: input.userId } : undefined,
+      });
+    } catch (sentryError) {
+      console.error('[SENTRY_ERROR] Failed to capture exception:', sentryError);
+    }
 
     return errorLogRepository.create({
       message: input.message,

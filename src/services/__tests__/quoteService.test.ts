@@ -3,8 +3,8 @@
  * Unit tests for quote service
  */
 
-import * as quoteService from '../quote.service';
-import { createMockPrismaClient, createMockQuote } from '../../__tests__/setup';
+import { quoteService } from '../quote.service';
+import { createMockPrismaClient, createMockQuote } from '@/__tests__/setup';
 
 jest.mock('@/lib/db', () => ({
   prisma: {
@@ -15,6 +15,9 @@ jest.mock('@/lib/db', () => ({
       findUnique: jest.fn(),
     },
     quoteEvent: {
+      create: jest.fn(),
+    },
+    errorLog: {
       create: jest.fn(),
     },
   },

@@ -1,7 +1,7 @@
 
 import { PageHero } from '@/components/layout/PageHero';
 import { Section } from '@/components/ui/section';
-import { BrandCard } from '@/components/BrandCard';
+import { BrandCard } from '@/components/ui/brand-card';
 import { CTASection } from '@/components/cta-section';
 import { getBrandsPageData } from '@/services/enrichmentService';
 import { notFound } from 'next/navigation';
@@ -51,7 +51,7 @@ export default async function AllBrandsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {group.brands.map(brand => (
-                    <BrandCard key={brand.id} brand={brand} />
+                    <BrandCard key={brand.id} brand={brand} variant="detailed" />
                 ))}
               </div>
             </div>
