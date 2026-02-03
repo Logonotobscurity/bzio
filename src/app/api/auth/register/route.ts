@@ -4,8 +4,19 @@ import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { sendEmailVerificationEmail, sendWelcomeEmail } from '@/lib/email-service';
 import { trackUserRegistration } from '@/app/admin/_actions/tracking';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+  const { success, headers } = await checkRateLimit(ip, 'auth');
+
+  if (!success) {
+    return NextResponse.json(
+      { message: 'Too many registration attempts. Please try again later.' },
+      { status: 429, headers }
+    );
+  }
+
   try {
     const { firstName, lastName, email, password, companyName } = await req.json();
 

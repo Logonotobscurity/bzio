@@ -3,7 +3,7 @@
 import { Mail, Package, ShoppingCart, Users, FileText, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import type { ActivityEvent } from '../_actions/activities';
+import type { ActivityEvent } from '@/app/admin/_actions/activities';
 
 interface ActivityFeedProps {
   activities: ActivityEvent[];

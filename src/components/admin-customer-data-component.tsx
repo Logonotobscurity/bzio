@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { USER_ROLES } from '@/lib/auth-constants';
+import { USER_ROLES } from '@/lib/auth/constants';
 import { Loader, Search, Mail, Phone, Building2, MapPin, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 

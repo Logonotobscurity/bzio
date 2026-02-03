@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import ChooseRoleContent from './choose-role-content';
 
 /**
@@ -13,5 +14,9 @@ import ChooseRoleContent from './choose-role-content';
  * - Routes to `/login` for customers and `/admin/login` for admins
  */
 export default function ChooseRolePage() {
-  return <ChooseRoleContent />;
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <ChooseRoleContent />
+    </Suspense>
+  );
 }

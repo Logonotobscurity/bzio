@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { findImage } from '@/lib/placeholder-images';
-import { CUSTOMER_SEGMENTS } from '@/lib/constants';
+import { CUSTOMER_SEGMENTS } from '@/lib/config/constants';
 import { cn } from '@/lib/utils';
 import { Section, SectionHeading, SectionTitle } from '@/components/ui/section';
 import { AnimatedDiv } from '@/components/animated-div';

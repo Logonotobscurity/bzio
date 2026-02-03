@@ -46,7 +46,7 @@ export class FormService {
     });
 
     // TODO: Send notification email to admin
-    // await notificationService.notifyFormSubmission(submission);
+    // await adminNotificationService.notifyFormSubmission(submission);
 
     return submission;
   }
@@ -92,7 +92,7 @@ export class FormService {
     });
 
     // TODO: Send response email to submitter
-    // await notificationService.sendFormResponse(submission);
+    // await adminNotificationService.sendFormResponse(submission);
 
     return submission;
   }

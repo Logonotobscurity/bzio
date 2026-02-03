@@ -37,10 +37,7 @@ export { FormService, formService } from './form.service';
 export { NewsletterService, newsletterService } from './newsletter.service';
 
 // Notification Service
-export { NotificationService, notificationService } from './notification.service';
-
-// Analytics Service
-export { AnalyticsService, analyticsService } from './analytics.service';
+export { AdminNotificationService, adminNotificationService } from './admin-notification.service';
 
 // Quote Message Service
 export { QuoteMessageService, quoteMessageService } from './quote-message.service';
@@ -67,8 +64,7 @@ export { ErrorLoggingService, errorLoggingService } from './error-logging.servic
  */
 export * from './form.service';
 export * from './newsletter.service';
-export * from './notification.service';
-export * from './analytics.service';
+export * from './admin-notification.service';
 export * from './quote-message.service';
 export * from './lead.service';
 export * from './quote.service';

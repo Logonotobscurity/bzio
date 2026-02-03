@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { USER_ROLES } from '@/lib/auth-constants';
+import { USER_ROLES } from '@/lib/auth/constants';
 import {
   getRecentActivities,
   getActivityStats,

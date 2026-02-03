@@ -19,7 +19,7 @@ import { EventsAnalytics } from './EventsAnalytics';
 import { AdminNotifications } from './AdminNotifications';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Eye, MessageSquare, Trash2, Download, RefreshCw, Clock } from 'lucide-react';
-import type { ActivityEvent } from '../_actions/activities';
+import type { ActivityEvent } from '@/app/admin/_actions/activities';
 
 // Type definitions
 interface Quote {

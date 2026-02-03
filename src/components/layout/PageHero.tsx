@@ -2,8 +2,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Breadcrumbs, type BreadcrumbItem } from '../ui/breadcrumb';
-import { AnimatedDiv } from '../animated-div';
+import { Breadcrumbs, type BreadcrumbItem } from '@/components/ui/breadcrumb';
+import { AnimatedDiv } from '@/components/animated-div';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';

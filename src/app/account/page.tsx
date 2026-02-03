@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WelcomeAlert } from '@/components/auth/WelcomeAlert';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
 
 import { useActivityStore } from '@/stores/activity';
 import { Section } from '@/components/ui/section';

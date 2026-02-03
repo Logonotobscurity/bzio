@@ -28,7 +28,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
-import { USER_ROLES } from '@/lib/auth-constants';
+import { USER_ROLES } from '@/lib/auth/constants';
 import BaseLoginForm, {
   LoginLoadingState,
   LoginRedirectingState,

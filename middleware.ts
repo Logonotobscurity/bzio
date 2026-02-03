@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequestWithAuth } from "next-auth/middleware";
-import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth-constants";
+import { USER_ROLES, REDIRECT_PATHS } from "@/lib/auth/constants";
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -33,10 +33,11 @@ export default withAuth(
     const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
 
     const isCustomerAuthRoute = normalizedPath === REDIRECT_PATHS.LOGIN || normalizedPath === REDIRECT_PATHS.CUSTOMER_LOGIN;
-    const isAdminAuthRoute = normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN;
+    const isAdminAuthRoute = normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN || normalizedPath === "/admin/login";
     const isProtectedCustomerRoute = normalizedPath.startsWith(REDIRECT_PATHS.USER_DASHBOARD);
     const isProtectedAdminRoute = 
       normalizedPath.startsWith(REDIRECT_PATHS.ADMIN_DASHBOARD) && 
+      normalizedPath !== REDIRECT_PATHS.ADMIN_LOGIN &&
       normalizedPath !== "/admin/login";
 
     if (isAuth && isCustomerAuthRoute) {
@@ -118,7 +119,8 @@ export default withAuth(
         if (
           normalizedPath === REDIRECT_PATHS.LOGIN ||
           normalizedPath === REDIRECT_PATHS.CUSTOMER_LOGIN ||
-          normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN
+          normalizedPath === REDIRECT_PATHS.ADMIN_LOGIN ||
+          normalizedPath === "/admin/login"
         ) {
           return true;
         }
@@ -153,7 +155,7 @@ export const config = {
     "/account",
     "/account/:path*",
     "/login",
-    "/login/customer",
+    "/auth/:path*",
     "/admin/login",
   ],
 };

@@ -4,7 +4,7 @@
  * Reduces code duplication and ensures consistent behavior
  */
 
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
 
 /**
  * Role metadata for login flows
@@ -13,10 +13,10 @@ import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 export const LOGIN_ROLE_CONFIG = {
   [USER_ROLES.USER]: {
     role: USER_ROLES.USER,
-    route: '/login',
-    newRoute: '/auth/customer/login',
-    adminRoute: '/admin/login',
-    newAdminRoute: '/auth/admin/login',
+    route: REDIRECT_PATHS.LOGIN,
+    newRoute: REDIRECT_PATHS.CUSTOMER_LOGIN,
+    adminRoute: REDIRECT_PATHS.ADMIN_LOGIN,
+    newAdminRoute: REDIRECT_PATHS.ADMIN_LOGIN,
     dashboardPath: REDIRECT_PATHS.USER_DASHBOARD,
     pageTitle: 'Customer Login',
     pageDescription: 'Sign in to your customer account',
@@ -34,10 +34,10 @@ export const LOGIN_ROLE_CONFIG = {
   
   [USER_ROLES.ADMIN]: {
     role: USER_ROLES.ADMIN,
-    route: '/admin/login',
-    newRoute: '/auth/admin/login',
-    customerRoute: '/login',
-    newCustomerRoute: '/auth/customer/login',
+    route: REDIRECT_PATHS.ADMIN_LOGIN,
+    newRoute: REDIRECT_PATHS.ADMIN_LOGIN,
+    customerRoute: REDIRECT_PATHS.LOGIN,
+    newCustomerRoute: REDIRECT_PATHS.CUSTOMER_LOGIN,
     dashboardPath: REDIRECT_PATHS.ADMIN_DASHBOARD,
     pageTitle: 'Admin Login',
     pageDescription: 'Secure access for system administrators',
@@ -60,7 +60,7 @@ export const LOGIN_ROLE_CONFIG = {
  * Recognizes both legacy (/admin/login, /login) and new (/auth/admin/login, /auth/customer/login) routes
  */
 export function getRoleConfigByRoute(pathname: string) {
-  if (pathname === '/admin/login' || pathname === '/auth/admin/login') {
+  if (pathname === '/admin/login' || pathname === REDIRECT_PATHS.ADMIN_LOGIN) {
     return LOGIN_ROLE_CONFIG[USER_ROLES.ADMIN];
   }
   return LOGIN_ROLE_CONFIG[USER_ROLES.USER];
@@ -78,7 +78,7 @@ export function validateRoleForRoute(
   // Check for both old and new admin routes
   const isAdminRoute = 
     loginRoute === '/admin/login' || 
-    loginRoute === '/auth/admin/login';
+    loginRoute === REDIRECT_PATHS.ADMIN_LOGIN;
   const isAdminRole = userRole === USER_ROLES.ADMIN;
 
   if (isAdminRoute && !isAdminRole) {
@@ -121,7 +121,7 @@ export function shouldRedirectAuthenticatedUser(
   // Check for both old and new admin routes
   const isAdminRoute = 
     currentRoute === '/admin/login' || 
-    currentRoute === '/auth/admin/login';
+    currentRoute === REDIRECT_PATHS.ADMIN_LOGIN;
 
   // Admin on customer login route -> redirect to admin dashboard
   if (isAdminRole && !isAdminRoute) {

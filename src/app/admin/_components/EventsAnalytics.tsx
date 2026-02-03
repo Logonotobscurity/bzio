@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, FileText, Mail, ShoppingCart } from 'lucide-react';
 import styles from './EventsAnalytics.module.css';
-import type { ActivityEvent } from '../_actions/activities';
+import type { ActivityEvent } from '@/app/admin/_actions/activities';
 import {
   LineChart,
   Line,

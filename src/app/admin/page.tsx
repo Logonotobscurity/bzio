@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from '@/lib/auth/config';
-import { USER_ROLES } from '@/lib/auth-constants';
+import { USER_ROLES } from '@/lib/auth/constants';
 import {
   getRecentActivities,
   getActivityStats,

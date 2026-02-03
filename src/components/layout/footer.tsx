@@ -3,7 +3,7 @@ import { Logo } from '@/components/logo';
 import { FOOTER_LINKS } from '@/lib/config/constants';
 import { FooterMobileAccordion } from './footer-mobile-accordion';
 import { FooterNewsletter } from './footer-newsletter';
-import { Section } from '../ui/section';
+import { Section } from '@/components/ui/section';
 import FooterLogo from './footer-logo'; // Changed from named import to default import
 
 export const Footer = () => {

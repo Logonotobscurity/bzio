@@ -31,7 +31,7 @@ interface TrackEventOptions {
  * Skips if database connection is not available
  */
 export async function trackEvent(
-  eventType: EventType,
+  eventType: string,
   userId: number | null | undefined,
   data: Record<string, any>,
   sessionId?: string
@@ -67,10 +67,9 @@ export async function trackEvent(
 
 /**
  * Track product view event
- * Convenience wrapper for PRODUCT_VIEW events
  */
 export async function trackProductView(
-  productId: string,
+  productId: string | number,
   userId: number | null | undefined,
   metadata?: Record<string, any>,
   sessionId?: string
@@ -79,7 +78,7 @@ export async function trackProductView(
     'PRODUCT_VIEW',
     userId,
     {
-      productId,
+      productId: String(productId),
       ...metadata,
       viewedAt: new Date().toISOString(),
     },
@@ -89,7 +88,6 @@ export async function trackProductView(
 
 /**
  * Track search event
- * Convenience wrapper for SEARCH events
  */
 export async function trackSearch(
   query: string,
@@ -111,7 +109,6 @@ export async function trackSearch(
 
 /**
  * Track cart abandonment event
- * Convenience wrapper for CART_ABANDONED events
  */
 export async function trackCartAbandonment(
   userId: number | null | undefined,
@@ -134,7 +131,6 @@ export async function trackCartAbandonment(
 
 /**
  * Track page view event
- * Convenience wrapper for PAGE_VIEW events
  */
 export async function trackPageView(
   pageUrl: string,
@@ -156,7 +152,6 @@ export async function trackPageView(
 
 /**
  * Track form submission event
- * Convenience wrapper for FORM_SUBMIT events
  */
 export async function trackFormSubmit(
   formType: string,
@@ -185,8 +180,107 @@ function generateSessionId(): string {
 
 /**
  * Get or generate session ID from various sources
- * Utility function for extracting session info from requests/contexts
  */
 export function getOrGenerateSessionId(providedSessionId?: string): string {
   return providedSessionId || generateSessionId();
+}
+
+// Retrieval methods (moved from AnalyticsService)
+
+export async function getEvents(limit?: number, skip?: number) {
+  return prisma.analyticsEvent.findMany({
+    take: limit,
+    skip,
+    orderBy: { timestamp: 'desc' },
+  });
+}
+
+export async function getEventById(id: string | number) {
+  return prisma.analyticsEvent.findUnique({
+    where: { id: String(id) },
+  });
+}
+
+export async function getEventsByType(eventType: string) {
+  return prisma.analyticsEvent.findMany({
+    where: { eventType },
+    orderBy: { timestamp: 'desc' },
+  });
+}
+
+export async function getEventsByUser(userId: number) {
+  return prisma.analyticsEvent.findMany({
+    where: { userId },
+    orderBy: { timestamp: 'desc' },
+  });
+}
+
+export async function getEventTypeStats(eventType: string) {
+  return prisma.analyticsEvent.count({
+    where: { eventType },
+  });
+}
+
+export async function getUserActivityStats(userId: number) {
+  return prisma.analyticsEvent.count({
+    where: { userId },
+  });
+}
+
+export async function getEventCount() {
+  return prisma.analyticsEvent.count();
+}
+
+export async function deleteEvent(id: string | number) {
+  try {
+    await prisma.analyticsEvent.delete({
+      where: { id: String(id) },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getPopularEvents(limit: number = 10) {
+  const result = await prisma.analyticsEvent.groupBy({
+    by: ['eventType'],
+    _count: {
+      eventType: true,
+    },
+    orderBy: {
+      _count: {
+        eventType: 'desc',
+      },
+    },
+    take: limit,
+  });
+
+  return result.map(item => ({
+    type: item.eventType,
+    count: item._count.eventType,
+  }));
+}
+
+export async function getActiveUsers(limit: number = 10) {
+  const result = await prisma.analyticsEvent.groupBy({
+    by: ['userId'],
+    where: {
+      userId: { not: null },
+    },
+    _count: {
+      userId: true,
+    },
+    orderBy: {
+      _count: {
+        userId: 'desc',
+      },
+    },
+    take: limit,
+  });
+
+  return result.map(item => ({
+    userId: item.userId as number,
+    eventCount: item._count.userId,
+  }));
 }

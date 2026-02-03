@@ -5,7 +5,7 @@
 
 import * as productService from '../productService';
 import * as staticRepo from '@/repositories/static/productRepository';
-import { createMockProduct, createMockBrand, createMockCategory } from '../__tests__/setup';
+import { createMockProduct, createMockBrand, createMockCategory } from '@/__tests__/setup';
 
 jest.mock('@/repositories/static/productRepository');
 jest.mock('@/repositories/static/brandRepository');

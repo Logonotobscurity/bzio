@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { logActivity } from '@/lib/activity-service';
 import { trackQuoteRequest } from '@/app/admin/_actions/tracking';
 import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,16 @@ const quoteRequestSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+  const { success, headers } = await checkRateLimit(ip, 'rfq');
+
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Too many quote requests. Please try again later.' },
+      { status: 429, headers }
+    );
+  }
+
   try {
     // Initialize Resend inside the handler, not at module load time
     const resend = new Resend(process.env.RESEND_API_KEY);

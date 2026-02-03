@@ -23,7 +23,7 @@ interface ActivityState {
 export const useActivityStore = create<ActivityState>()(
   persist(
     (set, get) => ({
-      activities: [],
+      activities: [] as Activity[],
       addActivity: (activity) =>
         set((state) => ({
           activities: [

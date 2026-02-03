@@ -1,7 +1,7 @@
 'use client';
 
 import { type Brand } from '@/lib/schema';
-import { BrandCard } from './brand-card';
+import { BrandCard } from '@/components/ui/brand-card';
 import { GsapScrollTrigger } from './ui/GsapScrollTrigger';
 
 interface BrandGridProps {

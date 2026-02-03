@@ -42,7 +42,7 @@ const mockUsers: Record<string, { email: string; password: string; name: string;
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
+      user: null as any,
       isAuthenticated: false,
       login: async (email: string, password: string) => {
         // Simulate API call delay
@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: () => {
-        set({ user: null, isAuthenticated: false });
+        set({ user: null as any, isAuthenticated: false });
       },
       updateProfile: (userData) => {
         set((state) => ({

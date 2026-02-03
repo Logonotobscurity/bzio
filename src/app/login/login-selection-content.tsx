@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Shield, ArrowRight, Loader2 } from 'lucide-react';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
 
 /**
  * Login Selection Page
@@ -100,7 +100,7 @@ export default function LoginSelectionContent() {
                 </li>
               </ul>
               <Button
-                onClick={() => router.push('/login/customer')}
+                onClick={() => router.push(REDIRECT_PATHS.CUSTOMER_LOGIN)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 text-lg"
               >
                 Continue as Customer
@@ -158,7 +158,7 @@ export default function LoginSelectionContent() {
                 </li>
               </ul>
               <Button
-                onClick={() => router.push('/admin/login')}
+                onClick={() => router.push(REDIRECT_PATHS.ADMIN_LOGIN)}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-6 text-lg"
               >
                 Continue as Admin

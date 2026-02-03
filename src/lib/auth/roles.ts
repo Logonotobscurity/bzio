@@ -5,13 +5,27 @@
  * including role validation, routing decisions, and user guidance.
  */
 
-import { USER_ROLES, ROLE_METADATA, LOGIN_ROLE_CONFIG, type UserRole } from './constants';
+import { USER_ROLES, ROLE_METADATA, LOGIN_ROLE_CONFIG, REDIRECT_PATHS, type UserRole } from './constants';
 
 /**
  * Check if a role is valid
  */
-export function isValidRole(role: string): role is UserRole {
-  return Object.values(USER_ROLES).includes(role as UserRole);
+export function isValidRole(role: string | undefined): role is UserRole {
+  return role === USER_ROLES.ADMIN || role === USER_ROLES.USER;
+}
+
+/**
+ * Type guard: Check if user is admin
+ */
+export function isAdmin(role: string | undefined): boolean {
+  return role === USER_ROLES.ADMIN;
+}
+
+/**
+ * Type guard: Check if user is regular user
+ */
+export function isUser(role: string | undefined): boolean {
+  return role === USER_ROLES.USER;
 }
 
 /**
@@ -85,8 +99,10 @@ export function getLoginPath(role: UserRole): string {
 /**
  * Get dashboard path for role
  */
-export function getDashboardPath(role: UserRole): string {
-  return ROLE_METADATA[role].dashboardPath;
+export function getUserDashboardPath(role: string | undefined): string {
+  return role === USER_ROLES.ADMIN
+    ? REDIRECT_PATHS.ADMIN_DASHBOARD
+    : REDIRECT_PATHS.USER_DASHBOARD;
 }
 
 /**
@@ -160,4 +176,115 @@ export function getAllLoginConfigs() {
   return Object.fromEntries(
     getAllRoles().map(role => [role, getLoginConfig(role)])
   );
+}
+
+/**
+ * Determine if a URL is associated with a specific role
+ */
+export function isRolePath(path: string, role: UserRole): boolean {
+  if (role === USER_ROLES.ADMIN) {
+    return path.startsWith('/admin') && path !== '/admin/login';
+  } else if (role === USER_ROLES.USER) {
+    return path.startsWith('/account');
+  }
+  return false;
+}
+
+/**
+ * Get all protected routes for a specific role
+ */
+export function getRoleProtectedRoutes(role: UserRole): string[] {
+  if (role === USER_ROLES.ADMIN) {
+    return [
+      '/admin',
+      '/admin/users',
+      '/admin/quotes',
+      '/admin/products',
+      '/admin/customers',
+      '/admin/orders',
+      '/admin/analytics',
+    ];
+  } else if (role === USER_ROLES.USER) {
+    return [
+      '/account',
+      '/account/quotes',
+      '/account/history',
+      '/account/settings',
+      '/checkout',
+    ];
+  }
+  return [];
+}
+
+/**
+ * Check if user should be allowed to access a path
+ */
+export function canAccessPath(userRole: UserRole, path: string): boolean {
+  if (userRole === USER_ROLES.ADMIN) {
+    return path.startsWith('/admin') || isPublicPath(path);
+  } else if (userRole === USER_ROLES.USER) {
+    return path.startsWith('/account') || isPublicPath(path);
+  }
+  return false;
+}
+
+/**
+ * Check if a path is publicly accessible
+ */
+export function isPublicPath(path: string): boolean {
+  const publicPaths = [
+    '/',
+    '/products',
+    '/about',
+    '/contact',
+    '/faq',
+    '/careers',
+    '/resources',
+    '/companies',
+    '/customers',
+    '/login',
+    '/register',
+    '/auth/choose-role',
+    '/auth/verify-request',
+    '/auth/forgot-password',
+  ];
+
+  if (publicPaths.includes(path)) {
+    return true;
+  }
+
+  if (path.startsWith('/products/')) {
+    return true;
+  }
+
+  if (path.startsWith('/resources/')) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Format role for display
+ */
+export function formatRole(role: UserRole): string {
+  return ROLE_METADATA[role]?.label || role;
+}
+
+/**
+ * Get role error message for UI display
+ */
+export function getRoleErrorMessage(role: UserRole, errorType: string): string {
+  const roleLabel = formatRole(role);
+
+  switch (errorType) {
+    case 'mismatch':
+      return `Your account is registered as a ${roleLabel}. Please use the appropriate login interface.`;
+    case 'unauthorized':
+      return `You don't have permission to access this area. Please log in with the correct account type.`;
+    case 'inactive':
+      return `Your ${roleLabel} account is currently inactive. Please contact support.`;
+    default:
+      return `Unable to authenticate as ${roleLabel}. Please try again.`;
+  }
 }

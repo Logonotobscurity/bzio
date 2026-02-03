@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { prisma } from '@/lib/db';
+import { adminNotificationService } from '@/services';
 
 // PATCH /api/admin/notifications/[id]
 export async function PATCH(
@@ -19,9 +19,7 @@ export async function PATCH(
     const notificationId = id;
 
     // Verify notification belongs to this admin
-    const notification = await prisma.adminNotification.findUnique({
-      where: { id: notificationId },
-    });
+    const notification = await adminNotificationService.getNotificationById(notificationId);
 
     if (!notification || notification.adminId !== adminId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -30,9 +28,8 @@ export async function PATCH(
     const body = await request.json();
     const { read } = body;
 
-    const updated = await prisma.adminNotification.update({
-      where: { id: notificationId },
-      data: { read: read !== undefined ? read : notification.read },
+    const updated = await adminNotificationService.updateNotification(notificationId, {
+      read: read !== undefined ? read : notification.read,
     });
 
     return NextResponse.json(updated);
@@ -62,17 +59,13 @@ export async function DELETE(
     const notificationId = id;
 
     // Verify notification belongs to this admin
-    const notification = await prisma.adminNotification.findUnique({
-      where: { id: notificationId },
-    });
+    const notification = await adminNotificationService.getNotificationById(notificationId);
 
     if (!notification || notification.adminId !== adminId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    await prisma.adminNotification.delete({
-      where: { id: notificationId },
-    });
+    await adminNotificationService.deleteNotification(notificationId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

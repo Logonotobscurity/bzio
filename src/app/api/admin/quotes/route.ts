@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
-import { analyticsService } from '@/services';
+import { trackEvent } from '@/lib/analytics';
 
 /**
  * Quote Management API
@@ -23,10 +23,8 @@ export async function POST(request: NextRequest) {
 
     // Approve quote
     if (action === 'approve' && id) {
-      await analyticsService.trackEvent({
-        eventType: 'quote_approved',
-        userId: session.user.id,
-        metadata: { quoteId: id },
+      await trackEvent('quote_approved', session.user.id, {
+        quoteId: id,
       });
 
       return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
@@ -34,10 +32,9 @@ export async function POST(request: NextRequest) {
 
     // Reject quote
     if (action === 'reject' && id) {
-      await analyticsService.trackEvent({
-        eventType: 'quote_rejected',
-        userId: session.user.id,
-        metadata: { quoteId: id, reason },
+      await trackEvent('quote_rejected', session.user.id, {
+        quoteId: id,
+        reason,
       });
 
       return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
@@ -45,10 +42,9 @@ export async function POST(request: NextRequest) {
 
     // Update quote status
     if (action === 'update-status' && id) {
-      await analyticsService.trackEvent({
-        eventType: 'quote_status_updated',
-        userId: session.user.id,
-        metadata: { quoteId: id, newStatus: data.status },
+      await trackEvent('quote_status_updated', session.user.id, {
+        quoteId: id,
+        newStatus: data.status,
       });
 
       return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
@@ -78,10 +74,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Quote ID required' }, { status: 400 });
     }
 
-    await analyticsService.trackEvent({
-      eventType: 'quote_deleted',
-      userId: session.user.id,
-      metadata: { quoteId: id },
+    await trackEvent('quote_deleted', session.user.id, {
+      quoteId: id,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });
