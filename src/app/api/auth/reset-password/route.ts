@@ -13,12 +13,13 @@
  */
 
 import { NextResponse } from 'next/server';
+import { checkRateLimit } from "@/lib/ratelimit";
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { sendPasswordChangedEmail } from '@/lib/email-service';
+import { tokenStore } from "@/lib/password-reset";
 
 // In-memory token storage (must match forgot-password endpoint)
-const tokenStore = new Map<string, { userId: number; email: string; expiresAt: Date }>();
 
 // Password validation rules
 const PASSWORD_MIN_LENGTH = 8;
@@ -44,6 +45,17 @@ function validatePassword(password: string): { valid: boolean; message?: string 
 
 export async function POST(req: Request) {
   try {
+    // Rate limiting
+    const ip = req.headers.get("x-forwarded-for") || "anonymous";
+    const { success: rateLimitSuccess, headers: rateLimitHeaders } = await checkRateLimit(ip, "auth");
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { success: false, message: "Too many password reset attempts. Please try again later." },
+        { status: 429, headers: rateLimitHeaders }
+      );
+    }
+
     const { token, password, confirmPassword } = await req.json();
 
     // Validate input

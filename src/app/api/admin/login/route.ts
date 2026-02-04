@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
+import { checkRateLimit } from "@/lib/ratelimit";
 import { logAdminActivity } from '@/lib/admin-auth';
 
 /**
@@ -34,6 +35,17 @@ import { logAdminActivity } from '@/lib/admin-auth';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = request.headers.get("x-forwarded-for") || "anonymous";
+    const { success: rateLimitSuccess, headers: rateLimitHeaders } = await checkRateLimit(ip, "auth");
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { success: false, error: "Too many login attempts. Please try again later." },
+        { status: 429, headers: rateLimitHeaders }
+      );
+    }
+
     const { email, password } = await request.json();
 
     // Extract request metadata for logging
