@@ -118,7 +118,7 @@ export const USER_ROLES = {
 **File:** `.env` (UPDATED)
 ```bash
 # Added:
-ADMIN_SETUP_TOKEN="bzion-admin-setup-key-2024-secure"
+ADMIN_SETUP_TOKEN="REPLACE_WITH_ADMIN_SETUP_TOKEN"
 
 # Purpose: Security token for /api/admin/setup endpoint
 ```

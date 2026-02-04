@@ -79,7 +79,7 @@ Wait for server to fully start, then run the setup script
 **Solution:**
 ```bash
 # Add to .env file:
-ADMIN_SETUP_TOKEN="bzion-admin-setup-key-2024-secure"
+ADMIN_SETUP_TOKEN="REPLACE_WITH_ADMIN_SETUP_TOKEN"
 ```
 Then restart dev server
 
@@ -144,7 +144,7 @@ Required in `.env`:
 DATABASE_URL="postgres://..."
 
 # Admin setup security token
-ADMIN_SETUP_TOKEN="bzion-admin-setup-key-2024-secure"
+ADMIN_SETUP_TOKEN="REPLACE_WITH_ADMIN_SETUP_TOKEN"
 
 # NextAuth session secret (should already exist)
 NEXTAUTH_SECRET="..."

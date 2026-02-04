@@ -1,151 +1,142 @@
-/**
- * Form Service
- *
- * Business logic layer for form submissions.
- * Handles submission validation, processing, and notifications.
- */
-
+import { prisma } from '@/lib/db';
 import { formSubmissionRepository } from '@/repositories';
-import type { FormSubmission } from '@/lib/types/domain';
-
-interface CreateFormInput {
-  companyName: string;
-  contactEmail: string;
-  phone?: string;
-  subject: string;
-  message: string;
-  formType: string;
-}
-
-interface UpdateFormInput {
-  status?: string;
-  response?: string;
-  respondedAt?: Date;
-  respondedBy?: string;
-}
+import {
+  VALID_FORM_TYPES,
+  LEAD_SCORE_MAP,
+  getLeadTypeForFormType,
+  getNotificationPriority,
+  FormType
+} from '@/lib/constants/form-types';
+import { trackFormSubmission } from '@/app/admin/_actions/tracking';
+import { broadcastAdminNotification } from '@/app/admin/_actions/notifications';
 
 export class FormService {
   /**
-   * Submit a new form
+   * Process a form submission with lead scoring and notifications
    */
-  async submitForm(input: CreateFormInput): Promise<any> {
-    // Validate input
-    this.validateFormInput(input);
+  async processSubmission(input: {
+    formType: string;
+    email: string;
+    name?: string;
+    companyName?: string;
+    phone?: string;
+    message?: string;
+    metadata?: Record<string, any>;
+    ipAddress?: string;
+    userAgent?: string;
+  }) {
+    const { formType, email, name, companyName, phone, message, metadata, ipAddress, userAgent } = input;
 
-    // Create submission via repository
-    const submission = await formSubmissionRepository.create({
-      formType: input.formType,
-      data: {
-        companyName: input.companyName,
-        contactEmail: input.contactEmail,
-        phone: input.phone,
-        subject: input.subject,
-        message: input.message,
-      },
-      status: 'pending',
+    // Calculate lead score
+    const leadScore = LEAD_SCORE_MAP[formType as FormType] || 50;
+    const notificationPriority = getNotificationPriority(leadScore);
+
+    // Create records in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create form submission
+      const formSubmission = await tx.formSubmission.create({
+        data: {
+          formType,
+          data: { email, name, companyName, phone, message, ...metadata },
+          ipAddress,
+          userAgent,
+          status: 'NEW',
+        },
+      });
+
+      // 2. Create lead
+      const lead = await tx.lead.create({
+        data: {
+          email,
+          name,
+          companyName,
+          phone,
+          type: getLeadTypeForFormType(formType as FormType),
+          source: 'web_form',
+          status: 'NEW',
+          leadScore,
+          metadata: {
+            formSubmissionId: formSubmission.id,
+            formType,
+            ...metadata,
+          },
+        },
+      });
+
+      // 3. Create CRM notification
+      const notification = await tx.crmNotification.create({
+        data: {
+          type: 'NEW_FORM_SUBMISSION',
+          targetSystem: 'BZION_HUB',
+          priority: notificationPriority,
+          data: {
+            formSubmissionId: formSubmission.id,
+            leadId: lead.id,
+            formType,
+            email,
+            name,
+            companyName,
+            phone,
+            leadScore,
+            submittedAt: new Date().toISOString(),
+            ipAddress,
+          },
+        },
+      });
+
+      return { formSubmission, lead, notification };
     });
 
-    // TODO: Send notification email to admin
-    // await adminNotificationService.notifyFormSubmission(submission);
+    // Async tracking and notifications
+    try {
+      await trackFormSubmission({
+        formSubmissionId: result.formSubmission.id,
+        formType,
+        email,
+        name: name || 'Unknown',
+      });
 
-    return submission;
+      await broadcastAdminNotification(
+        'new_form',
+        `New Form Submission: ${formType}`,
+        `${name || 'Unknown'} (${email}) submitted a ${formType.replace('_', ' ')} form`,
+        {
+          formSubmissionId: result.formSubmission.id,
+          leadId: result.lead.id,
+          formType,
+          customerName: name,
+          customerEmail: email,
+        },
+        `/admin?tab=forms&id=${result.formSubmission.id}`
+      );
+    } catch (error) {
+      console.error('[FormService] Post-processing error:', error);
+    }
+
+    return result;
   }
 
-  /**
-   * Get all form submissions
-   */
-  async getAllSubmissions(limit?: number, skip?: number): Promise<any[]> {
+  async getAllSubmissions(limit?: number, skip?: number) {
     return formSubmissionRepository.findAll(limit, skip);
   }
 
-  /**
-   * Get a specific form submission
-   */
-  async getSubmissionById(id: string | number): Promise<any> {
+  async getSubmissionById(id: string) {
     return formSubmissionRepository.findById(id);
   }
 
-  /**
-   * Get pending form submissions
-   */
-  async getPendingSubmissions(): Promise<any[]> {
-    return formSubmissionRepository.findPending();
+  async updateSubmission(id: string, data: any) {
+    return formSubmissionRepository.update(id, data);
   }
 
-  /**
-   * Get submissions by status
-   */
-  async getSubmissionsByStatus(status: string): Promise<any[]> {
-    return formSubmissionRepository.findByStatus(status);
-  }
-
-  /**
-   * Respond to a form submission
-   */
-  async respondToSubmission(
-    id: string | number,
-    response: string,
-    respondedBy: string
-  ): Promise<any> {
-    const submission = await formSubmissionRepository.update(id, {
-      status: 'responded',
-    });
-
-    // TODO: Send response email to submitter
-    // await adminNotificationService.sendFormResponse(submission);
-
-    return submission;
-  }
-
-  /**
-   * Update a form submission
-   */
-  async updateSubmission(
-    id: string | number,
-    input: UpdateFormInput
-  ): Promise<any> {
-    return formSubmissionRepository.update(id, input);
-  }
-
-  /**
-   * Delete a form submission
-   */
-  async deleteSubmission(id: string | number): Promise<boolean> {
+  async deleteSubmission(id: string) {
     return formSubmissionRepository.delete(id);
   }
 
-  /**
-   * Get total submission count
-   */
-  async getSubmissionCount(): Promise<number> {
-    return formSubmissionRepository.count();
-  }
-
-  /**
-   * Validate form input
-   */
-  private validateFormInput(input: CreateFormInput): void {
-    if (!input.companyName?.trim()) {
-      throw new Error('Company name is required');
-    }
-    if (!input.contactEmail?.trim()) {
-      throw new Error('Contact email is required');
-    }
-    if (!input.subject?.trim()) {
-      throw new Error('Subject is required');
-    }
-    if (!input.message?.trim()) {
-      throw new Error('Message is required');
-    }
-    if (!input.formType?.trim()) {
-      throw new Error('Form type is required');
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(input.contactEmail)) {
-      throw new Error('Invalid email format');
-    }
+  async respondToSubmission(id: string, response: string, respondedBy: string) {
+    return formSubmissionRepository.update(id, {
+      status: 'responded',
+      // Store response in data JSON
+    });
   }
 }
 

@@ -75,7 +75,7 @@ export function initializeWebSocketServer(httpServer: HTTPServer): any {
         return next(new Error('Authentication error: Not an admin'));
       }
 
-      console.log(`[WS_AUTH] Admin connected: ${socket.userEmail} (${socket?.id})`);
+      console.log(`[WS_AUTH] Admin connected: admin_${socket.userId} (${socket?.id})`);
       next();
     } catch (error) {
       console.error('[WS_AUTH] Error:', error);
@@ -85,7 +85,7 @@ export function initializeWebSocketServer(httpServer: HTTPServer): any {
 
   // Connection handler
   io.on('connection', (socket: any) => {
-    console.log(`[WS_CONNECT] Admin ${socket.userEmail} connected (${socket?.id})`);
+    console.log(`[WS_CONNECT] Admin admin_${socket.userId} connected (${socket?.id})`);
 
     // Track connected admin
     connectedAdmins.set(socket?.id, socket);
@@ -93,7 +93,7 @@ export function initializeWebSocketServer(httpServer: HTTPServer): any {
     // Subscribe to dashboard updates
     socket?.on('subscribe:dashboard', () => {
       socket?.join('dashboard-updates');
-      console.log(`[WS_SUBSCRIBE] ${socket.userEmail} subscribed to dashboard updates`);
+      console.log(`[WS_SUBSCRIBE] admin_${socket.userId} subscribed to dashboard updates`);
 
       // Send current admin list
       io.to('dashboard-updates').emit('admin:presence', {
@@ -106,13 +106,13 @@ export function initializeWebSocketServer(httpServer: HTTPServer): any {
     socket?.on('subscribe:data', (dataType: string) => {
       const roomName = `data:${dataType}`;
       socket?.join(roomName);
-      console.log(`[WS_SUBSCRIBE] ${socket.userEmail} subscribed to ${dataType} updates`);
+      console.log(`[WS_SUBSCRIBE] admin_${socket.userId} subscribed to ${dataType} updates`);
     });
 
     // Disconnect handler
     socket?.on('disconnect', () => {
       connectedAdmins.delete(socket?.id);
-      console.log(`[WS_DISCONNECT] Admin ${socket.userEmail} disconnected (${socket?.id})`);
+      console.log(`[WS_DISCONNECT] Admin admin_${socket.userId} disconnected (${socket?.id})`);
       console.log(`[WS_DISCONNECT] Connected admins: ${connectedAdmins.size}`);
 
       // Notify other admins
@@ -126,7 +126,7 @@ export function initializeWebSocketServer(httpServer: HTTPServer): any {
 
     // Error handler
     socket?.on('error', (error: any) => {
-      console.error(`[WS_ERROR] ${socket.userEmail}: ${error}`);
+      console.error(`[WS_ERROR] admin_${socket.userId}: ${error}`);
     });
   });
 
