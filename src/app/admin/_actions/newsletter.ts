@@ -206,7 +206,7 @@ export async function exportNewsletterSubscribers(format: 'csv' | 'json' = 'csv'
 
     // CSV format
     const headers = ['ID', 'Email', 'Status', 'Subscribed At', 'Unsubscribed At'];
-    const rows = subscribers.map((sub) => [
+    const rows = subscribers.map((sub: typeof subscribers[number]) => [
       sub.id,
       sub.email,
       sub.status,
