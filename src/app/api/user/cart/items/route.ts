@@ -120,7 +120,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   try {
     const session = await getServerSession();
     
@@ -162,7 +162,7 @@ export async function GET(req: Request) {
       });
     }
 
-    const total = cart.items.reduce((sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0);
+    const total = cart.items.reduce((sum: number, item: typeof cart.items[number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0);
 
     return NextResponse.json({
       cartId: cart.id,

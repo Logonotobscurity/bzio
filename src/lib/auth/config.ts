@@ -151,3 +151,5 @@ export { handler as GET, handler as POST };
 export const auth = handler.auth;
 export const signIn = handler.signIn;
 export const signOut = handler.signOut;
+// Alias for clarity when passing options to getServerSession
+export const authConfig = authOptions;

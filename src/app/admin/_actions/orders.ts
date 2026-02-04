@@ -14,7 +14,7 @@ export interface OrderData {
 
 export async function getRecentQuotes(limit: number = 20): Promise<OrderData[]> {
   try {
-    const quotes = await prisma.quote.findMany({
+    const quotes = await (prisma as any).quotes.findMany({
       take: limit,
       orderBy: { createdAt: 'desc' },
       select: {
@@ -32,7 +32,7 @@ export async function getRecentQuotes(limit: number = 20): Promise<OrderData[]> 
       },
     });
 
-    return quotes.map((quote) => ({
+    return quotes.map((quote: typeof quotes[number]) => ({
       id: quote.id,
       reference: quote.reference || '',
       buyerContactEmail: quote.buyerContactEmail || 'Unknown',
@@ -52,14 +52,14 @@ export async function getRecentQuotes(limit: number = 20): Promise<OrderData[]> 
 export async function getOrderStats() {
   try {
     const [totalQuotes, pendingQuotes, completedQuotes, totalValue] = await Promise.all([
-      prisma.quote.count(),
-      prisma.quote.count({
+      (prisma as any).quotes.count(),
+      (prisma as any).quotes.count({
         where: { status: 'draft' },
       }),
-      prisma.quote.count({
+      (prisma as any).quotes.count({
         where: { status: { in: ['accepted', 'completed'] } },
       }),
-      prisma.quote.aggregate({
+      (prisma as any).quotes.aggregate({
         _sum: { total: true },
         where: { status: { in: ['accepted', 'completed'] } },
       }),

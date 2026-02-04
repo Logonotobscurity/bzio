@@ -30,8 +30,11 @@ pool.on('error', (err) => {
 const adapter = new PrismaPg(pool)
 export const prisma = 
   global.prisma ||
+  // Cast adapter to `any` to work around a TypeScript typing mismatch
+  // between `@prisma/adapter-pg` and the generated Prisma `DriverAdapter`.
+  // This is a temporary, reversible unblocker.
   new PrismaClient({
-    adapter,
+    adapter: adapter as any,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 

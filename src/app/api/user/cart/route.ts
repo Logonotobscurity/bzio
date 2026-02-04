@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     });
 
     // Get the active cart or create if not exists
-    let activeCart = carts.find(c => c.status === 'active');
+    let activeCart = carts.find((c: typeof carts[number]) => c.status === 'active');
 
     if (!activeCart) {
       activeCart = await prisma.cart.create({
@@ -71,7 +71,7 @@ export async function GET(req: Request) {
       activeCart,
       allCarts: carts,
       itemCount: activeCart.items.length,
-      total: activeCart.items.reduce((sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0),
+      total: activeCart.items.reduce((sum: number, item: typeof activeCart.items[number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0),
     });
   } catch (error) {
     console.error('[CART_GET]', error);

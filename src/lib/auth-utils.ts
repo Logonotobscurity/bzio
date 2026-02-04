@@ -14,6 +14,7 @@
  */
 
 import { getServerSession } from 'next-auth/next';
+import { authConfig } from '@/lib/auth/config';
 import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
 import { getUserDashboardPath } from '@/lib/auth/roles';
 import { redirect } from 'next/navigation';
@@ -43,7 +44,7 @@ import { redirect } from 'next/navigation';
  * ```
  */
 export async function requireAdmin() {
-  const session = await getServerSession();
+  const session = await getServerSession(authConfig);
   
   if (!session) {
     // Not authenticated - redirect to login
@@ -90,7 +91,7 @@ export async function requireAdmin() {
  * ```
  */
 export async function requireAuth() {
-  const session = await getServerSession();
+  const session = await getServerSession(authConfig);
   
   if (!session) {
     // Not authenticated - redirect to login
@@ -122,7 +123,7 @@ export async function requireAuth() {
  * ```
  */
 export async function getSessionSafe() {
-  return await getServerSession();
+  return await getServerSession(authConfig);
 }
 
 /**

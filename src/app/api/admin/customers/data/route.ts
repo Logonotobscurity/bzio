@@ -95,17 +95,17 @@ export async function GET(req: Request) {
       }
 
       // Calculate totals for carts
-      const cartsWithTotals = customer.carts.map(cart => ({
+      const cartsWithTotals = customer.carts.map((cart: typeof customer.carts[number]) => ({
         ...cart,
         itemCount: cart.items.length,
         total: cart.items.reduce(
-          (sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
+          (sum: number, item: typeof cart.items[number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
           0
         ),
       }));
 
       // Calculate quote totals
-      const quotesSummary = customer.quotes.map(quote => ({
+      const quotesSummary = customer.quotes.map((quote: typeof customer.quotes[number]) => ({
         id: quote.id,
         reference: quote.reference,
         status: quote.status,
@@ -191,9 +191,9 @@ export async function GET(req: Request) {
     ]);
 
     // Transform and enhance customer data
-    const customersWithTotals = customers.map(customer => {
+    const customersWithTotals = customers.map((customer: typeof customers[number]) => {
       const cartTotal = customer.carts[0]?.items.reduce(
-        (sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
+        (sum: number, item: typeof customer.carts[0]['items'][number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
         0
       ) || 0;
 
@@ -241,10 +241,10 @@ export async function GET(req: Request) {
       hasMore: offset + limit < total,
       summary: {
         totalCustomers: total,
-        activeCount: customers.filter(c => c.isActive).length,
-        totalAddresses: customers.reduce((sum, c) => sum + c._count.addresses, 0),
-        totalQuotes: customers.reduce((sum, c) => sum + c._count.quotes, 0),
-        totalCartValue: customersWithTotals.reduce((sum, c) => sum + (c.cartTotal || 0), 0),
+        activeCount: customers.filter((c: typeof customers[number]) => c.isActive).length,
+        totalAddresses: customers.reduce((sum: number, c: typeof customers[number]) => sum + c._count.addresses, 0),
+        totalQuotes: customers.reduce((sum: number, c: typeof customers[number]) => sum + c._count.quotes, 0),
+        totalCartValue: customersWithTotals.reduce((sum: number, c: typeof customersWithTotals[number]) => sum + (c.cartTotal || 0), 0),
       },
     });
   } catch (error) {

@@ -1,10 +1,14 @@
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+  // 'fullTextSearchPostgres' was replaced by 'fullTextSearch' in newer Prisma
+  // versions. Enable 'driverAdapters' to allow passing adapters to the
+  // PrismaClient constructor.
+  previewFeatures = ["fullTextSearch", "driverAdapters"]
 }
 
 // =====================================================
