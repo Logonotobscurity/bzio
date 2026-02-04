@@ -2,20 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { successResponse, unauthorized, badRequest, forbidden, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/users')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
 
     if (!session?.user || session.user.email !== 'admin@bzion.shop') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      errorLogger.warn('Unauthorized user creation attempt', context.withUserId(session?.user?.id).build());
+      return forbidden('Only super admin can create users');
     }
 
     const body = await request.json();
     const { email, firstName, lastName, role, password } = body;
 
     if (!email || !password || !role) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return badRequest('email, password, and role are required');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,19 +34,35 @@ export async function POST(request: NextRequest) {
       select: { id: true, email: true, role: true }
     });
 
-    return NextResponse.json(user, { status: 201 });
+    errorLogger.info(
+      `User created: ${email} (role: ${role})`,
+      context.withUserId(session.user.id).build()
+    );
+
+    return successResponse(user, 201);
   } catch (error) {
-    console.error('Failed to create user:', error);
-    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+    errorLogger.error(
+      'Error creating user',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to create user');
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/users')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
 
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      errorLogger.warn('Unauthorized users list access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const users = await prisma.user.findMany({
@@ -45,9 +70,18 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json(users);
+    errorLogger.info(
+      `Fetched ${users.length} users`,
+      context.withUserId(session.user.id).build()
+    );
+
+    return successResponse(users, 200);
   } catch (error) {
-    console.error('Failed to fetch users:', error);
-    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    errorLogger.error(
+      'Error fetching users',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to fetch users');
   }
 }

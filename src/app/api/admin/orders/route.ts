@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { getRecentQuotes, getOrderStats } from '@/app/admin/_actions/orders';
+import { successResponse, forbidden, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * GET /api/admin/orders
@@ -8,14 +10,21 @@ import { getRecentQuotes, getOrderStats } from '@/app/admin/_actions/orders';
  * ADMIN-ONLY ENDPOINT
  */
 export async function GET(request: Request) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/orders')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     // ✅ CRITICAL: Verify admin access
     const session = await getServerSession();
     if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
+      errorLogger.warn(
+        'Unauthorized orders API access attempt',
+        context.withUserId(session?.user?.id).build()
       );
+      return forbidden('Admin access required');
     }
 
     const [orders, stats] = await Promise.all([
@@ -23,26 +32,24 @@ export async function GET(request: Request) {
       getOrderStats(),
     ]);
 
-    return NextResponse.json(
-      {
-        orders,
-        stats,
-        timestamp: new Date().toISOString(),
-      },
-      {
-        headers: {
-          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
-        },
-      }
+    const data = {
+      orders,
+      stats,
+      timestamp: new Date().toISOString(),
+    };
+
+    errorLogger.info(
+      'Orders data fetched successfully',
+      context.withUserId(session.user.id).build()
     );
+
+    return successResponse(data, 200, undefined);
   } catch (error) {
-    console.error('[ORDERS_API] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch orders',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error fetching orders',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to fetch orders');
   }
 }

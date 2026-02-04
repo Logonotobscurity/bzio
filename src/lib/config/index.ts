@@ -96,8 +96,19 @@ export const DATABASE_CONFIG = {
  * Get configuration for specific domain
  * Usage: getConfig('email')
  */
-export function getConfig<K extends keyof typeof CONFIG>(domain: K) {
-  const CONFIG = {
+type ConfigDomain = {
+  app: typeof APP_CONFIG;
+  env: typeof ENV_CONFIG;
+  features: typeof FEATURE_FLAGS;
+  api: typeof API_CONFIG;
+  email: typeof EMAIL_CONFIG;
+  cache: typeof CACHE_CONFIG;
+  ratelimit: typeof RATELIMIT_CONFIG;
+  database: typeof DATABASE_CONFIG;
+};
+
+export function getConfig<K extends keyof ConfigDomain>(domain: K): ConfigDomain[K] {
+  const config: ConfigDomain = {
     app: APP_CONFIG,
     env: ENV_CONFIG,
     features: FEATURE_FLAGS,
@@ -108,7 +119,7 @@ export function getConfig<K extends keyof typeof CONFIG>(domain: K) {
     database: DATABASE_CONFIG,
   };
   
-  return CONFIG[domain];
+  return config[domain];
 }
 
 /**

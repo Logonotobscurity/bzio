@@ -2,20 +2,29 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from "@/lib/db";
 import { USER_ROLES } from '@/lib/auth/constants';
+import { successResponse, unauthorized, notFound, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/customers/[id]')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   const { id } = await params;
   try {
     const session = await getServerSession();
     
     if (!session?.user?.id || session.user.role !== USER_ROLES.ADMIN) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized customer detail access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const customerId = parseInt(id);
+    if (isNaN(customerId)) {
+      return badRequest('Customer ID must be a valid number');
+    }
 
     const customer = await prisma.user.findFirst({
       where: {
@@ -62,10 +71,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     });
 
     if (!customer) {
-      return NextResponse.json(
-        { error: 'Customer not found' },
-        { status: 404 }
-      );
+      errorLogger.warn(`Customer not found (id: ${customerId})`, context.withUserId(session.user.id).build());
+      return notFound('Customer not found');
     }
 
     // Calculate cart totals
@@ -74,15 +81,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       total: cart.items.reduce((sum: number, item: typeof cart.items[number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0),
     }));
 
-    return NextResponse.json({
+    errorLogger.info(
+      `Customer detail retrieved (id: ${customerId})`,
+      context.withUserId(session.user.id).build()
+    );
+
+    return successResponse({
       ...customer,
       carts: cartsWithTotals,
-    });
+    }, 200);
   } catch (error) {
-    console.error('[ADMIN_CUSTOMER_DETAIL_GET]', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    errorLogger.error(
+      'Error fetching customer detail',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to fetch customer');
   }
 }

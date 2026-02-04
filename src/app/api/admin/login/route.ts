@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { logAdminActivity } from '@/lib/admin-auth';
+import { successResponse, badRequest, unauthorized, forbidden, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * POST /api/admin/login
@@ -33,6 +35,12 @@ import { logAdminActivity } from '@/lib/admin-auth';
  * ```
  */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/login')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const { email, password } = await request.json();
 
@@ -44,27 +52,15 @@ export async function POST(request: NextRequest) {
 
     // Validate inputs
     if (!email || !password) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid input',
-          message: 'Email and password are required',
-        },
-        { status: 400 }
-      );
+      errorLogger.warn('Login attempt with missing credentials', context.build());
+      return badRequest('Email and password are required');
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid email',
-          message: 'Please provide a valid email address',
-        },
-        { status: 400 }
-      );
+      errorLogger.warn('Login attempt with invalid email format', context.build());
+      return badRequest('Please provide a valid email address');
     }
 
     // Find admin by email
@@ -85,14 +81,8 @@ export async function POST(request: NextRequest) {
         'failed'
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Authentication failed',
-          message: 'Invalid email or password',
-        },
-        { status: 401 }
-      );
+      errorLogger.warn(`Login failed: non-existent email (${email})`, context.build());
+      return unauthorized('Invalid email or password');
     }
 
     // Check if user is an admin
@@ -109,14 +99,8 @@ export async function POST(request: NextRequest) {
         'failed'
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-          message: 'This account does not have admin privileges',
-        },
-        { status: 403 }
-      );
+      errorLogger.warn(`Non-admin login attempt (user: ${admin.id}, role: ${admin.role})`, context.withUserId(admin.id).build());
+      return forbidden('This account does not have admin privileges');
     }
 
     // Check if account is active
@@ -133,14 +117,8 @@ export async function POST(request: NextRequest) {
         'failed'
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Account disabled',
-          message: 'This admin account has been deactivated',
-        },
-        { status: 403 }
-      );
+      errorLogger.warn(`Login attempt on disabled account (user: ${admin.id})`, context.withUserId(admin.id).build());
+      return forbidden('This admin account has been deactivated');
     }
 
     // Validate password exists
@@ -157,14 +135,12 @@ export async function POST(request: NextRequest) {
         'error'
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Account error',
-          message: 'Admin account is not properly configured',
-        },
-        { status: 500 }
+      errorLogger.error(
+        'Admin account missing password hash',
+        new Error('Password hash missing'),
+        context.withUserId(admin.id).build()
       );
+      return internalServerError('Admin account is not properly configured');
     }
 
     // Verify password
@@ -185,14 +161,8 @@ export async function POST(request: NextRequest) {
         'failed'
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Authentication failed',
-          message: 'Invalid email or password',
-        },
-        { status: 401 }
-      );
+      errorLogger.warn(`Invalid password for user ${admin.id}`, context.withUserId(admin.id).build());
+      return unauthorized('Invalid email or password');
     }
 
     // Reset login attempts on successful login (when schema includes loginAttempts)
@@ -215,6 +185,11 @@ export async function POST(request: NextRequest) {
       'success'
     );
 
+    errorLogger.info(
+      `Admin login successful (${admin.email})`,
+      context.withUserId(admin.id).build()
+    );
+
     // Create session data
     const sessionData = {
       adminId: updatedAdmin.id,
@@ -225,10 +200,8 @@ export async function POST(request: NextRequest) {
       loginTime: new Date(),
     };
 
-    return NextResponse.json(
+    return successResponse(
       {
-        success: true,
-        message: 'Login successful',
         admin: {
           id: updatedAdmin.id,
           email: updatedAdmin.email,
@@ -240,30 +213,31 @@ export async function POST(request: NextRequest) {
         // In production, return JWT token here
         // token: generateJWT(sessionData)
       },
-      { status: 200 }
+      200
     );
   } catch (error) {
-    console.error('[ADMIN_LOGIN] Error:', error);
+    errorLogger.error(
+      'Error during admin login',
+      error,
+      context.build()
+    );
 
     // Log unexpected error
-    await logAdminActivity(
-      0,
-      'LOGIN_FAILED',
-      'Unexpected error during admin login',
-      'auth',
-      'error',
-      request.headers.get('x-forwarded-for') || 'unknown',
-      request.headers.get('user-agent') || 'unknown',
-      'error'
-    );
+    try {
+      await logAdminActivity(
+        0,
+        'LOGIN_FAILED',
+        'Unexpected error during admin login',
+        'auth',
+        'error',
+        request.headers.get('x-forwarded-for') || 'unknown',
+        request.headers.get('user-agent') || 'unknown',
+        'error'
+      );
+    } catch {
+      // Silent fail on activity logging
+    }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        message: 'An error occurred during login',
-      },
-      { status: 500 }
-    );
+    return internalServerError('An error occurred during login');
   }
 }

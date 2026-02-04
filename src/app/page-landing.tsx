@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { Shield, User } from 'lucide-react';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 
 /**
  * Landing page component with dual authentication pathways

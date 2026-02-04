@@ -3,7 +3,7 @@
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { REDIRECT_PATHS } from '@/lib/auth/constants';
+import { REDIRECT_PATHS } from '@/lib/auth-constants';
 
 export function AdminLogoutButton() {
   return (

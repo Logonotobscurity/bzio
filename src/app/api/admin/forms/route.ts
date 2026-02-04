@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { formService } from '@/services';
 import { trackEvent } from '@/lib/analytics';
+import { successResponse, unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * Form Submissions Management API
@@ -13,14 +15,25 @@ import { trackEvent } from '@/lib/analytics';
  */
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/forms')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized forms API access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const body = await request.json();
     const { action, id, response, ...data } = body;
+
+    if (!action) {
+      return badRequest('Action is required');
+    }
 
     // Mark as responded
     if (action === 'respond' && id && response) {
@@ -34,14 +47,24 @@ export async function POST(request: NextRequest) {
         formId: id,
       });
 
-      return NextResponse.json({ success: true, submission }, { status: 200 });
+      errorLogger.info(
+        `Form ${id} marked as responded`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, submission }, 200);
     }
 
     // Mark as spam
     if (action === 'spam' && id) {
       const submission = await formService.deleteSubmission(id);
 
-      return NextResponse.json({ success: true, submission }, { status: 200 });
+      errorLogger.info(
+        `Form ${id} marked as spam`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, submission }, 200);
     }
 
     // Update status
@@ -50,7 +73,12 @@ export async function POST(request: NextRequest) {
         status: data.status,
       });
 
-      return NextResponse.json({ success: true, submission }, { status: 200 });
+      errorLogger.info(
+        `Form ${id} status updated to ${data.status}`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, submission }, 200);
     }
 
     // Archive submission
@@ -59,31 +87,45 @@ export async function POST(request: NextRequest) {
         status: 'archived',
       });
 
-      return NextResponse.json({ success: true, submission }, { status: 200 });
+      errorLogger.info(
+        `Form ${id} archived`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, submission }, 200);
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    errorLogger.warn(`Invalid action: ${action}`, context.withUserId(session.user.id).build());
+    return badRequest('Invalid action');
   } catch (error) {
-    console.error('[FORMS_API] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    errorLogger.error(
+      'Error processing form action',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to process form action');
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/forms')
+    .withMethod('DELETE')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized forms DELETE access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
 
     if (!id) {
-      return NextResponse.json({ error: 'Form ID required' }, { status: 400 });
+      return badRequest('Form ID is required');
     }
 
     await formService.deleteSubmission(id);
@@ -92,12 +134,18 @@ export async function DELETE(request: NextRequest) {
       formId: id,
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error('[FORMS_DELETE] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete form' },
-      { status: 500 }
+    errorLogger.info(
+      `Form ${id} deleted`,
+      context.withUserId(session.user.id).build()
     );
+
+    return successResponse({ success: true }, 200);
+  } catch (error) {
+    errorLogger.error(
+      'Error deleting form',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to delete form');
   }
 }

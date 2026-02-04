@@ -15,7 +15,7 @@
 
 import { getServerSession } from 'next-auth/next';
 import { authConfig } from '@/lib/auth/config';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 import { getUserDashboardPath } from '@/lib/auth/roles';
 import { redirect } from 'next/navigation';
 

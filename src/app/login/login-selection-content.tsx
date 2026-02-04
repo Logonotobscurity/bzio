@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Shield, ArrowRight, Loader2 } from 'lucide-react';
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 
 /**
  * Login Selection Page

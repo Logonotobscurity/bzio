@@ -108,12 +108,12 @@ export async function POST(req: NextRequest) {
         const { email, name, companyName, phone, items } = parsedData.data;
 
         const newQuote = await prisma.$transaction(async (tx) => {
-            let customer = await (tx as any).customers.findUnique({
+            let customer = await (tx as any).customer.findUnique({
                 where: { email },
             });
 
             if (!customer) {
-                customer = await (tx as any).customers.create({
+                customer = await (tx as any).customer.create({
                     data: {
                         email,
                         firstName: name,
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
                     }
                 });
             } else {
-                 customer = await (tx as any).customers.update({
+                 customer = await (tx as any).customer.update({
                      where: { email },
                      data: {
                          firstName: name || undefined,
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
                  });
             }
 
-            await (tx as any).form_submissions.create({
+            await (tx as any).formSubmission.create({
               data: {
                 formType: 'quote',
                 data: parsedData.data,
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
               },
             });
 
-            await (tx as any).leads.create({
+            await (tx as any).lead.create({
               data: {
                 email: email,
                 name: name,
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
             });
 
             const quoteReference = `Q-${Date.now().toString().slice(-6)}`;
-            const createdQuote = await (tx as any).quotes.create({
+            const createdQuote = await (tx as any).quote.create({
               data: {
                 reference: quoteReference,
                 status: 'draft',

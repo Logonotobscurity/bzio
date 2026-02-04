@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { errorLogger, createContext } from '@/lib/error-logger';
+import { successResponse, unauthorized, forbidden, internalServerError } from '@/lib/api-response';
 
 /**
  * GET /api/admin/crm-sync
@@ -8,17 +11,29 @@ import { auth } from '@/lib/auth';
  * Requires admin role
  */
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/crm-sync')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     // Check authentication
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized access attempt to CRM sync', context.build());
+      return unauthorized('Admin access required');
     }
+
+    // Add user ID to context
+    context.withUserId(session.user.id);
 
     // Check admin role
     if (session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      errorLogger.warn(`Non-admin user ${session.user.id} attempted CRM sync access`, context.build());
+      return forbidden('Admin access required');
     }
+    errorLogger.info('Starting CRM sync data fetch', context.build());
 
     // Fetch all data in parallel for performance
     const [
@@ -91,6 +106,8 @@ export async function GET(request: NextRequest) {
       prisma.newsletterSubscriber.count(),
     ]);
 
+    errorLogger.info('CRM sync data fetched successfully', context.build());
+
     // Extract email from form submission data
     const formsWithEmail = forms.map((form: typeof forms[number]) => {
       // Safely cast JSON data to access email property
@@ -113,7 +130,7 @@ export async function GET(request: NextRequest) {
       conversionRate,
     };
 
-    return NextResponse.json({
+    return successResponse({
       stats,
       leads,
       forms: formsWithEmail,
@@ -121,10 +138,7 @@ export async function GET(request: NextRequest) {
       notifications: unreadNotifications,
     });
   } catch (error) {
-    console.error('CRM sync dashboard error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch CRM sync data' },
-      { status: 500 }
-    );
+    errorLogger.error('Failed to fetch CRM sync data', error, context.build());
+    return internalServerError('Failed to fetch CRM sync data');
   }
 }

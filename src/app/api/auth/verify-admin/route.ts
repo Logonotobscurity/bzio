@@ -7,7 +7,7 @@
 
 import { prisma } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { USER_ROLES } from '@/lib/auth/constants';
+import { USER_ROLES } from '@/lib/auth-constants';
 
 export async function POST(request: NextRequest) {
   try {

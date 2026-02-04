@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { newsletterService } from '@/services';
 import { trackEvent } from '@/lib/analytics';
+import { successResponse, unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * Newsletter Management API
@@ -10,14 +12,25 @@ import { trackEvent } from '@/lib/analytics';
  */
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/newsletter')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized newsletter API access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const body = await request.json();
     const { action, id, ...data } = body;
+
+    if (!action) {
+      return badRequest('Action is required');
+    }
 
     // Unsubscribe
     if (action === 'unsubscribe' && id) {
@@ -27,7 +40,8 @@ export async function POST(request: NextRequest) {
         subscriberId: id,
       });
 
-      return NextResponse.json({ success: true }, { status: 200 });
+      errorLogger.info(`Subscriber ${id} unsubscribed`, context.withUserId(session.user.id).build());
+      return successResponse({ success: true }, 200);
     }
 
     // Resubscribe
@@ -40,7 +54,8 @@ export async function POST(request: NextRequest) {
         subscriberId: id,
       });
 
-      return NextResponse.json({ success: true, subscriber }, { status: 200 });
+      errorLogger.info(`Subscriber ${id} resubscribed`, context.withUserId(session.user.id).build());
+      return successResponse({ success: true, subscriber }, 200);
     }
 
     // Send campaign
@@ -48,10 +63,7 @@ export async function POST(request: NextRequest) {
       const { subject, content, recipientFilter = 'active' } = data;
 
       if (!subject || !content) {
-        return NextResponse.json(
-          { error: 'Subject and content required' },
-          { status: 400 }
-        );
+        return badRequest('Subject and content are required');
       }
 
       const subscribers = await newsletterService.getActiveSubscribers();
@@ -65,16 +77,19 @@ export async function POST(request: NextRequest) {
       // TODO: Integrate with email service (SendGrid, etc.)
       const DEBUG = process.env.DEBUG === 'true';
       if (DEBUG) {
-        console.log(`[NEWSLETTER_CAMPAIGN] Sent to ${subscribers.length} subscribers`);
+        errorLogger.info(
+          `Campaign sent to ${subscribers.length} subscribers`,
+          context.withUserId(session.user.id).build()
+        );
       }
 
-      return NextResponse.json(
+      return successResponse(
         {
           success: true,
           message: `Campaign sent to ${subscribers.length} subscribers`,
           recipientCount: subscribers.length,
         },
-        { status: 200 }
+        200
       );
     }
 
@@ -88,8 +103,13 @@ export async function POST(request: NextRequest) {
         count: subscribers.length,
       });
 
+      errorLogger.info(
+        `Newsletter exported (${format}) - ${subscribers.length} subscribers`,
+        context.withUserId(session.user.id).build()
+      );
+
       if (format === 'json') {
-        return NextResponse.json({ success: true, data: subscribers }, { status: 200 });
+        return successResponse({ success: true, data: subscribers }, 200);
       }
 
       // CSV format
@@ -115,28 +135,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    errorLogger.warn(`Invalid action: ${action}`, context.withUserId(session.user.id).build());
+    return badRequest('Invalid action');
   } catch (error) {
-    console.error('[NEWSLETTER_API] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    errorLogger.error(
+      'Error in newsletter POST handler',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to process newsletter action');
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/newsletter')
+    .withMethod('DELETE')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized newsletter DELETE access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
 
     if (!id) {
-      return NextResponse.json({ error: 'Subscriber ID required' }, { status: 400 });
+      return badRequest('Subscriber ID is required');
     }
 
     await newsletterService.deleteSubscriber(id);
@@ -145,12 +174,14 @@ export async function DELETE(request: NextRequest) {
       subscriberId: id,
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    errorLogger.info(`Subscriber ${id} deleted`, context.withUserId(session.user.id).build());
+    return successResponse({ success: true }, 200);
   } catch (error) {
-    console.error('[NEWSLETTER_DELETE] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete subscriber' },
-      { status: 500 }
+    errorLogger.error(
+      'Error in newsletter DELETE handler',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to delete subscriber');
   }
 }

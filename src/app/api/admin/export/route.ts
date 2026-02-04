@@ -8,6 +8,8 @@ import { getServerSession } from 'next-auth/next';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { auth } from '~/auth';
+import { unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 interface AuthSession {
   user?: {
@@ -66,19 +68,28 @@ function convertToCSV<T extends Record<string, unknown>>(data: T[]): string {
  * GET /api/admin/export?type=users|quotes|products|login-attempts|email-logs
  */
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/export')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
     if (!session?.user?.id || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized export access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     // Get export type from query params
     const type = request.nextUrl.searchParams.get('type') || 'users';
+
+    const validTypes = ['users', 'quotes', 'products', 'login-attempts', 'email-logs'];
+    if (!validTypes.includes(type)) {
+      return badRequest(`Invalid export type. Valid types: ${validTypes.join(', ')}`);
+    }
 
     let data: unknown[] = [];
     let filename = '';
@@ -148,13 +159,12 @@ export async function GET(request: NextRequest) {
         data = [];
         filename = `email-logs-${new Date().toISOString().split('T')[0]}.csv`;
         break;
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid export type. Valid types: users, quotes, products, login-attempts, email-logs' },
-          { status: 400 }
-        );
     }
+
+    errorLogger.info(
+      `Export generated (type: ${type}, rows: ${data.length})`,
+      context.withUserId(session.user.id).build()
+    );
 
     // Generate CSV
     const csv = convertToCSV(data as Record<string, unknown>[]);
@@ -169,14 +179,12 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[CSV Export Error]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to generate export',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error generating export',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to generate export');
   }
 }
 
@@ -184,19 +192,31 @@ export async function GET(request: NextRequest) {
  * POST /api/admin/export (for batch exports)
  */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/export')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
     if (!session?.user?.id || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized batch export access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const body = await request.json() as { types?: string[] };
     const types = body.types || ['users', 'quotes', 'products'];
+
+    // Validate types
+    const validTypes = ['users', 'quotes', 'products', 'login-attempts', 'email-logs'];
+    for (const type of types) {
+      if (!validTypes.includes(type)) {
+        return badRequest(`Invalid export type: ${type}`);
+      }
+    }
 
     // Generate all requested exports
     const exports: Record<string, string> = {};
@@ -215,19 +235,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    errorLogger.info(
+      `Batch export generated (${types.length} types)`,
+      context.withUserId(session.user.id).build()
+    );
+
     return NextResponse.json({
       success: true,
       exports,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[Batch Export Error]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to generate batch export',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error generating batch export',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to generate batch export');
   }
 }

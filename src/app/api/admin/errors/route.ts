@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { errorLoggingService } from '@/services/error-logging.service';
 import { getServerSession } from 'next-auth/next';
 import { auth } from '~/auth';
+import { successResponse, badRequest, unauthorized, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 interface ErrorLogPayload {
   message: string;
@@ -35,15 +37,18 @@ interface AuthSession {
  * Log client-side errors or server errors
  */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/errors')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const body = (await request.json()) as ErrorLogPayload;
 
     // Validate required fields
     if (!body.message || !body.url || !body.severity) {
-      return NextResponse.json(
-        { error: 'Missing required fields: message, url, severity' },
-        { status: 400 }
-      );
+      return badRequest('message, url, and severity are required');
     }
 
     // Get session info if available
@@ -67,39 +72,32 @@ export async function POST(request: NextRequest) {
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('[Error Log]', {
-        id: errorLog.id,
-        severity: body.severity,
-        message: body.message,
-        url: body.url,
-        timestamp: errorLog.timestamp,
-      });
+      errorLogger.info(
+        `Error logged (severity: ${body.severity})`,
+        context.withUserId(session?.user?.id).build()
+      );
     }
 
     // Alert if critical error
     if (body.severity === 'critical') {
-      console.error('🚨 CRITICAL ERROR LOGGED:', {
-        id: errorLog.id,
-        message: body.message,
-        url: body.url,
-        stack: body.stack?.slice(0, 500), // First 500 chars
-      });
+      errorLogger.error(
+        'CRITICAL ERROR LOGGED',
+        new Error(body.message),
+        context.withUserId(session?.user?.id).build()
+      );
     }
 
-    return NextResponse.json({
-      success: true,
+    return successResponse({
       errorId: errorLog.id,
       message: 'Error logged successfully',
-    });
+    }, 201);
   } catch (error) {
-    console.error('[Error Logging Handler Error]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to log error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error in error logging handler',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to log error');
   }
 }
 
@@ -108,15 +106,19 @@ export async function POST(request: NextRequest) {
  * Retrieve error logs (admin only)
  */
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/errors')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Login required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized error logs access', context.build());
+      return unauthorized();
     }
 
     // Get query parameters
@@ -125,6 +127,13 @@ export async function GET(request: NextRequest) {
     const severity = request.nextUrl.searchParams.get('severity');
     const hoursSince = parseInt(request.nextUrl.searchParams.get('hoursSince') || '24');
 
+    if (limit < 1 || limit > 500) {
+      return badRequest('Limit must be between 1 and 500');
+    }
+    if (skip < 0) {
+      return badRequest('Skip must be non-negative');
+    }
+
     const criteria = {
       severity: severity || undefined,
       hoursSince,
@@ -132,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     const errorLogs = await errorLoggingService.findErrors({
       ...criteria,
-      limit: Math.min(limit, 500),
+      limit,
       skip,
     });
 
@@ -146,23 +155,25 @@ export async function GET(request: NextRequest) {
       low: await errorLoggingService.getCount({ ...criteria, severity: 'low' }),
     };
 
-    return NextResponse.json({
-      success: true,
+    errorLogger.info(
+      `Error logs retrieved (${errorLogs.length} items)`,
+      context.withUserId(session.user.id).build()
+    );
+
+    return successResponse({
       errors: errorLogs,
       grouped,
       total,
       limit,
       hoursSince,
-    });
+    }, 200);
   } catch (error) {
-    console.error('[Error Log Retrieval Error]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve error logs',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error retrieving error logs',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to retrieve error logs');
   }
 }
 
@@ -174,41 +185,44 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id?: string }> }
 ) {
+  const requestId = crypto.randomUUID();
+  const ctx = createContext()
+    .withEndpoint('/api/admin/errors')
+    .withMethod('DELETE')
+    .withRequestId(requestId);
+
   try {
     // Check authentication
     const session = (await getServerSession(auth)) as AuthSession | null;
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Login required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized error log deletion', ctx.build());
+      return unauthorized();
     }
 
     const params = await context.params;
     const errorId = params?.id;
 
     if (!errorId) {
-      return NextResponse.json(
-        { error: 'Error ID is required' },
-        { status: 400 }
-      );
+      return badRequest('Error ID is required');
     }
 
     await errorLoggingService.deleteError(errorId);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Error log deleted',
-    });
-  } catch (error) {
-    console.error('[Error Log Delete Error]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to delete error log',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.info(
+      `Error log ${errorId} deleted`,
+      ctx.withUserId(session.user.id).build()
     );
+
+    return successResponse({
+      message: 'Error log deleted',
+    }, 200);
+  } catch (error) {
+    errorLogger.error(
+      'Error deleting error log',
+      error,
+      ctx.build()
+    );
+    return internalServerError('Failed to delete error log');
   }
 }

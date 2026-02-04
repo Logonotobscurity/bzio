@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { auth } from '@/lib/auth/config';
 import { prisma } from "@/lib/db";
 import { Prisma } from '@prisma/client';
+import { errorLogger, createContext } from '@/lib/error-logger';
+import { successResponse, unauthorized, badRequest, notFound, internalServerError } from '@/lib/api-response';
 
 /**
  * GET /api/admin/customers/data
@@ -9,15 +12,21 @@ import { Prisma } from '@prisma/client';
  * Admin endpoint with filtering and pagination
  */
 export async function GET(req: Request) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/customers/data')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      );
+      errorLogger.warn('Unauthorized access attempt to customer data', context.build());
+      return unauthorized('Admin access required');
     }
+
+    context.withUserId(session.user.id);
 
     const url = new URL(req.url);
     const customerId = url.searchParams.get('customerId');
@@ -26,9 +35,27 @@ export async function GET(req: Request) {
     const search = url.searchParams.get('search') || '';
     const exportFormat = url.searchParams.get('export'); // 'csv' or 'json'
 
+    // Validate pagination bounds
+    if (limit < 1 || limit > 500) {
+      errorLogger.warn(`Invalid limit parameter: ${limit}`, context.build());
+      return badRequest('Limit must be between 1 and 500');
+    }
+
+    if (offset < 0) {
+      errorLogger.warn(`Invalid offset parameter: ${offset}`, context.build());
+      return badRequest('Offset must be non-negative');
+    }
+
     // If specific customer requested
     if (customerId) {
+      errorLogger.info(`Fetching customer detail for ID: ${customerId}`, context.build());
+
       const customerIdNum = parseInt(customerId);
+      if (isNaN(customerIdNum)) {
+        errorLogger.warn(`Invalid customer ID format: ${customerId}`, context.build());
+        return badRequest('Invalid customer ID format');
+      }
+
       const customer = await prisma.user.findFirst({
         where: {
           id: customerIdNum,
@@ -88,11 +115,11 @@ export async function GET(req: Request) {
       });
 
       if (!customer) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
-        );
+        errorLogger.info(`Customer not found: ${customerIdNum}`, context.build());
+        return notFound('Customer not found');
       }
+
+      errorLogger.info(`Successfully retrieved customer detail for ID: ${customerIdNum}`, context.build());
 
       // Calculate totals for carts
       const cartsWithTotals = customer.carts.map((cart: typeof customer.carts[number]) => ({
@@ -114,7 +141,7 @@ export async function GET(req: Request) {
         createdAt: quote.createdAt,
       }));
 
-      return NextResponse.json({
+      return successResponse({
         customer: {
           ...customer,
           carts: cartsWithTotals,
@@ -122,6 +149,8 @@ export async function GET(req: Request) {
         },
       });
     }
+
+    errorLogger.info(`Fetching customer list with limit: ${limit}, offset: ${offset}${search ? `, search: ${search}` : ''}`, context.build());
 
     // Fetch multiple customers with search
     const whereClause: Prisma.UserWhereInput = search
@@ -190,10 +219,12 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    errorLogger.info(`Retrieved ${customers.length} customers from ${total} total`, context.build());
+
     // Transform and enhance customer data
     const customersWithTotals = customers.map((customer: typeof customers[number]) => {
       const cartTotal = customer.carts[0]?.items.reduce(
-        (sum: number, item: typeof customer.carts[0]['items'][number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
+        (sum: number, item: typeof customer.carts[0]['items'][number]): number => sum + (item.unitPrice || item.product.price || 0) * item.quantity,
         0
       ) || 0;
 
@@ -224,6 +255,7 @@ export async function GET(req: Request) {
 
     // If export format requested
     if (exportFormat === 'csv') {
+      errorLogger.info('Exporting customer data as CSV', context.build());
       const csv = convertToCsv(customersWithTotals);
       return new NextResponse(csv, {
         headers: {
@@ -233,7 +265,7 @@ export async function GET(req: Request) {
       });
     }
 
-    return NextResponse.json({
+    return successResponse({
       data: customersWithTotals,
       total,
       limit,
@@ -242,17 +274,14 @@ export async function GET(req: Request) {
       summary: {
         totalCustomers: total,
         activeCount: customers.filter((c: typeof customers[number]) => c.isActive).length,
-        totalAddresses: customers.reduce((sum: number, c: typeof customers[number]) => sum + c._count.addresses, 0),
-        totalQuotes: customers.reduce((sum: number, c: typeof customers[number]) => sum + c._count.quotes, 0),
-        totalCartValue: customersWithTotals.reduce((sum: number, c: typeof customersWithTotals[number]) => sum + (c.cartTotal || 0), 0),
+        totalAddresses: customers.reduce((sum: number, c: typeof customers[number]): number => sum + c._count.addresses, 0),
+        totalQuotes: customers.reduce((sum: number, c: typeof customers[number]): number => sum + c._count.quotes, 0),
+        totalCartValue: customersWithTotals.reduce((sum: number, c: typeof customersWithTotals[number]): number => sum + (c.cartTotal || 0), 0),
       },
     });
   } catch (error) {
-    console.error('[ADMIN_CUSTOMERS_DATA_GET]', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    errorLogger.error('Failed to fetch customer data', error, context.build());
+    return internalServerError('Failed to fetch customer data');
   }
 }
 

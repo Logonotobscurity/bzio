@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '~/auth';
 import { adminNotificationService } from '@/services';
+import { successResponse, unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 // GET /api/admin/notifications
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/notifications')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
 
     if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized notifications access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const adminId = Number(session.user.id);
@@ -19,37 +28,47 @@ export async function GET(request: NextRequest) {
       adminNotificationService.getUnreadCount(adminId),
     ]);
 
-    return NextResponse.json({
+    errorLogger.info(
+      `Fetched ${notifications.length} notifications`,
+      context.withUserId(adminId).build()
+    );
+
+    return successResponse({
       notifications,
       unreadCount,
-    });
+    }, 200);
   } catch (error) {
-    console.error('Failed to fetch notifications:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
+    errorLogger.error(
+      'Error fetching notifications',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to fetch notifications');
   }
 }
 
 // POST /api/admin/notifications (create notification)
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/notifications')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
 
     // Allow internal requests for creating notifications
     if (!session && request.headers.get('X-Internal-Secret') !== process.env.INTERNAL_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized notification creation', context.build());
+      return unauthorized();
     }
 
     const body = await request.json();
     const { adminId, type, title, message, data, actionUrl } = body;
 
     if (!adminId || !type || !title || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return badRequest('adminId, type, title, and message are required');
     }
 
     const notification = await adminNotificationService.createNotification({
@@ -61,12 +80,18 @@ export async function POST(request: NextRequest) {
       data: data || {},
     });
 
-    return NextResponse.json(notification, { status: 201 });
-  } catch (error) {
-    console.error('Failed to create notification:', error);
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
+    errorLogger.info(
+      `Notification created (type: ${type})`,
+      context.withUserId(adminId).build()
     );
+
+    return successResponse(notification, 201);
+  } catch (error) {
+    errorLogger.error(
+      'Error creating notification',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to create notification');
   }
 }

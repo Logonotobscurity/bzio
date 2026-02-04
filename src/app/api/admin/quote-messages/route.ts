@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
+import { successResponse, unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * GET /api/admin/quote-messages?quoteId=...
  * Fetch all messages for a specific quote
  */
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/quote-messages')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   try {
-    // ✅ CRITICAL: Verify admin access
     const session = await getServerSession();
     if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      errorLogger.warn('Unauthorized quote messages access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const quoteId = request.nextUrl.searchParams.get('quoteId');
 
     if (!quoteId) {
-      return NextResponse.json(
-        { error: 'quoteId is required' },
-        { status: 400 }
-      );
+      return badRequest('quoteId is required');
     }
 
     const messages = await prisma.quoteMessage.findMany({
@@ -37,13 +39,19 @@ export async function GET(request: NextRequest) {
       data: { isRead: true },
     });
 
-    return NextResponse.json({ messages });
-  } catch (error) {
-    console.error('[QUOTE_MESSAGES_GET] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch messages' },
-      { status: 500 }
+    errorLogger.info(
+      `Fetched ${messages.length} messages for quote ${quoteId}`,
+      context.withUserId(session.user.id).build()
     );
+
+    return successResponse({ messages }, 200);
+  } catch (error) {
+    errorLogger.error(
+      'Error fetching quote messages',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to fetch messages');
   }
 }
 
@@ -52,18 +60,25 @@ export async function GET(request: NextRequest) {
  * Create a new message
  */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/quote-messages')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
-    // ✅ CRITICAL: Verify admin access
     const session = await getServerSession();
     if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      errorLogger.warn('Unauthorized quote message creation', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const body = await request.json();
     const { quoteId, message, senderRole } = body;
+
+    if (!quoteId || !message) {
+      return badRequest('quoteId and message are required');
+    }
 
     const newMessage = await prisma.quoteMessage.create({
       data: {
@@ -75,12 +90,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: newMessage }, { status: 201 });
-  } catch (error) {
-    console.error('[QUOTE_MESSAGES_POST] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create message' },
-      { status: 500 }
+    errorLogger.info(
+      `Message created for quote ${quoteId}`,
+      context.withUserId(session.user.id).build()
     );
+
+    return successResponse({ message: newMessage }, 201);
+  } catch (error) {
+    errorLogger.error(
+      'Error creating quote message',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to create message');
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { trackEvent } from '@/lib/analytics';
+import { successResponse, unauthorized, badRequest, notFound, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * Quote Management API
@@ -12,14 +14,26 @@ import { trackEvent } from '@/lib/analytics';
  */
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/quotes')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized quotes API access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const body = await request.json();
     const { action, id, reason, ...data } = body;
+
+    // Validate required fields
+    if (!action) {
+      return badRequest('Action is required');
+    }
 
     // Approve quote
     if (action === 'approve' && id) {
@@ -27,63 +41,104 @@ export async function POST(request: NextRequest) {
         quoteId: id,
       });
 
-      return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
+      errorLogger.info(
+        `Quote ${id} approved`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, quoteId: id }, 200);
     }
 
     // Reject quote
     if (action === 'reject' && id) {
+      if (!reason) {
+        return badRequest('Reason is required for rejecting a quote');
+      }
+
       await trackEvent('quote_rejected', session.user.id, {
         quoteId: id,
         reason,
       });
 
-      return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
+      errorLogger.info(
+        `Quote ${id} rejected`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, quoteId: id }, 200);
     }
 
     // Update quote status
     if (action === 'update-status' && id) {
+      if (!data.status) {
+        return badRequest('Status is required');
+      }
+
       await trackEvent('quote_status_updated', session.user.id, {
         quoteId: id,
         newStatus: data.status,
       });
 
-      return NextResponse.json({ success: true, quoteId: id }, { status: 200 });
+      errorLogger.info(
+        `Quote ${id} status updated to ${data.status}`,
+        context.withUserId(session.user.id).build()
+      );
+
+      return successResponse({ success: true, quoteId: id }, 200);
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
-    console.error('[QUOTES_API] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    errorLogger.warn(
+      `Invalid action: ${action}`,
+      context.withUserId(session.user.id).build()
     );
+    return badRequest('Invalid action');
+  } catch (error) {
+    errorLogger.error(
+      'Error in quotes POST handler',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to process quote action');
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/quotes')
+    .withMethod('DELETE')
+    .withRequestId(requestId);
+
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      errorLogger.warn('Unauthorized quotes DELETE access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
 
     if (!id) {
-      return NextResponse.json({ error: 'Quote ID required' }, { status: 400 });
+      return badRequest('Quote ID is required');
     }
 
     await trackEvent('quote_deleted', session.user.id, {
       quoteId: id,
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error('[QUOTES_DELETE] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete quote' },
-      { status: 500 }
+    errorLogger.info(
+      `Quote ${id} deleted`,
+      context.withUserId(session.user.id).build()
     );
+
+    return successResponse({ success: true }, 200);
+  } catch (error) {
+    errorLogger.error(
+      'Error in quotes DELETE handler',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to delete quote');
   }
 }

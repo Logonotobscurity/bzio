@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 import { USER_ROLES } from '@/lib/auth/constants';
+import { successResponse, unauthorized, badRequest, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * POST /api/admin/setup
@@ -34,15 +36,19 @@ import { USER_ROLES } from '@/lib/auth/constants';
  * ```
  */
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/setup')
+    .withMethod('POST')
+    .withRequestId(requestId);
+
   try {
     // Verify setup token from environment
     const setupToken = process.env.ADMIN_SETUP_TOKEN;
     if (!setupToken) {
+      errorLogger.warn('Admin setup endpoint called but not configured', context.build());
       return NextResponse.json(
-        {
-          error: 'Admin setup is not configured',
-          message: 'ADMIN_SETUP_TOKEN environment variable is not set',
-        },
+        { error: 'Admin setup is not configured' },
         { status: 503 }
       );
     }
@@ -52,13 +58,8 @@ export async function POST(request: NextRequest) {
     const providedToken = authHeader?.replace('Bearer ', '');
 
     if (!providedToken || providedToken !== setupToken) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Invalid or missing ADMIN_SETUP_TOKEN',
-        },
-        { status: 401 }
-      );
+      errorLogger.warn('Invalid setup token provided', context.build());
+      return unauthorized();
     }
 
     // Parse request body
@@ -66,31 +67,14 @@ export async function POST(request: NextRequest) {
 
     // Validate inputs
     if (!email || !password || !firstName) {
-      return NextResponse.json(
-        {
-          error: 'Invalid input',
-          message: 'email, password, and firstName are required',
-        },
-        { status: 400 }
-      );
+      return badRequest('email, password, and firstName are required');
     }
 
     if (password.length < 8) {
-      return NextResponse.json(
-        {
-          error: 'Invalid password',
-          message: 'Password must be at least 8 characters',
-        },
-        { status: 400 }
-      );
+      return badRequest('Password must be at least 8 characters');
     }
 
-    console.log('[ADMIN_SETUP] Starting admin user setup', {
-      email,
-      firstName,
-      lastName,
-      timestamp: new Date().toISOString(),
-    });
+    errorLogger.info(`Admin setup initiated (${email})`, context.build());
 
     // Step 1: Delete any existing admin with this email
     const existingAdmin = await prisma.user.findUnique({
@@ -98,14 +82,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAdmin) {
-      console.log('[ADMIN_SETUP] Deleting existing admin user', {
-        email,
-        userId: existingAdmin.id,
-      });
-
       await prisma.user.delete({
         where: { id: existingAdmin.id },
       });
+
+      errorLogger.info(`Replaced existing admin user (${email})`, context.build());
     }
 
     // Step 2: Hash password and create new admin user
@@ -124,17 +105,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[ADMIN_SETUP] Admin user created successfully', {
-      userId: newAdmin.id,
-      email: newAdmin.email,
-      timestamp: new Date().toISOString(),
-    });
+    errorLogger.info(`Admin user created (${email})`, context.withUserId(newAdmin.id).build());
 
     // Step 3: Return success with credentials
-    return NextResponse.json(
+    return successResponse(
       {
-        success: true,
-        message: 'Admin user created successfully',
         admin: {
           id: newAdmin.id,
           email: newAdmin.email,
@@ -155,28 +130,20 @@ export async function POST(request: NextRequest) {
           'You will be redirected to /admin dashboard',
         ],
       },
-      { status: 201 }
+      201
     );
   } catch (error) {
-    console.error('[ADMIN_SETUP] Error:', error);
+    errorLogger.error(
+      'Error during admin setup',
+      error,
+      context.build()
+    );
 
     if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        {
-          error: 'Email already exists',
-          message: 'Another user already has this email address',
-        },
-        { status: 409 }
-      );
+      return badRequest('Email already exists');
     }
 
-    return NextResponse.json(
-      {
-        error: 'Setup failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Admin setup failed');
   }
 }
 
@@ -185,12 +152,29 @@ export async function POST(request: NextRequest) {
  * Health check - verifies if admin setup is enabled
  */
 export async function GET(request: NextRequest) {
-  const setupToken = process.env.ADMIN_SETUP_TOKEN;
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/setup')
+    .withMethod('GET')
+    .withRequestId(requestId);
 
-  return NextResponse.json({
-    setupEnabled: !!setupToken,
-    message: setupToken
-      ? 'Admin setup is enabled. Send POST request with token.'
-      : 'Admin setup is disabled. Set ADMIN_SETUP_TOKEN environment variable.',
-  });
+  try {
+    const setupToken = process.env.ADMIN_SETUP_TOKEN;
+
+    errorLogger.info('Admin setup status check', context.build());
+
+    return successResponse({
+      setupEnabled: !!setupToken,
+      message: setupToken
+        ? 'Admin setup is enabled'
+        : 'Admin setup is disabled',
+    }, 200);
+  } catch (error) {
+    errorLogger.error(
+      'Error checking admin setup status',
+      error,
+      context.build()
+    );
+    return internalServerError('Failed to check setup status');
+  }
 }

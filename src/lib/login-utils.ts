@@ -4,7 +4,7 @@
  * Reduces code duplication and ensures consistent behavior
  */
 
-import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth/constants';
+import { USER_ROLES, REDIRECT_PATHS } from '@/lib/auth-constants';
 
 /**
  * Role metadata for login flows

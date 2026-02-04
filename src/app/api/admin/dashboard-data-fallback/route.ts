@@ -8,6 +8,8 @@ import {
   getNewsletterSubscribers,
   getFormSubmissions,
 } from '@/app/admin/_actions/activities';
+import { successResponse, unauthorized, internalServerError } from '@/lib/api-response';
+import { errorLogger, createContext } from '@/lib/error-logger';
 
 /**
  * GET /api/admin/dashboard-data-fallback
@@ -15,22 +17,24 @@ import {
  * Used when the optimized endpoint fails
  */
 export async function GET() {
+  const requestId = crypto.randomUUID();
+  const context = createContext()
+    .withEndpoint('/api/admin/dashboard-data-fallback')
+    .withMethod('GET')
+    .withRequestId(requestId);
+
   const startTime = Date.now();
 
   try {
-    // ✅ CRITICAL: Use NextAuth session for proper role-based access control
     const session = await getServerSession();
     if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      errorLogger.warn('Unauthorized dashboard fallback access', context.withUserId(session?.user?.id).build());
+      return unauthorized();
     }
 
-    console.log('[DASHBOARD_FALLBACK] Admin request received', { adminId: session.user?.id });
+    errorLogger.info('Dashboard fallback data request', context.withUserId(session.user.id).build());
 
     // Fetch all data in parallel with longer timeouts
-    console.log('[DASHBOARD_FALLBACK] Fetching data...');
     const [activitiesResult, statsResult, quotesResult, newUsersResult, newsletterResult, formsResult] =
       await Promise.allSettled([
         getRecentActivities(0, 50),
@@ -40,15 +44,6 @@ export async function GET() {
         getNewsletterSubscribers(0, 20),
         getFormSubmissions(0, 20),
       ]);
-
-    console.log('[DASHBOARD_FALLBACK] Results:', {
-      activities: activitiesResult.status,
-      stats: statsResult.status,
-      quotes: quotesResult.status,
-      users: newUsersResult.status,
-      newsletter: newsletterResult.status,
-      forms: formsResult.status,
-    });
 
     // Extract results with fallbacks
     const activities = (activitiesResult.status === 'fulfilled' ? (activitiesResult.value?.data || []) : []) as unknown as Record<string, unknown>[];
@@ -68,6 +63,11 @@ export async function GET() {
 
     const duration = Date.now() - startTime;
 
+    errorLogger.info(
+      `Dashboard fallback data fetched (${duration}ms)`,
+      context.withUserId(session.user.id).build()
+    );
+
     const responseData = {
       stats,
       activities,
@@ -80,23 +80,13 @@ export async function GET() {
       source: 'fallback',
     };
 
-    console.log('[DASHBOARD_FALLBACK] Returning data', { duration });
-
-    return NextResponse.json(responseData, {
-      headers: {
-        'Cache-Control': 'private, max-age=5, stale-while-revalidate=10',
-        'X-Dashboard-Source': 'fallback',
-        'X-Response-Time': `${duration}ms`,
-      },
-    });
+    return successResponse(responseData, 200);
   } catch (error) {
-    console.error('[DASHBOARD_FALLBACK] Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch dashboard data',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    errorLogger.error(
+      'Error fetching fallback dashboard data',
+      error,
+      context.build()
     );
+    return internalServerError('Failed to fetch dashboard data');
   }
 }
