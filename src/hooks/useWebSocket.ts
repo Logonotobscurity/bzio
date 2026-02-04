@@ -296,9 +296,9 @@ export function useWebSocketEvent(
       callback(event.detail);
     };
 
-    window.addEventListener(eventType, handleEvent as EventListener);
+    window.addEventListener(eventType, handleEvent as any);
     return () => {
-      window.removeEventListener(eventType, handleEvent as EventListener);
+      window.removeEventListener(eventType, handleEvent as any);
     };
   }, [eventType, callback]);
 }
