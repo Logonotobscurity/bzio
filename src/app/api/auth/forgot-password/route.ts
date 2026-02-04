@@ -12,17 +12,29 @@
  * - Tokens expire in 1 hour
  */
 
+import { checkRateLimit } from "@/lib/ratelimit";
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { sendPasswordResetEmail } from '@/lib/email-service';
 import crypto from 'crypto';
+import { tokenStore, cleanExpiredTokens } from "@/lib/password-reset";
 
 // In-memory token storage (for development)
 // In production, add PasswordResetToken model to Prisma schema
-const tokenStore = new Map<string, { userId: number; email: string; expiresAt: Date }>();
 
 export async function POST(req: Request) {
   try {
+    // Rate limiting
+    const ip = req.headers.get("x-forwarded-for") || "anonymous";
+    const { success: rateLimitSuccess, headers: rateLimitHeaders } = await checkRateLimit(ip, "auth");
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { success: false, message: "Too many password reset attempts. Please try again later." },
+        { status: 429, headers: rateLimitHeaders }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email || typeof email !== 'string') {
@@ -90,4 +102,3 @@ export async function POST(req: Request) {
 }
 
 // Export token store for use in reset-password endpoint
-export { tokenStore };

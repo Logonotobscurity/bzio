@@ -101,3 +101,21 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const submissions = await formService.getAllSubmissions();
+    return NextResponse.json(submissions);
+  } catch (error) {
+    console.error("[FORMS_GET] Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

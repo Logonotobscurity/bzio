@@ -35,6 +35,6 @@ export { BaseRepository, prisma } from './base.repository';
 const useDatabase = process.env.DATABASE_URL && process.env.USE_DATABASE === 'true';
 
 export const brandRepository = useDatabase ? brandDbRepo : brandStaticRepo;
-export const categoryRepository = useDatabase ? categoryStaticRepo : categoryDbRepo;
-export const companyRepository = useDatabase ? companyStaticRepo : companyDbRepo;
-export const productRepository = useDatabase ? productStaticRepo : productDbRepo;
+export const categoryRepository = useDatabase ? categoryDbRepo : categoryStaticRepo;
+export const companyRepository = useDatabase ? companyDbRepo : companyStaticRepo;
+export const productRepository = useDatabase ? productDbRepo : productStaticRepo;

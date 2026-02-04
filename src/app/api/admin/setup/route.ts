@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
+import { checkRateLimit } from "@/lib/ratelimit";
 import * as bcrypt from 'bcryptjs';
 import { USER_ROLES } from '@/lib/auth/constants';
 
@@ -35,6 +36,17 @@ import { USER_ROLES } from '@/lib/auth/constants';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = request.headers.get("x-forwarded-for") || "anonymous";
+    const { success: rateLimitSuccess, headers: rateLimitHeaders } = await checkRateLimit(ip, "auth");
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { success: false, error: "Too many setup attempts. Please try again later." },
+        { status: 429, headers: rateLimitHeaders }
+      );
+    }
+
     // Verify setup token from environment
     const setupToken = process.env.ADMIN_SETUP_TOKEN;
     if (!setupToken) {

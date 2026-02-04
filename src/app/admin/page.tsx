@@ -26,7 +26,7 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  console.log('[ADMIN_PAGE] Loading dashboard for admin:', session.user.email);
+  console.log('[ADMIN_PAGE] Loading dashboard for admin');
   
   // Fetch all data in parallel with individual error handling
   // Use Promise.allSettled so one slow query doesn't block all others

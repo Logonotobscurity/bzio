@@ -11,7 +11,7 @@
 
 const adminEmail = 'bola@bzion.shop';
 const adminPassword = 'BzionAdmin@2024!Secure';
-const setupToken = 'bzion-admin-setup-key-2024-secure'; // Must match ADMIN_SETUP_TOKEN in .env
+const setupToken = 'REPLACE_WITH_ADMIN_SETUP_TOKEN'; // Must match ADMIN_SETUP_TOKEN in .env
 const apiUrl = 'http://localhost:3000/api/admin/setup';
 
 async function setupAdmin() {

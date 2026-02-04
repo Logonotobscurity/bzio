@@ -14,7 +14,7 @@ const http = require('http');
 const BASE_URL = 'http://localhost:3000';
 const ADMIN_EMAIL = 'admin@bzion.shop';
 const ADMIN_PASSWORD = 'BzionAdmin@2024!Secure';
-const ADMIN_SETUP_TOKEN = 'bzion-admin-setup-key-2024-secure';
+const ADMIN_SETUP_TOKEN = 'REPLACE_WITH_ADMIN_SETUP_TOKEN';
 
 /**
  * Make HTTP request

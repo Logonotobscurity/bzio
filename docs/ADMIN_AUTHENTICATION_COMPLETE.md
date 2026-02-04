@@ -175,7 +175,7 @@ FROM users WHERE role = 'admin';
 ### API Test
 ```bash
 curl -X POST http://localhost:3000/api/admin/setup \
-  -H "Authorization: Bearer bzion-admin-setup-key-2024-secure" \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_SETUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "bola@bzion.shop",
@@ -253,7 +253,7 @@ curl -X POST http://localhost:3000/api/admin/setup \
 DATABASE_URL="postgres://..."
 
 # Admin setup (required for setup endpoint)
-ADMIN_SETUP_TOKEN="bzion-admin-setup-key-2024-secure"
+ADMIN_SETUP_TOKEN="REPLACE_WITH_ADMIN_SETUP_TOKEN"
 
 # NextAuth (should already exist)
 NEXTAUTH_SECRET="..."

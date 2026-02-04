@@ -200,7 +200,7 @@ export default function AdminPage() {
 ### Create Admin (POST)
 ```bash
 curl -X POST http://localhost:3000/api/admin/setup \
-  -H "Authorization: Bearer bzion-admin-setup-key-2024-secure" \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_SETUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "bola@bzion.shop",
