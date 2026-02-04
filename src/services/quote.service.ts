@@ -256,7 +256,7 @@ export class QuoteService {
 
       const quote = await prisma.$transaction(async (tx) => {
         // Create the quote
-        const newQuote = await tx.quote.create({
+        const newQuote = await (tx as any).quote.create({
           data: {
             reference,
             userId: data.userId,
@@ -279,7 +279,7 @@ export class QuoteService {
         });
 
         // Log the creation event
-        await tx.quoteEvent.create({
+        await (tx as any).quoteEvent.create({
           data: {
             quoteId: newQuote.id,
             actorId: data.actorId || 'system',

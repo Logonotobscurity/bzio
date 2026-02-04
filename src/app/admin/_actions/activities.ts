@@ -185,7 +185,7 @@ export async function getRecentActivities(
 
         // Add user registrations
         activities.push(
-          ...userActivities.map((user) => ({
+          ...userActivities.map((user: typeof userActivities[number]) => ({
             id: `user_${user.id}`,
             type: 'user_registration' as const,
             timestamp: user.createdAt,
@@ -203,7 +203,7 @@ export async function getRecentActivities(
 
         // Add quote activities
         activities.push(
-          ...businessActivities.map((quote) => ({
+          ...businessActivities.map((quote: typeof businessActivities[number]) => ({
             id: quote.id,
             type: 'quote_request' as const,
             timestamp: quote.createdAt,
@@ -373,9 +373,9 @@ export async function getQuotes(
             prisma.quote.count({ where: status ? { status } : undefined }),
             15000
           ),
-        ]);
+        ]) as any;
 
-        const mappedQuotes = quotes.map(q => ({
+        const mappedQuotes = (quotes as typeof quotes).map((q: typeof quotes[number]) => ({
           ...q,
           userId: q.userId?.toString() ?? null,
           email: q.user?.email ?? null,
@@ -418,7 +418,7 @@ export async function getNewUsers(
     cacheKey,
     async () => {
       try {
-        const [users, total] = await Promise.all([
+        const [users, total] = (await Promise.all([
           withTimeout(
             prisma.user.findMany({
               where: { role: 'customer' },
@@ -444,7 +444,7 @@ export async function getNewUsers(
             prisma.user.count({ where: { role: 'customer' } }),
             10000
           ),
-        ]);
+        ]) as any);
 
         return {
           data: users,
@@ -501,7 +501,7 @@ export async function getNewsletterSubscribers(
             prisma.newsletterSubscriber.count(),
             10000
           ),
-        ]);
+        ]) as any;
 
         return {
           data: subscribers,
@@ -538,7 +538,7 @@ export async function getFormSubmissions(
     cacheKey,
     async () => {
       try {
-        const [submissions, total] = await Promise.all([
+        const [submissions, total] = (await Promise.all([
           withTimeout(
             prisma.formSubmission.findMany({
               take: limit,
@@ -559,7 +559,7 @@ export async function getFormSubmissions(
             prisma.formSubmission.count(),
             10000
           ),
-        ]);
+        ])) as any;
 
         return {
           data: submissions,

@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       ORDER BY table_name
     `;
 
-    result.schema.tables = tables.map(t => t.table_name);
+    result.schema.tables = tables.map((t: typeof tables[number]) => t.table_name);
 
     // Check for required tables
     const tableSet = new Set(result.schema.tables);

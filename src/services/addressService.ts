@@ -6,7 +6,7 @@ type UpdateAddressInput = Partial<Omit<Address, 'id' | 'userId' | 'createdAt' | 
 
 export const createAddress = async (userId: number, data: Omit<CreateAddressInput, 'userId'>): Promise<Address> => {
   return prisma.address.create({
-    data: { ...data, userId },
+    data: { ...data, userId } as any,
   });
 };
 

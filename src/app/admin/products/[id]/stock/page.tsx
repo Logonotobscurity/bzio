@@ -78,7 +78,7 @@ export default async function ManageStockPage({ params }: ManageStockPageProps) 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {product.stockMovements.map((movement) => (
+                  {product.stockMovements.map((movement: typeof product.stockMovements[number]) => (
                     <TableRow key={movement.id}>
                       <TableCell>{movement.createdAt.toLocaleString()}</TableCell>
                       <TableCell>{movement.quantity}</TableCell>

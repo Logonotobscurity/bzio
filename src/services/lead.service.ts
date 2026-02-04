@@ -135,7 +135,7 @@ export class LeadService {
    */
   async getLeadCountBySource(source: string): Promise<number> {
     const all = await leadRepository.findAll();
-    return all?.filter(l => l.source === source).length || 0;
+    return all?.filter((l: typeof all[number]) => l.source === source).length || 0;
   }
 
   /**
@@ -151,7 +151,7 @@ export class LeadService {
 
     const statusCounts = new Map<string, number>();
 
-    allLeads.forEach(lead => {
+    allLeads.forEach((lead: typeof allLeads[number]) => {
       const status = lead.status || 'unknown';
       statusCounts.set(status, (statusCounts.get(status) || 0) + 1);
     });
@@ -176,7 +176,7 @@ export class LeadService {
 
     const sourceCounts = new Map<string, number>();
 
-    allLeads.forEach(lead => {
+    allLeads.forEach((lead: typeof allLeads[number]) => {
       sourceCounts.set(lead.source, (sourceCounts.get(lead.source) || 0) + 1);
     });
 

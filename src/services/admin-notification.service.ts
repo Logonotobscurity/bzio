@@ -131,7 +131,7 @@ export class AdminNotificationService {
    */
   async getNotificationsByType(type: string): Promise<AdminNotification[]> {
     const all = await adminNotificationRepository.findAll();
-    return (all?.filter(n => n.type === type) || []) as unknown as AdminNotification[];
+    return (all?.filter((n: typeof all[number]) => n.type === type) || []) as unknown as AdminNotification[];
   }
 
   /**

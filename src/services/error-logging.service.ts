@@ -186,12 +186,12 @@ export class ErrorLoggingService {
 
     return {
       total: all.length,
-      unresolved: all.filter(e => e.severity === 'critical' || e.severity === 'high').length,
-      resolved: all.filter(e => e.severity === 'low').length,
-      critical: all.filter(e => e.severity === 'critical').length,
-      high: all.filter(e => e.severity === 'high').length,
-      medium: all.filter(e => e.severity === 'medium').length,
-      low: all.filter(e => e.severity === 'low').length,
+      unresolved: all.filter((e: typeof all[number]) => e.severity === 'critical' || e.severity === 'high').length,
+      resolved: all.filter((e: typeof all[number]) => e.severity === 'low').length,
+      critical: all.filter((e: typeof all[number]) => e.severity === 'critical').length,
+      high: all.filter((e: typeof all[number]) => e.severity === 'high').length,
+      medium: all.filter((e: typeof all[number]) => e.severity === 'medium').length,
+      low: all.filter((e: typeof all[number]) => e.severity === 'low').length,
     };
   }
 

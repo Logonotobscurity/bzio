@@ -24,5 +24,5 @@ export const getFeaturedBrands = async (limit: number = 10): Promise<Brand[]> =>
 };
 
 export const createBrand = async (data: CreateBrandInput): Promise<Brand> => {
-  return prisma.brand.create({ data });
+  return prisma.brand.create({ data: data as any });
 };

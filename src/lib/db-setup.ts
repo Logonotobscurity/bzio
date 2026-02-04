@@ -28,7 +28,7 @@ export async function setupDatabase() {
 
     // Verify critical tables exist
     const criticalTables = ['User', 'passwordResetToken', 'emailVerificationToken'];
-    const tableNames = tables.map(t => t.table_name);
+    const tableNames = tables.map((t: typeof tables[number]) => t.table_name);
 
     for (const table of criticalTables) {
       if (!tableNames.includes(table) && !tableNames.includes(table.toLowerCase())) {

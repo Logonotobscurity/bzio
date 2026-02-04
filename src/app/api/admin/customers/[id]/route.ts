@@ -69,9 +69,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     // Calculate cart totals
-    const cartsWithTotals = customer.carts.map(cart => ({
+    const cartsWithTotals = customer.carts.map((cart: typeof customer.carts[number]) => ({
       ...cart,
-      total: cart.items.reduce((sum, item) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0),
+      total: cart.items.reduce((sum: number, item: typeof cart.items[number]) => sum + (item.unitPrice || item.product.price || 0) * item.quantity, 0),
     }));
 
     return NextResponse.json({

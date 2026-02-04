@@ -19,7 +19,7 @@ export async function adjustStock(formData: FormData) {
   const data = result.data;
 
   await prisma.$transaction(async (tx) => {
-    await tx.stockMovement.create({
+    await (tx as any).stockMovement.create({
       data: {
         productId: data.productId,
         quantity: data.quantity,
@@ -28,7 +28,7 @@ export async function adjustStock(formData: FormData) {
       },
     });
 
-    await tx.product.update({
+    await (tx as any).product.update({
       where: { id: data.productId },
       data: {
         stock: {

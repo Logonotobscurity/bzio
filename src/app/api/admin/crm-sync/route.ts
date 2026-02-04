@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Extract email from form submission data
-    const formsWithEmail = forms.map((form) => {
+    const formsWithEmail = forms.map((form: typeof forms[number]) => {
       // Safely cast JSON data to access email property
       const formData = (form.data as Record<string, unknown>) || {};
       return {
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate conversion rate (converted leads / total leads)
-    const convertedLeads = leads.filter((l) => l.status !== 'NEW').length;
+    const convertedLeads = leads.filter((l: typeof leads[number]) => l.status !== 'NEW').length;
     const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
     const stats = {

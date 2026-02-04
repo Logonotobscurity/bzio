@@ -121,7 +121,7 @@ export class QuoteMessageService {
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     const all = await quoteMessageRepository.findAll(limit);
-    return (all?.filter(m => new Date(m.createdAt) >= cutoffDate) || []) as unknown as QuoteMessage[];
+    return (all?.filter((m: typeof all[number]) => new Date(m.createdAt) >= cutoffDate) || []) as unknown as QuoteMessage[]
   }
 
   /**
@@ -129,7 +129,7 @@ export class QuoteMessageService {
    */
   async getMessagesBySender(senderEmail: string): Promise<QuoteMessage[]> {
     const all = await quoteMessageRepository.findAll();
-    return (all?.filter(m => m.senderEmail === senderEmail) || []) as unknown as QuoteMessage[];
+    return (all?.filter((m: typeof all[number]) => m.senderEmail === senderEmail) || []) as unknown as QuoteMessage[];
   }
 
   /**

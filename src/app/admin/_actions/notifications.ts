@@ -56,7 +56,7 @@ export async function broadcastAdminNotification(
 
     // Create notification for each admin
     const notifications = await Promise.all(
-      admins.map((admin) =>
+      admins.map((admin: typeof admins[number]) =>
         createAdminNotification({
           adminId: admin.id,
           type,

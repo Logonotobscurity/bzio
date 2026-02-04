@@ -256,7 +256,7 @@ export async function getPopularEvents(limit: number = 10) {
     take: limit,
   });
 
-  return result.map(item => ({
+  return result.map((item: typeof result[number]) => ({
     type: item.eventType,
     count: item._count.eventType,
   }));
@@ -279,7 +279,7 @@ export async function getActiveUsers(limit: number = 10) {
     take: limit,
   });
 
-  return result.map(item => ({
+  return result.map((item: typeof result[number]) => ({
     userId: item.userId as number,
     eventCount: item._count.userId,
   }));

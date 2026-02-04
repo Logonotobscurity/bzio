@@ -78,7 +78,7 @@ export class NewsletterService {
    */
   async getActiveSubscribers(limit?: number, skip?: number): Promise<NewsletterSubscriber[]> {
     const all = await newsletterSubscriberRepository.findAll(limit, skip);
-    return (all?.filter(s => s.status === 'active') || []) as unknown as NewsletterSubscriber[];
+    return (all?.filter((s: typeof all[number]) => s.status === 'active') || []) as unknown as NewsletterSubscriber[];
   }
 
   /**

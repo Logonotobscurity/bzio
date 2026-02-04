@@ -95,12 +95,12 @@ export async function POST(request: NextRequest) {
     // Create all records in a transaction to ensure data consistency
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create form submission record
-      const formSubmission = await tx.formSubmission.create({
+      const formSubmission = await (tx as any).formSubmission.create({
         data: formSubmissionData,
       });
 
       // 2. Create lead record for CRM
-      const lead = await tx.lead.create({
+      const lead = await (tx as any).lead.create({
         data: {
           email,
           name,
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       });
 
       // 3. Create CRM notification for BZION_HUB
-      const notification = await tx.crmNotification.create({
+      const notification = await (tx as any).crmNotification.create({
         data: {
           type: 'NEW_FORM_SUBMISSION',
           targetSystem: 'BZION_HUB',
